@@ -1,0 +1,208 @@
+---
+/**
+ * ORGANISME · BuyBox — panel kanan halaman detail: info produk + Delivery Information
+ * + Add to Cart / Check Out Now. Pakai Swatch, Biteship autocomplete, cart.
+ */
+import Pill from '../atoms/Pill.astro';
+import Swatch from '../atoms/Swatch.astro';
+import Icon from '../atoms/Icon.astro';
+import type { CatalogItem } from '../../data/catalog';
+
+interface Props {
+  item: CatalogItem;
+}
+const { item } = Astro.props;
+const priceLabel =
+  typeof item.price === 'number'
+    ? 'Rp ' + item.price.toLocaleString('en-US')
+    : item.priceNote || 'By request';
+const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
+---
+
+<aside class="buybox" data-buybox data-slug={item.slug} data-price={typeof item.price === 'number' ? item.price : 0} data-soldout={item.soldOut ? '1' : undefined}>
+  <div class="buybox__head">
+    <h1 class="ts-06 buybox__name">{item.name}</h1>
+    <Pill>{item.pill}</Pill>
+    <p class="buybox__price">{priceLabel}</p>
+    <Swatch options={['Standard', 'Premium']} images={swatchImages} />
+  </div>
+
+  <div class="buybox__delivery">
+    <span class="buybox__dtitle">Delivery Information</span>
+
+    <div class="buybox__modes">
+      <button type="button" class="buybox__mode is-active" data-mode="delivery">
+        <Icon name="truck-delivery" size={16} alt="" /> Delivery
+      </button>
+      <button type="button" class="buybox__mode" data-mode="pickup">
+        <Icon name="toko" size={16} alt="" /> Pickup
+      </button>
+    </div>
+
+    <label class="buybox__row">
+      <span>Available Delivery City:</span>
+      <span class="buybox__addrwrap">
+        <input type="text" data-addr placeholder="Select a city / district" autocomplete="off" />
+        <ul class="buybox__addrlist" data-addrlist hidden></ul>
+      </span>
+    </label>
+
+    <div class="buybox__detail">
+      <span class="buybox__dlabel">Detail Delivery:</span>
+      <div class="buybox__detailbox">
+        <div class="buybox__dcell">
+          <b>Receive on:</b>
+          <input type="date" data-date />
+        </div>
+        <div class="buybox__dcell">
+          <b>Send to:</b>
+          <input type="text" data-sendto placeholder="Recipient address / building" />
+        </div>
+      </div>
+    </div>
+
+    <p class="buybox__note">
+      *Note: If you order D-1 after 3 PM, your order would be processed on the next day after 2 PM
+    </p>
+
+    <label class="buybox__field"><span>Sender Name:</span><input type="text" name="senderName" placeholder="Name" /></label>
+    <label class="buybox__field"><span>Sender WhatsApp:</span><input type="tel" name="senderWa" placeholder="(+62)" /></label>
+    <label class="buybox__field"><span>Sender Email:</span><input type="email" name="senderEmail" placeholder="Email" /></label>
+
+    <p class="buybox__courier" data-courier hidden></p>
+  </div>
+
+  {item.soldOut ? (
+    <button class="cmp-btn-primary buybox__checkout" type="button" disabled>Sold Out</button>
+  ) : (
+    <>
+      <button class="cmp-btn-secondary buybox__add" type="button" data-add>Add to Cart</button>
+      <button class="cmp-btn-primary buybox__checkout" type="button" data-checkout>
+        Check Out Now — <span data-cotot>{priceLabel}</span>
+      </button>
+    </>
+  )}
+</aside>
+
+<script>
+  import { addItem, rupiah } from '../../lib/cart';
+
+  // ongkir & alamat lewat endpoint server (/api/shipping) — token Biteship tak pernah ke browser
+  type Area = { id: string; name: string; postal_code: number };
+  type RateOption = { courier: string; service: string; price: number; etd: string };
+  const searchAreas = (input: string): Promise<Area[]> =>
+    input.trim().length < 3
+      ? Promise.resolve([])
+      : fetch('/api/shipping?q=' + encodeURIComponent(input))
+          .then((r) => r.json())
+          .then((j) => (Array.isArray(j.areas) ? (j.areas as Area[]) : []))
+          .catch(() => []);
+  const getRates = (opts: {
+    destAreaId?: string;
+    destPostal?: number;
+    items: { name: string; [k: string]: unknown }[];
+  }): Promise<{ options: RateOption[]; estimated: boolean }> =>
+    fetch('/api/shipping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        destAreaId: opts.destAreaId,
+        destPostal: opts.destPostal,
+        items: opts.items.map((it) => ({ slug: it.name, qty: 1 })),
+      }),
+    })
+      .then((r) => r.json())
+      .catch(() => ({ options: [] as RateOption[], estimated: true }));
+
+  document.querySelectorAll<HTMLElement>('[data-buybox]').forEach((box) => {
+    if (box.dataset.soldout) return; // tak ada tombol beli untuk item sold out
+    const slug = box.dataset.slug!;
+    const unit = parseInt(box.dataset.price || '0', 10);
+    const $ = <T extends Element = HTMLElement>(s: string) => box.querySelector<T>(s)!;
+    const addrInput = $<HTMLInputElement>('[data-addr]');
+    const addrList = $('[data-addrlist]');
+    const dateInput = $<HTMLInputElement>('[data-date]');
+    const courierEl = $('[data-courier]');
+    const coTot = $('[data-cotot]');
+
+    const t = new Date(); t.setDate(t.getDate() + 1);
+    dateInput.value = dateInput.min =
+      `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+
+    let dest: { areaId?: string; postal?: number; label?: string } = {};
+    let ship = 0;
+
+    const updateTotal = () => {
+      coTot.textContent = unit ? rupiah(unit + ship) : 'By request';
+    };
+
+    const loadRates = async () => {
+      if (!dest.areaId && !dest.postal) return;
+      courierEl.hidden = false;
+      courierEl.textContent = 'Checking delivery…';
+      const res = await getRates({
+        destAreaId: dest.areaId,
+        destPostal: dest.postal,
+        items: [{ name: slug, value: unit || 300000, weight: 1500, quantity: 1 }],
+      });
+      const cheapest = res.options[0];
+      ship = cheapest?.price ?? 0;
+      courierEl.textContent = cheapest
+        ? `Delivery: ${cheapest.courier} ${cheapest.service} — ${rupiah(ship)}${res.estimated ? ' (est.)' : ''}`
+        : '';
+      updateTotal();
+    };
+
+    // toggle delivery / pickup
+    box.querySelectorAll<HTMLElement>('[data-mode]').forEach((b) => {
+      b.addEventListener('click', () => {
+        box.querySelectorAll('[data-mode]').forEach((x) => x.classList.remove('is-active'));
+        b.classList.add('is-active');
+        if (b.dataset.mode === 'pickup') { ship = 0; courierEl.hidden = true; updateTotal(); }
+        else if (dest.areaId || dest.postal) loadRates();
+      });
+    });
+
+    // address autocomplete
+    let tmr: number | undefined;
+    addrInput.addEventListener('input', () => {
+      dest = {}; ship = 0; updateTotal();
+      window.clearTimeout(tmr);
+      tmr = window.setTimeout(async () => {
+        const areas = await searchAreas(addrInput.value);
+        if (!areas.length) { addrList.hidden = true; return; }
+        addrList.innerHTML = areas.slice(0, 8)
+          .map((a) => `<li data-id="${a.id}" data-postal="${a.postal_code}">${a.name}</li>`).join('');
+        addrList.hidden = false;
+      }, 300);
+    });
+    addrList.addEventListener('click', (e) => {
+      const li = (e.target as HTMLElement).closest<HTMLElement>('li[data-id]');
+      if (!li) return;
+      dest = { areaId: li.dataset.id, postal: Number(li.dataset.postal), label: li.textContent || '' };
+      addrInput.value = dest.label!;
+      addrList.hidden = true;
+      loadRates();
+    });
+    document.addEventListener('click', (e) => {
+      if (!addrInput.parentElement!.contains(e.target as Node)) addrList.hidden = true;
+    });
+
+    // add to cart
+    const addBtn = $('[data-add]');
+    addBtn.addEventListener('click', () => {
+      addItem(slug, 1);
+      const o = addBtn.textContent;
+      addBtn.textContent = 'Added ✓';
+      window.setTimeout(() => (addBtn.textContent = o), 1100);
+    });
+
+    // check out now → tambah ke cart, ke halaman /cart
+    $('[data-checkout]').addEventListener('click', () => {
+      addItem(slug, 1);
+      window.location.href = '/cart';
+    });
+
+    updateTotal();
+  });
+</script>

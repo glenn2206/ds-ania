@@ -1,0 +1,39 @@
+{
+  "name": "ania-astro",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "node app.mjs",
+    "astro": "astro",
+    "db:schema": "node scripts/db-schema.mjs",
+    "db:seed": "node scripts/seed.mjs",
+    "db:user": "node scripts/create-user.mjs",
+    "snapshot": "node scripts/snapshot.mjs",
+    "optimize-assets": "node scripts/optimize-assets.mjs"
+  },
+  "dependencies": {
+    "@astrojs/node": "^8.3.4",
+    "@astrojs/react": "^3.6.3",
+    "astro": "^4.16.18",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.7",
+    "pg": "^8.13.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sharp": "^0.35.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "mysql2": "^3.11.5",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3"
+  }
+}

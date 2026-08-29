@@ -1,0 +1,14 @@
+---
+/**
+ * ATOM · Stepper — .cmp-stepper (− n +)
+ * <Stepper value={2} />
+ */
+interface Props {
+  value?: number;
+}
+const { value = 1 } = Astro.props;
+---
+
+<span class="cmp-stepper">
+  <b>&minus;</b><b class="v">{value}</b><b>+</b>
+</span>

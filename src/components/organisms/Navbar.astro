@@ -1,0 +1,383 @@
+---
+/**
+ * ORGANISME · Navbar — index.html Navigation Bar.
+ * Desktop: PromoBar + baris nav (logo di tengah, link split kiri/kanan, util kanan).
+ * Mobile (≤860): tombol burger → drawer layar penuh (list + Occasions accordion + social).
+ */
+import PromoBar from '../molecules/PromoBar.astro';
+import NavLink from '../atoms/NavLink.astro';
+import LangToggle from '../atoms/LangToggle.astro';
+import Icon from '../atoms/Icon.astro';
+
+interface Props {
+  promo?: boolean;
+}
+const { promo = true } = Astro.props;
+
+const mobileMenu = [
+  { label: 'Standing Flower', href: '/shop' },
+  { label: 'Premium Wrapped', href: '/shop' },
+  { label: 'Bloom Box', href: '/shop' },
+  { label: 'Vase', href: '/shop' },
+  { label: 'Accessories', href: '/shop' },
+  { label: 'Preserved Flower', href: '/shop' },
+  { label: 'Custom Order', href: '/contact' },
+  {
+    label: 'Occasions',
+    children: [
+      { label: 'Christmas Edition', href: '/occasions' },
+      { label: 'Chinese New Year Edition', href: '/occasions' },
+      { label: 'Baby Born', href: '/occasions' },
+      { label: 'Eid Mubarak Edition', href: '/occasions' },
+    ],
+  },
+  { label: 'About Us', href: '/about' },
+];
+---
+
+<header class="nav">
+  {promo && <PromoBar href="/shop" />}
+
+  <div class="nav__bar">
+    <button class="nav__burger" type="button" data-drawer-open aria-label="Open menu">
+      <Icon name="burger" size={20} alt="" />
+    </button>
+
+    <div class="nav__left">
+      <NavLink href="/shop">Shop</NavLink>
+      <NavLink href="/occasions">For Occasions</NavLink>
+    </div>
+
+    <a class="nav__logo" href="/">
+      <Icon name="ania-logo" alt="ANIA Flower Boutique" width={112} height={79} style="width:112px;height:auto" />
+    </a>
+
+    <div class="nav__right">
+      <div class="nav__right-links">
+        <NavLink href="/about">About Us</NavLink>
+        <NavLink href="/contact">Contact</NavLink>
+      </div>
+      <div class="nav__util">
+        <LangToggle active="ENG" />
+        <button class="nav__search" type="button" data-search-open aria-label="Search">
+          <Icon name="search" size={22} alt="" />
+        </button>
+        <a class="nav__cart" href="/cart" aria-label="Cart">
+          <Icon name="cart" size={22} alt="cart" />
+          <span class="nav__cartcount" data-cart-count hidden>0</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="navdrawer" data-drawer hidden>
+  <div class="navdrawer__bar">
+    <a class="navdrawer__logo" href="/">
+      <Icon name="ania-logo" alt="ANIA Flower Boutique" width={104} height={73} style="width:104px;height:auto" />
+    </a>
+    <LangToggle active="ENG" />
+    <button class="navdrawer__close" type="button" data-drawer-close aria-label="Close menu"></button>
+  </div>
+
+  <nav class="navdrawer__list">
+    <button class="navdrawer__item" type="button" data-search-open data-drawer-link>
+      Search
+      <img class="navdrawer__chev" src="/assets-svg/05_search.svg" alt="" width="16" height="16" />
+    </button>
+    {
+      mobileMenu.map((item) =>
+        'children' in item ? (
+          <div class="navdrawer__group" data-acc>
+            <button class="navdrawer__item navdrawer__acc" type="button" data-acc-toggle aria-expanded="true">
+              {item.label}
+              <img class="navdrawer__chev" src="/assets-svg/21_arrow-down.svg" alt="" width="14" height="14" />
+            </button>
+            <div class="navdrawer__sub" data-acc-panel>
+              {(item.children ?? []).map((c) => (
+                <a class="navdrawer__subitem" href={c.href} data-drawer-link>
+                  {c.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <a class="navdrawer__item" href={item.href} data-drawer-link>
+            {item.label}
+          </a>
+        ),
+      )
+    }
+  </nav>
+
+  <div class="navdrawer__social">
+    <a href="#" aria-label="Instagram"><Icon name="instagram" size={22} alt="" /></a>
+    <a href="#" aria-label="TikTok"><Icon name="tiktok" size={22} alt="" /></a>
+    <a href="#" aria-label="Facebook"><Icon name="facebook" size={22} alt="" /></a>
+  </div>
+</div>
+
+<script>
+  import { cartCount, CART_KEY } from '../../lib/cart-core';
+  const badge = document.querySelector<HTMLElement>('[data-cart-count]');
+  const sync = () => {
+    if (!badge) return;
+    const n = cartCount();
+    badge.textContent = String(n);
+    badge.hidden = n === 0;
+  };
+  sync();
+  window.addEventListener('cart:change', sync);
+  window.addEventListener('storage', (e) => e.key === CART_KEY && sync());
+
+  // tinggi navbar → --nav-h (dipakai hero landing agar "navbar + hero = 1 layar")
+  const header = document.querySelector<HTMLElement>('.nav');
+  if (header) {
+    const setNavH = () =>
+      document.documentElement.style.setProperty('--nav-h', `${header.offsetHeight}px`);
+    setNavH();
+    window.addEventListener('resize', setNavH);
+    window.addEventListener('load', setNavH);
+  }
+
+  // ---- drawer mobile ----
+  const drawer = document.querySelector<HTMLElement>('[data-drawer]');
+  if (drawer) {
+    const open = () => {
+      drawer.hidden = false;
+      document.documentElement.style.overflow = 'hidden';
+    };
+    const close = () => {
+      drawer.hidden = true;
+      document.documentElement.style.overflow = '';
+    };
+    document.querySelector('[data-drawer-open]')?.addEventListener('click', open);
+    drawer.querySelector('[data-drawer-close]')?.addEventListener('click', close);
+    drawer.querySelectorAll('[data-drawer-link]').forEach((a) => a.addEventListener('click', close));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !drawer.hidden) close();
+    });
+    // kalau diperbesar ke desktop, pastikan drawer & scroll-lock bersih
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 860 && !drawer.hidden) close();
+    });
+
+    // accordion "Occasions"
+    drawer.querySelectorAll<HTMLElement>('[data-acc-toggle]').forEach((btn) => {
+      const panel = btn.parentElement!.querySelector<HTMLElement>('[data-acc-panel]')!;
+      btn.addEventListener('click', () => {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        panel.hidden = expanded;
+      });
+    });
+  }
+</script>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--soft);
+  }
+  .nav__bar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 40px;
+    padding: 18px 46px;
+    background: var(--soft);
+  }
+  .nav__burger {
+    display: none;
+    justify-self: start;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    color: inherit;
+  }
+  .nav__search {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    color: inherit;
+  }
+  .nav__left {
+    display: flex;
+    gap: 34px;
+    justify-content: flex-end;
+  }
+  .nav__logo {
+    justify-self: center;
+    display: flex;
+  }
+  .nav__right {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+  }
+  .nav__right-links {
+    display: flex;
+    gap: 34px;
+  }
+  .nav__util {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .nav__cart {
+    position: relative;
+    display: inline-flex;
+    color: inherit;
+  }
+  .nav__cartcount {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 99px;
+    background: var(--olive);
+    color: #fff;
+    font: 700 10px/16px 'Open Sans', Arial, sans-serif;
+    text-align: center;
+  }
+  @media (max-width: 860px) {
+    .nav__bar {
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+      padding: 16px 20px;
+    }
+    .nav__burger { display: inline-flex; }
+    .nav__left,
+    .nav__right-links,
+    .nav__util > .cmp-lang,
+    .nav__util > .ico,
+    .nav__search {
+      display: none;
+    }
+  }
+
+  /* ---- drawer ---- */
+  .navdrawer {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--soft);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .navdrawer[hidden] { display: none; }
+  @media (min-width: 861px) {
+    .navdrawer { display: none !important; }
+  }
+
+  .navdrawer__bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .navdrawer__logo { display: flex; margin-right: auto; }
+  .navdrawer__close {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    flex: none;
+  }
+  .navdrawer__close::before,
+  .navdrawer__close::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 50%;
+    height: 1.5px;
+    background: #3D3B2F;
+  }
+  .navdrawer__close::before { transform: rotate(45deg); }
+  .navdrawer__close::after { transform: rotate(-45deg); }
+
+  .navdrawer__list {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 24px 20px;
+  }
+  .navdrawer__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 16px;
+    padding: 22px 2px;
+    border: 0;
+    border-bottom: 1px solid var(--hair);
+    background: none;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    font: 400 22px/1.25 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
+    color: #3D3B2F;
+  }
+  .navdrawer__chev {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    opacity: 0.6;
+    transition: transform 0.2s ease;
+  }
+  .navdrawer__acc[aria-expanded='true'] .navdrawer__chev { transform: rotate(180deg); }
+
+  .navdrawer__sub {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 2px 10px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .navdrawer__sub[hidden] { display: none; }
+  .navdrawer__subitem {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0 16px 6px;
+    text-decoration: none;
+    font: 400 20px/1.3 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
+    color: #3D3B2F;
+  }
+  .navdrawer__subitem::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--sand);
+    flex: none;
+  }
+
+  .navdrawer__social {
+    margin-top: auto;
+    display: flex;
+    justify-content: center;
+    gap: 44px;
+    padding: 24px;
+    border-top: 1px solid var(--hair);
+  }
+  .navdrawer__social a { display: inline-flex; opacity: 0.5; }
+</style>

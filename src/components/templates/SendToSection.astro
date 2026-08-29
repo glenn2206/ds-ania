@@ -1,0 +1,85 @@
+---
+/**
+ * TEMPLATE · SendToSection — "Who Are You Sending Flowers To?".
+ * Grid 3 kolom: 5 SendToCard + 1 sel "For Those Unspoken Words" (eyebrow + judul + tombol).
+ */
+import SendToCard from '../organisms/SendToCard.astro';
+import Button from '../atoms/Button.astro';
+import { sendTo, unspoken } from '../../data/occasions';
+
+interface Props {
+  title?: string;
+}
+const { title = 'Who Are You Sending Flowers To?' } = Astro.props;
+---
+
+<section class="sendto">
+  <h2 class="sendto__title ts-07">{title}</h2>
+  <div class="sendto__grid">
+    {sendTo.map((c) => <SendToCard {...c} />)}
+
+    <article class="sendto__card sendto__card--unspoken">
+      <span class="sendto__eyebrow">{unspoken.eyebrow}</span>
+      <h3 class="sendto__tt sendto__tt--lg">{unspoken.title}</h3>
+      <p class="sendto__bd">{unspoken.body}</p>
+      <Button href={unspoken.cta.href}>{unspoken.cta.label}</Button>
+    </article>
+  </div>
+</section>
+
+<style>
+  .sendto {
+    padding: var(--sec-y) var(--gutter);
+  }
+  .sendto__title {
+    display: block;
+    text-align: center;
+    margin: 0 0 40px;
+  }
+  .sendto__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 44px 40px;
+    max-width: 1160px;
+    margin: 0 auto;
+  }
+  .sendto__card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .sendto__ico { opacity: 0.85; }
+  .sendto__tt {
+    margin: 0;
+    font: 600 30px/1.15 'Cormorant Garamond', Georgia, serif;
+    color: #525252;
+  }
+  .sendto__tt--lg { font-size: 44px; font-weight: 400; line-height: 1.1; }
+  .sendto__bd {
+    margin: 0;
+    font: 400 14px/1.5 'Open Sans', Arial, sans-serif;
+    color: #3D3B2F;
+  }
+  .sendto__best {
+    margin: 4px 0 0;
+    font: 600 14px/1.5 'Open Sans', Arial, sans-serif;
+    color: #3D3B2F;
+  }
+  .sendto__card--unspoken { gap: 18px; }
+  .sendto__eyebrow {
+    font: 600 12px/1 'Open Sans', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 4.8px;
+    color: #525252;
+  }
+  .sendto__card--unspoken :global(.cmp-btn-primary) { margin-top: 6px; }
+
+  @media (max-width: 1000px) {
+    .sendto__grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .sendto__grid { grid-template-columns: 1fr; }
+    .sendto__tt--lg { font-size: 34px; }
+  }
+</style>

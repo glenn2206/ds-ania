@@ -1,0 +1,52 @@
+---
+export const prerender = false;
+import Admin from '../../../layouts/Admin.astro';
+import { getSession } from '../../../lib/session';
+import { q } from '../../../lib/db';
+
+const session = getSession(Astro.cookies);
+if (!session) return Astro.redirect('/admin/login');
+
+const status = Astro.url.searchParams.get('status') || '';
+const params: any[] = [];
+let where = '';
+if (status) {
+  where = 'WHERE status = ?';
+  params.push(status);
+}
+const rows = await q(
+  `SELECT id, code, status, customer_name, total, created_at FROM orders ${where} ORDER BY id DESC LIMIT 200`,
+  params,
+);
+const rp = (n: unknown) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+const TABS = ['', 'pending', 'paid', 'fulfilled', 'expired', 'cancelled'];
+const tagClass = (s: string) =>
+  s === 'paid' || s === 'fulfilled' ? 'tag tag--ok' : s === 'pending' ? 'tag tag--draft' : 'tag tag--warn';
+---
+
+<Admin title="Order — ANIA CMS" active="orders" user={session.uname}>
+  <h1 class="admin-h">Order ({rows.length})</h1>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    {TABS.map((t) => (
+      <a class={`btn btn--sm${status === t ? ' btn--primary' : ''}`} href={t ? `/admin/orders?status=${t}` : '/admin/orders'}>
+        {t || 'Semua'}
+      </a>
+    ))}
+  </div>
+
+  <table class="admin-table">
+    <thead><tr><th>Kode</th><th>Pelanggan</th><th>Total</th><th>Status</th><th>Tanggal</th></tr></thead>
+    <tbody>
+      {rows.map((r) => (
+        <tr>
+          <td><a href={`/admin/orders/${r.id}`}>{r.code}</a></td>
+          <td>{r.customer_name}</td>
+          <td>{rp(r.total)}</td>
+          <td><span class={tagClass(r.status)}>{r.status}</span></td>
+          <td>{new Date(r.created_at).toLocaleString('id-ID')}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  {rows.length === 0 && <p style="color:var(--a-muted);margin-top:16px">Belum ada order.</p>}
+</Admin>

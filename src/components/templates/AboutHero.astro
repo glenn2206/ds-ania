@@ -1,0 +1,95 @@
+---
+/**
+ * TEMPLATE · AboutHero — index.html "Who We Are?".
+ * Split: gambar kiri (full-bleed) + panel teks kanan (bg --field).
+ */
+import { whoWeAre as w } from '../../data/about';
+---
+
+<section class="abt-hero">
+  <div class="abt-hero__img" style={`background-image:url(${w.image})`}></div>
+  <div class="abt-hero__panel">
+    <span class="abt-hero__eyebrow">{w.eyebrow}</span>
+    <h1 class="abt-hero__title">{w.title}</h1>
+
+    <p class="abt-hero__lead">{w.paragraphs[0]}</p>
+    <p class="abt-hero__quote">&ldquo;{w.quote}&rdquo;</p>
+    <p class="abt-hero__lead">{w.paragraphs[1]}</p>
+
+    <h2 class="abt-hero__promise">{w.promiseTitle}</h2>
+    <p class="abt-hero__promisebody">{w.promiseBody}</p>
+    <ul class="abt-hero__list">
+      {w.checklist.map((c) => <li>&#10003; {c}</li>)}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .abt-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+  }
+  .abt-hero__img {
+    min-height: 620px;
+    background: #eef1f0 center/cover no-repeat;
+  }
+  .abt-hero__panel {
+    background: var(--field);
+    padding: var(--sec-y) var(--gutter);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .abt-hero__eyebrow {
+    font: 600 14px/1 'Open Sans', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 5.6px;
+    color: #525252;
+  }
+  .abt-hero__title {
+    margin: 16px 0 24px;
+    max-width: 12ch;
+    font: 400 clamp(34px, 4vw, 52px) / 1.1 'Cormorant Garamond', Georgia, serif;
+    color: #525252;
+  }
+  .abt-hero__lead {
+    margin: 0 0 22px;
+    max-width: 52ch;
+    font: 400 15px/1.65 'Open Sans', Arial, sans-serif;
+    color: #3D3B2F;
+    text-align: justify;
+  }
+  .abt-hero__quote {
+    margin: 0 0 22px;
+    font: 400 22px/1.4 'Crimson Text', Georgia, serif;
+    color: #1E2934;
+  }
+  .abt-hero__promise {
+    margin: 10px 0 12px;
+    font: 400 26px/1 'Crimson Text', Georgia, serif;
+    color: #1E2934;
+  }
+  .abt-hero__promisebody {
+    margin: 0 0 18px;
+    max-width: 52ch;
+    font: 400 14px/1.7 'Open Sans', Arial, sans-serif;
+    color: #3D3B2F;
+  }
+  .abt-hero__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font: 400 14px/1.7 'Open Sans', Arial, sans-serif;
+    color: #525252;
+  }
+  .abt-hero__list li { display: flex; gap: 8px; }
+
+  @media (max-width: 900px) {
+    .abt-hero { grid-template-columns: 1fr; }
+    .abt-hero__img { min-height: 320px; }
+  }
+</style>

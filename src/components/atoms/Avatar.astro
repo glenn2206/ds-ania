@@ -1,0 +1,16 @@
+---
+/**
+ * ATOM · Avatar — .avatar (48px, foto via background-image)
+ * <Avatar src="/assets/profile-claudia.jpg" />
+ */
+interface Props {
+  src?: string;
+  class?: string;
+}
+const { src, class: extra = '' } = Astro.props;
+---
+
+<span
+  class={['avatar', extra].filter(Boolean).join(' ')}
+  style={src ? `background-image:url(${src})` : undefined}
+></span>

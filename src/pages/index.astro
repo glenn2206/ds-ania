@@ -1,0 +1,35 @@
+---
+/**
+ * PAGE · Home — merakit organisme/template. Navbar & Footer dari layout Site.
+ */
+import Site from '../layouts/Site.astro';
+import Hero from '../components/templates/Hero.astro';
+import ProductGridSection from '../components/templates/ProductGridSection.astro';
+import ChooseFlowerSection from '../components/templates/ChooseFlowerSection.astro';
+import AddOnSection from '../components/templates/AddOnSection.astro';
+import WhyAniaSection from '../components/templates/WhyAniaSection.astro';
+import TestimonialSection from '../components/templates/TestimonialSection.astro';
+import UnspokenWordsSection from '../components/templates/UnspokenWordsSection.astro';
+
+import { heroSlides, addons, whyAnia, testimonials, toFeatured } from '../data/home';
+import { getCatalog } from '../lib/products';
+
+const { premiumWrapped } = await getCatalog();
+const products = toFeatured(premiumWrapped);
+---
+
+<Site title="ANIA Flower Boutique — Home">
+  {/* hero full-bleed; navbar (sticky) + hero = 1 layar */}
+  <div class="home-hero">
+    <Hero slides={heroSlides} />
+  </div>
+
+  <div class="home">
+    <ProductGridSection products={products} />
+    <ChooseFlowerSection />
+    <AddOnSection cards={addons} />
+    <WhyAniaSection cards={whyAnia} />
+    <TestimonialSection items={testimonials} />
+    <UnspokenWordsSection />
+  </div>
+</Site>

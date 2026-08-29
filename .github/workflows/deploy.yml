@@ -1,0 +1,66 @@
+name: Deploy ke cPanel
+
+# Jalan otomatis tiap push ke main, atau saat tombol "Deploy ulang" di panel admin
+# (repository_dispatch type "publish"), atau manual dari tab Actions.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+  repository_dispatch:
+    types: [publish]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-cpanel
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build (Astro SSR)
+        run: npm run build
+        env:
+          PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Rsync build output ke server
+        run: |
+          SSH="ssh -p ${{ secrets.SSH_PORT || 22 }} -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new"
+          DEST="${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}"
+          # dist/ diganti penuh (--delete); file lain disalin/di-update saja
+          rsync -az --delete -e "$SSH" dist "$DEST/"
+          rsync -az        -e "$SSH" \
+            app.mjs package.json package-lock.json \
+            db scripts src/data/products.generated.json \
+            "$DEST/"
+
+      - name: Install deps + restart Passenger
+        run: |
+          ssh -p "${{ secrets.SSH_PORT || 22 }}" -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" bash -lc '
+              set -e
+              cd "${{ secrets.DEPLOY_PATH }}"
+              VENV=$(ls -d "$HOME"/nodevenv/*/[0-9]*/bin/activate 2>/dev/null | head -1)
+              [ -n "$VENV" ] && source "$VENV" || true
+              npm ci --omit=dev
+              mkdir -p tmp && touch tmp/restart.txt
+              echo "Deploy OK: $(date)  node=$(node -v)"
+            '

@@ -1,0 +1,73 @@
+---
+/**
+ * ORGANISME · Footer — MEMANGGIL Button + IconLink + Icon.
+ * CTA bar + kolom link + payment + copyright. Padding dari index.html.
+ */
+import Button from '../atoms/Button.astro';
+import Icon from '../atoms/Icon.astro';
+import IconLink from '../molecules/IconLink.astro';
+
+const shop = [
+  { label: 'All Products', href: '/shop' },
+  { label: 'Preserved Flower', href: '/shop' },
+  { label: 'Bloom Box & Basket', href: '/shop' },
+  { label: 'Premium Wrapped Bloom', href: '/shop' },
+  { label: 'Vase Arrangement', href: '/shop' },
+  { label: 'Standing Flower & Flower Board', href: '/shop' },
+  { label: 'Accessories', href: '/shop' },
+];
+const resources = [
+  { label: 'Terms and Conditions', href: '/terms' },
+  { label: 'Frequently Asked Questions', href: '/faq' },
+  { label: 'How to Order', href: '/faq' },
+];
+const pay = ['visa', 'jcb', 'mastercard', 'googlepay', 'paypal'];
+---
+
+<footer class="ftr">
+  <div class="ftr__cta">
+    <h2>Find your Perfect Bouquet today!</h2>
+    <span class="g">
+      <Button href="/contact">Ask a Florist Now</Button>
+      <Button variant="secondary" href="/shop">Shop Fresh Blooms</Button>
+    </span>
+  </div>
+
+  <div class="ftr__main">
+    <div class="ftr__brand">
+      <Icon name="ania-logo" class="logo" alt="ANIA Flower Boutique" width={132} height={93} style="width:132px;height:auto" />
+      <span class="tag">Let Flowers Speak for You</span>
+      <div class="ftr__social">
+        <IconLink icon="instagram">Instagram</IconLink>
+        <IconLink icon="facebook">Facebook</IconLink>
+        <IconLink icon="tiktok">TikTok</IconLink>
+      </div>
+    </div>
+
+    <div class="ftr__cols">
+      <div class="ftr__col">
+        <h3>Shop</h3>
+        <ul>{shop.map((s) => <li><a href={s.href}>{s.label}</a></li>)}</ul>
+      </div>
+      <div class="ftr__col">
+        <h3>Resources</h3>
+        <ul>{resources.map((s) => <li><a href={s.href}>{s.label}</a></li>)}</ul>
+      </div>
+      <div class="ftr__col">
+        <h3>Help</h3>
+        <ul><li><a href="mailto:team@myania.com">team@myania.com</a></li></ul>
+      </div>
+    </div>
+
+    <div class="ftr__pay">
+      {pay.map((p) => <Icon name={p} alt={p} />)}
+    </div>
+  </div>
+
+  <div class="ftr__copy">&copy; ANIA Boutique Flower</div>
+</footer>
+
+<style>
+  .ftr__col a { color: inherit; text-decoration: none; }
+  .ftr__col a:hover { color: var(--olive-ink); }
+</style>

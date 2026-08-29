@@ -1,0 +1,136 @@
+---
+/**
+ * ORGANISME · SearchOverlay — pencarian produk (situs statik → filter di browser).
+ * Dipicu tombol [data-search-open] di Navbar. Semua kartu dirender tersembunyi lalu
+ * ditampilkan/disusun ulang saat mengetik — pola sama seperti ShopSection.
+ */
+import ProductCard from './ProductCard.astro';
+import Icon from '../atoms/Icon.astro';
+import { allProducts } from '../../data/catalog';
+import { toProduct } from '../../data/shop';
+
+const searchText = (c: (typeof allProducts)[number]) =>
+  [c.name, c.pill, c.flowers, c.occasion ?? '', c.category, c.description]
+    .join(' ')
+    .toLowerCase();
+---
+
+<div class="search" data-search hidden>
+  <div class="search__inner">
+    <div class="search__bar">
+      <Icon name="search" size={22} alt="" class="search__mag" />
+      <input
+        class="search__input"
+        type="search"
+        data-search-input
+        placeholder="Search flowers…"
+        autocomplete="off"
+        aria-label="Search products"
+      />
+      <button class="search__clear" type="button" data-search-clear aria-label="Clear search" hidden>
+        <span class="search__x" aria-hidden="true"></span>
+      </button>
+    </div>
+
+    <p class="search__count" data-search-count></p>
+    <span class="search__rule"></span>
+
+    <div class="search__grid" data-search-grid>
+      {
+        allProducts.map((c, i) => (
+          <div class="search__cell" data-search-cell data-search={searchText(c)} data-index={i} hidden>
+            <ProductCard {...toProduct(c)} slug={c.slug} href={`/product/${c.slug}`} />
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="search__empty" data-search-empty hidden>Type a flower, colour or occasion to search.</p>
+
+    <div class="search__foot">
+      <a class="cmp-btn-primary" href="/shop" data-search-close-link>View All Product</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-search]');
+  if (root) {
+    const input = root.querySelector<HTMLInputElement>('[data-search-input]')!;
+    const grid = root.querySelector<HTMLElement>('[data-search-grid]')!;
+    const cells = Array.from(root.querySelectorAll<HTMLElement>('[data-search-cell]'));
+    const countEl = root.querySelector<HTMLElement>('[data-search-count]')!;
+    const emptyEl = root.querySelector<HTMLElement>('[data-search-empty]')!;
+    const clearBtn = root.querySelector<HTMLElement>('[data-search-clear]')!;
+
+    const render = () => {
+      const q = input.value.trim().toLowerCase();
+      const tokens = q.split(/\s+/).filter(Boolean);
+      clearBtn.hidden = q.length === 0;
+
+      if (!tokens.length) {
+        cells.forEach((c) => (c.hidden = true));
+        countEl.textContent = '';
+        emptyEl.textContent = 'Type a flower, colour or occasion to search.';
+        emptyEl.hidden = false;
+        return;
+      }
+
+      let n = 0;
+      const visible: HTMLElement[] = [];
+      cells.forEach((c) => {
+        const hit = tokens.every((t) => (c.dataset.search || '').includes(t));
+        c.hidden = !hit;
+        if (hit) {
+          n += 1;
+          visible.push(c);
+        }
+      });
+      visible
+        .sort((a, b) => +(a.dataset.index || 0) - +(b.dataset.index || 0))
+        .forEach((c) => grid.appendChild(c));
+
+      countEl.textContent = `${n} RESULT${n === 1 ? '' : 'S'}`;
+      emptyEl.textContent = 'No products match your search.';
+      emptyEl.hidden = n !== 0;
+    };
+
+    let timer: number | undefined;
+    input.addEventListener('input', () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(render, 120);
+    });
+
+    const open = () => {
+      root.hidden = false;
+      document.documentElement.style.overflow = 'hidden';
+      render();
+      window.setTimeout(() => input.focus(), 30);
+    };
+    const close = () => {
+      root.hidden = true;
+      document.documentElement.style.overflow = '';
+      input.value = '';
+      render();
+    };
+
+    document.querySelectorAll('[data-search-open]').forEach((b) => b.addEventListener('click', open));
+    root.querySelector('[data-search-clear]')?.addEventListener('click', () => {
+      input.value = '';
+      render();
+      input.focus();
+    });
+    // klik kartu hasil / "View All Product" → tutup overlay (navigasi tetap jalan)
+    grid.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a[href]')) close();
+    });
+    root.querySelector('[data-search-close-link]')?.addEventListener('click', close);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !root.hidden) close();
+    });
+    window.addEventListener('resize', () => {
+      // biar tidak nyangkut kalau viewport berubah drastis; tidak menutup, cuma jaga scroll-lock
+      if (root.hidden) document.documentElement.style.overflow = '';
+    });
+  }
+</script>

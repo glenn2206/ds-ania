@@ -1,0 +1,68 @@
+---
+/**
+ * TEMPLATE · OccasionIntro — index.html "What's the Occasion?".
+ * Kartu gambar kiri + teks kanan (eyebrow + judul Cormorant 60 + 2 tombol).
+ */
+import Button from '../atoms/Button.astro';
+import { intro } from '../../data/occasions';
+---
+
+<section class="ointro">
+  <div class="ointro__media" style={`background-image:url(${intro.image})`}></div>
+  <div class="ointro__body">
+    <span class="ointro__eyebrow">{intro.eyebrow}</span>
+    <h1 class="ointro__title">{intro.title}</h1>
+    <div class="ointro__cta">
+      <Button href={intro.primary.href}>{intro.primary.label}</Button>
+      <Button variant="secondary" href={intro.secondary.href}>{intro.secondary.label}</Button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ointro {
+    display: grid;
+    grid-template-columns: 530px minmax(0, 1fr);
+    gap: 56px;
+    align-items: center;
+    padding: calc(var(--sec-y) * 0.9) var(--gutter);
+  }
+  .ointro__media {
+    aspect-ratio: 530 / 580;
+    border-radius: 8px;
+    background: #eef1f0 center/cover no-repeat;
+    box-shadow: 0 24px 60px -30px rgba(60, 50, 20, 0.4);
+  }
+  .ointro__body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    max-width: 507px;
+  }
+  .ointro__eyebrow {
+    font: 600 14px/1 'Open Sans', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 5.6px;
+    color: #525252;
+  }
+  .ointro__title {
+    margin: 0;
+    font: 400 60px/1.1 'Cormorant Garamond', Georgia, serif;
+    color: #525252;
+  }
+  .ointro__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  @media (max-width: 900px) {
+    .ointro { grid-template-columns: 1fr; gap: 32px; }
+    .ointro__media { max-width: 420px; }
+    .ointro__title { font-size: 40px; }
+  }
+  @media (max-width: 480px) {
+    .ointro__title { font-size: 32px; }
+  }
+</style>

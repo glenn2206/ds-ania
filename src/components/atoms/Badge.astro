@@ -1,0 +1,19 @@
+---
+/**
+ * ATOM · Badge — .cmp-badge / .cmp-badge--soldout
+ * <Badge>Sale</Badge>
+ * <Badge variant="soldout">Sold Out</Badge>
+ */
+interface Props {
+  variant?: 'default' | 'soldout';
+  class?: string;
+}
+const { variant = 'default', class: extra = '' } = Astro.props;
+const className = [
+  'cmp-badge',
+  variant === 'soldout' && 'cmp-badge--soldout',
+  extra,
+].filter(Boolean).join(' ');
+---
+
+<span class={className}><slot /></span>

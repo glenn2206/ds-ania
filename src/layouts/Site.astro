@@ -1,0 +1,26 @@
+---
+/**
+ * Site.astro — layout halaman publik: Base + Navbar (sticky) + Footer.
+ * Halaman cukup mengisi <slot/>; tidak perlu impor Navbar/Footer lagi.
+ */
+import Base from './Base.astro';
+import Navbar from '../components/organisms/Navbar.astro';
+import SearchOverlay from '../components/organisms/SearchOverlay.astro';
+import Footer from '../components/organisms/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  bodyClass?: string;
+}
+const { title, description, bodyClass } = Astro.props;
+---
+
+<Base title={title} description={description} bodyClass={bodyClass}>
+  <Navbar />
+  <SearchOverlay />
+  <main class="site-main">
+    <slot />
+  </main>
+  <Footer />
+</Base>

@@ -1,0 +1,33 @@
+---
+/**
+ * TEMPLATE · ProductGridSection — index.html "Flowers They'll Never Forget".
+ * MEMANGGIL organisme ProductCard + atom Button. bg #FDF6F1, pad 50 51 40.
+ */
+import ProductCard from '../organisms/ProductCard.astro';
+import Button from '../atoms/Button.astro';
+import type { Product } from '../../data/home';
+
+interface Props {
+  title?: string;
+  subtitle?: string;
+  products: Product[];
+  cta?: string;
+}
+const {
+  title = 'Flowers They’ll Never Forget',
+  subtitle = 'Discover our ready-to-send bouquets, thoughtfully arranged and ready to make someone’s day.',
+  products,
+  cta = 'View All Product',
+} = Astro.props;
+---
+
+<section class="pgrid">
+  <div class="pgrid__head">
+    <span class="ts-07">{title}</span>
+    <span class="ts-16">{subtitle}</span>
+  </div>
+  <div class="pgrid__row">
+    {products.map((p) => <ProductCard {...p} />)}
+  </div>
+  <div class="pgrid__foot"><Button>{cta}</Button></div>
+</section>

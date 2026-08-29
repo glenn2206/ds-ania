@@ -1,0 +1,39 @@
+---
+/**
+ * Base.astro — kerangka HTML + font + global.css.
+ * Semua page membungkus kontennya dengan layout ini.
+ */
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** kelas untuk <body>, mis. "ds" untuk halaman design-system */
+  bodyClass?: string;
+}
+
+const {
+  title = 'ANIA Flower Boutique',
+  description = 'Handcrafted bouquets, arranged with care.',
+  bodyClass = '',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Crimson+Text:wght@400;600&family=Inter:wght@400;500;600&family=Mulish:wght@400;600&family=Open+Sans:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+  </head>
+  <body class={bodyClass}>
+    <slot />
+  </body>
+</html>

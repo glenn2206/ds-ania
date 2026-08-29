@@ -1,0 +1,19 @@
+---
+/**
+ * ORGANISME · CategoryTile — MEMANGGIL molekul CategoryTileBar.
+ * 400×540, gambar penuh + bar 52px di dasar.
+ * <CategoryTile image="/assets/x.png" label="Graduation" olive />
+ */
+import CategoryTileBar from '../molecules/CategoryTileBar.astro';
+
+interface Props {
+  image: string;
+  label: string;
+  olive?: boolean;
+}
+const { image, label, olive = false } = Astro.props;
+---
+
+<span class="cmp-tile" style={`background-image:url(${image})`}>
+  <CategoryTileBar label={label} olive={olive} />
+</span>

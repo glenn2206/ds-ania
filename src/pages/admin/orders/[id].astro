@@ -1,0 +1,76 @@
+---
+export const prerender = false;
+import Admin from '../../../layouts/Admin.astro';
+import { getSession } from '../../../lib/session';
+import { one, q } from '../../../lib/db';
+
+const session = getSession(Astro.cookies);
+if (!session) return Astro.redirect('/admin/login');
+
+const id = Number(Astro.params.id);
+const order = Number.isFinite(id) ? await one('SELECT * FROM orders WHERE id = ?', [id]) : null;
+if (!order) return new Response('Order tidak ada', { status: 404 });
+const items = await q('SELECT * FROM order_items WHERE order_id = ? ORDER BY id', [id]);
+const rp = (n: unknown) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+const STATUSES = ['pending', 'paid', 'fulfilled', 'expired', 'cancelled', 'failed'];
+---
+
+<Admin title={`Order ${order.code} — ANIA CMS`} active="orders" user={session.uname}>
+  <div class="admin-row">
+    <h1 class="admin-h" style="margin:0">Order {order.code}</h1>
+    <a class="btn btn--sm" href="/admin/orders">← Semua order</a>
+  </div>
+
+  <div class="card">
+    <h2>Status</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select id="st">
+        {STATUSES.map((s) => <option value={s} selected={s === order.status}>{s}</option>)}
+      </select>
+      <button class="btn btn--primary" id="save">Simpan status</button>
+      <span id="msg" style="color:var(--a-muted);font-size:13px"></span>
+    </div>
+    {order.xendit_invoice_url && (
+      <p style="margin:12px 0 0"><a href={order.xendit_invoice_url} target="_blank" rel="noopener">Invoice Xendit ↗</a>
+        {order.xendit_invoice_id && <span style="color:var(--a-muted)"> · {order.xendit_invoice_id}</span>}</p>
+    )}
+  </div>
+
+  <div class="card">
+    <h2>Item</h2>
+    <table class="admin-table">
+      <tbody>
+        {items.map((it) => (
+          <tr><td>{it.name} × {it.qty}</td><td style="text-align:right">{rp(it.line_total)}</td></tr>
+        ))}
+        <tr><td>Subtotal</td><td style="text-align:right">{rp(order.subtotal)}</td></tr>
+        <tr><td>Ongkir {order.courier} {order.courier_service}</td><td style="text-align:right">{rp(order.shipping_cost)}</td></tr>
+        <tr><td><b>Total</b></td><td style="text-align:right"><b>{rp(order.total)}</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Pelanggan & pengiriman</h2>
+    <p style="line-height:1.7">
+      {order.customer_name}<br />
+      {order.customer_phone}{order.customer_email ? ` · ${order.customer_email}` : ''}<br />
+      {order.ship_address || '—'}<br />
+      {order.note || ''}
+    </p>
+  </div>
+
+  <script is:inline define:vars={{ id }}>
+    const st = document.getElementById('st');
+    const msg = document.getElementById('msg');
+    document.getElementById('save').addEventListener('click', async () => {
+      msg.textContent = 'Menyimpan…';
+      const res = await fetch(`/api/admin/orders/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: st.value }),
+      });
+      msg.textContent = res.ok ? 'Tersimpan.' : 'Gagal.';
+    });
+  </script>
+</Admin>

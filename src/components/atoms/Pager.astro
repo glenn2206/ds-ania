@@ -1,0 +1,22 @@
+---
+/**
+ * ATOM · Pager — .cmp-pager (pagination / paging routing)
+ * chevron assets-svg + angka .ts-42 aktif / .ts-33 non-aktif
+ * <Pager pages={3} current={1} />
+ */
+interface Props {
+  pages?: number;
+  current?: number;
+}
+const { pages = 3, current = 1 } = Astro.props;
+---
+
+<span class="cmp-pager">
+  <img class="cmp-pager__arw" src="/assets-svg/arrow-left-black.svg" alt="prev" />
+  {
+    Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+      <span class={n === current ? 'num ts-42 on' : 'num ts-33'}>{n}</span>
+    ))
+  }
+  <img class="cmp-pager__arw" src="/assets-svg/arrow-right-black.svg" alt="next" />
+</span>

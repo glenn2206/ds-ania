@@ -1,0 +1,174 @@
+---
+/**
+ * PAGE · /design-system — galeri komponen (atom → molekul → organisme → template).
+ * Versi hidup dari design-system.html: tiap tier merender komponen .astro asli.
+ */
+export const prerender = true;
+import Base from '../layouts/Base.astro';
+
+// atoms
+import Button from '../components/atoms/Button.astro';
+import Badge from '../components/atoms/Badge.astro';
+import Pill from '../components/atoms/Pill.astro';
+import Swatch from '../components/atoms/Swatch.astro';
+import Field from '../components/atoms/Field.astro';
+import Textarea from '../components/atoms/Textarea.astro';
+import Stepper from '../components/atoms/Stepper.astro';
+import Progress from '../components/atoms/Progress.astro';
+import Pager from '../components/atoms/Pager.astro';
+import PageNav from '../components/atoms/PageNav.astro';
+import LangToggle from '../components/atoms/LangToggle.astro';
+import Divider from '../components/atoms/Divider.astro';
+import Icon from '../components/atoms/Icon.astro';
+
+// molecules
+import PriceGroup from '../components/molecules/PriceGroup.astro';
+import CardTitleBlock from '../components/molecules/CardTitleBlock.astro';
+import TestimonialAuthor from '../components/molecules/TestimonialAuthor.astro';
+import CategoryTileBar from '../components/molecules/CategoryTileBar.astro';
+import IconLink from '../components/molecules/IconLink.astro';
+import PromoBar from '../components/molecules/PromoBar.astro';
+
+// organisms
+import ProductCard from '../components/organisms/ProductCard.astro';
+import CategoryTile from '../components/organisms/CategoryTile.astro';
+import WhyAniaCard from '../components/organisms/WhyAniaCard.astro';
+import TestimonialCard from '../components/organisms/TestimonialCard.astro';
+import OccasionCard from '../components/organisms/OccasionCard.astro';
+import InfoPanel from '../components/organisms/InfoPanel.astro';
+import OrderItemCard from '../components/organisms/OrderItemCard.astro';
+import Navbar from '../components/organisms/Navbar.astro';
+import Footer from '../components/organisms/Footer.astro';
+
+// templates
+import Hero from '../components/templates/Hero.astro';
+import ProductGridSection from '../components/templates/ProductGridSection.astro';
+import ChooseFlowerSection from '../components/templates/ChooseFlowerSection.astro';
+import AddOnSection from '../components/templates/AddOnSection.astro';
+import WhyAniaSection from '../components/templates/WhyAniaSection.astro';
+import TestimonialSection from '../components/templates/TestimonialSection.astro';
+import UnspokenWordsSection from '../components/templates/UnspokenWordsSection.astro';
+import ShopSection from '../components/templates/ShopSection.astro';
+import FilterGroup from '../components/molecules/FilterGroup.astro';
+
+import { products, tiles, addons, whyAnia, testimonials } from '../data/home';
+import { filters } from '../data/shop';
+import { allProducts } from '../data/catalog';
+
+const svgIcons = [
+  'location', 'cart', 'search', 'clock', 'heart', 'flower',
+  'arrow-down', 'arrow-left', 'plus-circle', 'whatsapp', 'truck-delivery', 'leaf-circle',
+];
+---
+
+<Base title="Design System — ANIA" bodyClass="ds">
+  <div class="wrap">
+    <header class="head">
+      <p class="kick">ANIA Flower Boutique</p>
+      <h1>Design System</h1>
+      <p>
+        Versi Astro. <code>atom</code> mandiri → <code>molekul</code> panggil atom →
+        <code>organisme</code> panggil molekul → <code>template</code> panggil organisme.
+        Styling dari <code>src/styles/global.css</code> (tanpa Tailwind).
+      </p>
+    </header>
+
+    <nav class="top">
+      <a href="#atom">Atom</a><a href="#mol">Molekul</a><a href="#org">Organisme</a><a href="#tpl">Template</a>
+    </nav>
+
+    <!-- ATOM -->
+    <div class="layer" id="atom"><span class="no">1</span><h2>Atom</h2><span class="rule"></span></div>
+
+    <div class="card"><h3>Icon <s class="svg">assets-svg/</s></h3>
+      <div class="r"><div class="d" style="gap:14px">
+        {svgIcons.map((n) => <Icon name={n} />)}
+      </div><div class="i"><b>&lt;Icon name="…" /&gt;</b> — semua dari <code>/assets-svg/</code> (peta nama di <code>Icon.astro</code>).</div></div>
+    </div>
+
+    <div class="card"><h3>Button / Badge / Pill</h3>
+      <div class="r"><div class="d">
+        <Button>shop flowers</Button>
+        <Button variant="secondary">let’s talk</Button>
+        <Button variant="secondary-onwhite">Add to Cart</Button>
+      </div><div class="i"><code>&lt;Button variant="primary|secondary|secondary-onwhite"&gt;</code></div></div>
+      <div class="r"><div class="d">
+        <Badge>Sale</Badge><Badge variant="soldout">Sold Out</Badge>
+        <Pill sand>Bloom Box</Pill><Pill>Premium Wrapped</Pill>
+      </div><div class="i"><code>&lt;Badge&gt;</code> · <code>&lt;Pill sand&gt;</code></div></div>
+    </div>
+
+    <div class="card"><h3>Form &amp; Nav</h3>
+      <div class="r"><div class="d"><Field>Select a city</Field><Textarea>Message</Textarea></div><div class="i"><code>&lt;Field&gt;</code> h 67 · <code>&lt;Textarea&gt;</code></div></div>
+      <div class="r"><div class="d"><LangToggle active="ENG" /><Stepper value={2} /><Progress total={3} active={0} /></div><div class="i"><code>&lt;LangToggle&gt;</code> · <code>&lt;Stepper&gt;</code> · <code>&lt;Progress&gt;</code></div></div>
+      <div class="r"><div class="d"><Swatch options={['Standard', 'Premium']} /></div><div class="i"><code>&lt;Swatch options images /&gt;</code> — array label &amp; url gambar</div></div>
+      <div class="r"><div class="d"><Pager pages={3} current={1} /></div><div class="i"><code>&lt;Pager pages current /&gt;</code> — <code>‹ 1 2 3 ›</code>, chevron <code>arrow-left/right-black.svg</code></div></div>
+      <div class="r"><div class="d" style="display:block"><PageNav pages={19} current={1} /></div><div class="i"><b>&lt;PageNav&gt;</b> — pagination bernomor <code>1 2 3 … 19 ›</code> (halaman Shop). Aktif digaris-bawahi 2px, ellipsis + halaman terakhir, panah next saja. Beda dari <code>&lt;Pager&gt;</code>.</div></div>
+      <div class="r"><div class="d"><Divider /></div><div class="i"><code>&lt;Divider /&gt;</code> 1px #CCC8A8</div></div>
+    </div>
+
+    <!-- MOLEKUL -->
+    <div class="layer" id="mol"><span class="no">2</span><h2>Molekul</h2><span class="rule"></span></div>
+    <div class="card">
+      <div class="r"><div class="d"><PriceGroup price={700000} compareAt={950000} /></div><div class="i"><b>PriceGroup</b> = <code>.ts-24</code> + <code>.ts-22</code></div></div>
+      <div class="r"><div class="d" style="flex-direction:column;align-items:flex-start;gap:3px"><CardTitleBlock pill="Bloom Box" title="A Handful Flower Box" price={700000} compareAt={950000} /></div><div class="i"><b>CardTitleBlock</b> = <code>&lt;Pill&gt;</code> + <code>&lt;PriceGroup&gt;</code></div></div>
+      <div class="r"><div class="d"><TestimonialAuthor avatar="/assets/profile-claudia.jpg" name="Claudia S" city="Jakarta Utara" /></div><div class="i"><b>TestimonialAuthor</b> = <code>&lt;Avatar&gt;</code> + <code>.ts-35</code> + <code>.ts-50</code></div></div>
+      <div class="r"><div class="d" style="flex-direction:column;align-items:flex-start;gap:12px"><CategoryTileBar label="Anniversary" /><CategoryTileBar label="Graduation" olive /></div><div class="i"><b>CategoryTileBar</b> — strip 400×52, default / <code>olive</code></div></div>
+      <div class="r"><div class="d"><IconLink icon="instagram">Instagram</IconLink></div><div class="i"><b>IconLink</b> = <code>&lt;Icon&gt;</code> + label</div></div>
+      <div class="r"><div class="d" style="padding:0"><PromoBar /></div><div class="i"><b>PromoBar</b> — bar <code>#BBCCBF</code>, teks <code>.ts-34</code> + pill frosted (bg <code>--soft</code>, teks <code>--panel</code>) + chevron. Dipakai di atas Navbar.</div></div>
+      <div class="r"><div class="d" style="display:block;max-width:340px"><FilterGroup title="Category" collapsible active="Premium Wrapped Bloom" items={['Bloom Box & Basket', 'Premium Wrapped Bloom', 'Vase Arrangement', 'Accessories']} /></div><div class="i"><b>FilterGroup</b> — heading 18/700 + chevron + hairline + item ber-bullet (aktif = <code>#525252</code>/600). Dipakai di sidebar Shop.</div></div>
+    </div>
+
+    <!-- ORGANISME -->
+    <div class="layer" id="org"><span class="no">3</span><h2>Organisme</h2><span class="rule"></span></div>
+
+    <div class="card"><h3>Product card <s class="svg">3 varian</s></h3>
+      <div class="r"><div class="d" style="gap:20px;align-items:flex-start">
+        <ProductCard {...products[0]} />
+        <ProductCard {...products[2]} />
+        <ProductCard {...products[3]} />
+      </div><div class="i"><b>&lt;ProductCard&gt;</b> = <code>&lt;Badge&gt;</code>/<code>&lt;Button&gt;</code> + <code>&lt;CardTitleBlock&gt;</code> + <code>&lt;Swatch&gt;</code>. state = default / sale / soldout / hover.</div></div>
+    </div>
+
+    <div class="card"><h3>Category tile <s class="svg">2 varian</s></h3>
+      <div class="r"><div class="d" style="gap:20px;align-items:flex-start">
+        <CategoryTile image={tiles[0].image} label="Anniversary" />
+        <CategoryTile image={tiles[1].image} label="Graduation" olive />
+      </div><div class="i"><b>&lt;CategoryTile&gt;</b> = 400×540 + <code>&lt;CategoryTileBar&gt;</code>.</div></div>
+    </div>
+
+    <div class="card"><h3>Why ANIA card <s class="svg">2 varian</s></h3>
+      <div class="r"><div class="d" style="gap:20px;align-items:flex-start">
+        {whyAnia.map((c) => <WhyAniaCard {...c} />)}
+      </div><div class="i"><b>&lt;WhyAniaCard&gt;</b> = <code>&lt;Icon&gt;</code> + judul + body. <code>soft</code> = bg #F6EBE3.</div></div>
+    </div>
+
+    <div class="card"><h3>Kartu lain</h3>
+      <div class="r"><div class="d"><TestimonialCard quote="The bouquet was stunning and on time." avatar="/assets/profile-claudia.jpg" name="Claudia S" city="Jakarta Utara" /></div><div class="i"><b>&lt;TestimonialCard&gt;</b> = <code>.mini--soft</code> + <code>&lt;TestimonialAuthor&gt;</code></div></div>
+      <div class="r"><div class="d"><OccasionCard image="/assets/bouquet-love-symphony-wrap.jpg" title="Graduation" price="Rp 500,000" action="arrow" /><OccasionCard image="/assets/bouquet-rouge-elegance.jpg" title="Plush Doll" price="Rp 50,000" action="plus" /></div><div class="i"><b>&lt;OccasionCard&gt;</b> — action <code>arrow</code> / <code>plus</code></div></div>
+      <div class="r"><div class="d"><InfoPanel title="Delivery Information" fields={['Select a city', 'Address']} /></div><div class="i"><b>&lt;InfoPanel&gt;</b> = <code>.ts-25</code> + <code>&lt;Field&gt;</code> ×N</div></div>
+      <div class="r"><div class="d"><OrderItemCard title="A Handful Flower Box" pill="Bloom Box" price="Rp 950,000" swatch /></div><div class="i"><b>&lt;OrderItemCard&gt;</b> = <code>.ts-07</code> + <code>&lt;Pill&gt;</code> + <code>.ts-14</code> + <code>&lt;Swatch&gt;</code></div></div>
+    </div>
+
+    <div class="card"><h3>Navbar <s class="svg">PromoBar + centered logo</s></h3>
+      <div style="padding:12px 0"><Navbar /></div>
+      <div class="r"><div class="d" style="background:none;padding:0;min-height:0"></div><div class="i">
+        <b>&lt;Navbar&gt;</b> = <code>&lt;PromoBar&gt;</code> + baris nav (bg <code>--soft</code>): grid <code>1fr auto 1fr</code> — <code>&lt;NavLink&gt;</code> Shop / For Occasions kiri · logo <code>ania-logo.svg</code> tengah · About Us / Contact + <code>&lt;LangToggle&gt;</code> + search + cart kanan. Link = <code>.cmp-navlink</code> (12px caps, tracking 2px).
+      </div></div>
+    </div>
+
+    <!-- TEMPLATE -->
+    <div class="layer" id="tpl"><span class="no">4</span><h2>Template / Section</h2><span class="rule"></span></div>
+    <p class="lead">Tiap section merakit organisme + molekul + atom. Data dari <code>src/data/home.ts</code>.</p>
+
+    <div class="card"><h3>Hero</h3><div style="padding:12px 0"><Hero /></div></div>
+    <div class="card"><h3>Product-grid section</h3><div style="padding:12px 0"><ProductGridSection products={products} /></div></div>
+    <div class="card"><h3>Choose-your-flower section</h3><div style="padding:12px 0"><ChooseFlowerSection /></div></div>
+    <div class="card"><h3>Add-on section</h3><div style="padding:12px 0"><AddOnSection cards={addons} /></div></div>
+    <div class="card"><h3>Why ANIA section</h3><div style="padding:12px 0"><WhyAniaSection cards={whyAnia} /></div></div>
+    <div class="card"><h3>Testimonial section</h3><div style="padding:12px 0"><TestimonialSection items={testimonials} /></div></div>
+    <div class="card"><h3>Unspoken-words section</h3><div style="padding:12px 0"><UnspokenWordsSection /></div></div>
+    <div class="card"><h3>Shop section <s class="svg">page /shop · filter + pagination jalan</s></h3><div style="padding:12px 0"><ShopSection title="Premium Wrapped Bloom" groups={filters} items={allProducts} perPage={9} activeCategory="premium-wrapped" /></div></div>
+    <div class="card"><h3>Footer</h3><div style="padding:12px 0"><Footer /></div></div>
+  </div>
+</Base>

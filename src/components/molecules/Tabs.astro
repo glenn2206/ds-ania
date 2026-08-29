@@ -1,0 +1,22 @@
+---
+/**
+ * MOLEKUL · Tabs — tab folder .cflow__tabs (Ocassions / Category / Flower).
+ * Tab aktif = bg panel + radius atas + garis-bawah 2px.
+ * <Tabs items={['Ocassions','Category','Flower']} active="Ocassions" />
+ */
+interface Props {
+  items: string[];
+  active?: string;
+}
+const { items, active = items[0] } = Astro.props;
+---
+
+<div class="cflow__tabs">
+  {
+    items.map((it) => (
+      <span class={['cflow__tab', it === active && 'cflow__tab--on'].filter(Boolean).join(' ')}>
+        {it}
+      </span>
+    ))
+  }
+</div>

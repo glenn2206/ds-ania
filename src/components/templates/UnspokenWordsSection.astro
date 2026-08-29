@@ -1,0 +1,30 @@
+---
+/**
+ * TEMPLATE · UnspokenWordsSection — index.html "Let your Flowers Speak First".
+ * Split: gambar kiri (.uw__img) + teks kanan (.ts-37 → .ts-02 → .ts-31 → Button).
+ */
+import Button from '../atoms/Button.astro';
+
+interface Props {
+  eyebrow?: string;
+  title?: string;
+  body?: string;
+  cta?: string;
+}
+const {
+  eyebrow = 'For Those Unspoken Words',
+  title = 'Let your Flowers Speak First',
+  body = 'Because the most meaningful messages aren’t always spoken, they’re beautifully delivered. From love and gratitude to congratulations and comfort, our handcrafted bouquets will help you say what words can’t.',
+  cta = 'let’s talk flowers',
+} = Astro.props;
+---
+
+<section class="uw">
+  <div class="uw__img"></div>
+  <div class="uw__inner">
+    <span class="ts-37">{eyebrow}</span>
+    <h2 class="uw__title ts-02">{title}</h2>
+    <p class="uw__body ts-31">{body}</p>
+    <div class="uw__cta"><Button>{cta}</Button></div>
+  </div>
+</section>

@@ -1,0 +1,21 @@
+---
+/**
+ * ORGANISME · TestimonialCard — MEMANGGIL molekul TestimonialAuthor.
+ * .mini--soft 366×200, kutipan .ts-27 + author.
+ * <TestimonialCard quote="..." avatar="/assets/profile-claudia.jpg" name="Claudia S" city="Jakarta Utara" />
+ */
+import TestimonialAuthor from '../molecules/TestimonialAuthor.astro';
+
+interface Props {
+  quote: string;
+  avatar?: string;
+  name: string;
+  city: string;
+}
+const { quote, avatar, name, city } = Astro.props;
+---
+
+<span class="mini mini--soft">
+  <span class="ts-27">{quote}</span>
+  <TestimonialAuthor avatar={avatar} name={name} city={city} />
+</span>

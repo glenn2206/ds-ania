@@ -1,0 +1,15 @@
+---
+/**
+ * MOLEKUL · CategoryTileBar — .cti-bar strip (label Cormorant 24 + panah kanan).
+ * Panah = ::after background 22_arrow-left.svg (global.css).
+ * <CategoryTileBar label="Anniversary" />
+ * <CategoryTileBar label="Graduation" olive />
+ */
+interface Props {
+  label: string;
+  olive?: boolean;
+}
+const { label, olive = false } = Astro.props;
+---
+
+<span class={['cti-bar', olive && 'cti-bar--olive'].filter(Boolean).join(' ')}>{label}</span>

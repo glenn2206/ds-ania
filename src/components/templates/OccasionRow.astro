@@ -1,0 +1,136 @@
+---
+/**
+ * TEMPLATE · OccasionRow — satu pita occasion di "What Do You Want to Say?".
+ * Rel kiri (eyebrow + judul serif + Pager) + grid ProductCard di kanan.
+ * Pager BERFUNGSI (client-side): tampilkan PER_PAGE kartu, sisanya di-page.
+ */
+import ProductCard from '../organisms/ProductCard.astro';
+import Pager from '../atoms/Pager.astro';
+import { PER_PAGE } from '../../data/occasions';
+import type { OccasionRow } from '../../data/occasions';
+
+interface Props extends OccasionRow {}
+const { eyebrow, title, products } = Astro.props;
+
+const pageCount = Math.max(1, Math.ceil(products.length / PER_PAGE));
+---
+
+<div class="orow" data-occ-row data-per-page={PER_PAGE}>
+  <div class="orow__rail">
+    <span class="orow__eyebrow">{eyebrow}</span>
+    <h3 class="orow__title">{title}</h3>
+    <Pager pages={pageCount} current={1} />
+  </div>
+  <div class="orow__cards">
+    {
+      products.map((p, i) => (
+        <div class="orow__cell" data-occ-cell hidden={i >= PER_PAGE}>
+          <ProductCard {...p} />
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .orow {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+    padding: 40px 0;
+    border-top: 1px solid var(--hair);
+  }
+  .orow__rail {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding-top: 6px;
+  }
+  .orow__eyebrow {
+    font: 600 14px/1 'Open Sans', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 5.6px;
+    color: #525252;
+  }
+  .orow__title {
+    margin: 0;
+    font: 600 52px/1.05 'Cormorant Garamond', Georgia, serif;
+    color: #3D3B2F;
+  }
+  .orow__cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .orow__cell { min-width: 0; }
+  .orow__cell[hidden] { display: none; }
+  .orow__cards :global(.pcard) { width: 100%; }
+  .orow__cards :global(.pcard__media) { height: auto; aspect-ratio: 320 / 406; }
+
+  .orow__rail :global(.cmp-pager__arw) { transition: opacity 0.15s; }
+
+  @media (max-width: 1180px) {
+    .orow { grid-template-columns: 1fr; gap: 20px; }
+  }
+  @media (max-width: 640px) {
+    .orow__cards { grid-template-columns: 1fr; max-width: 340px; }
+    .orow__title { font-size: 40px; }
+  }
+</style>
+
+<script>
+  // Pager per baris occasion: tampilkan PER_PAGE kartu, klik angka / panah untuk ganti halaman.
+  document.querySelectorAll<HTMLElement>('[data-occ-row]').forEach((row) => {
+    const per = parseInt(row.dataset.perPage || '3', 10);
+    const cells = Array.from(row.querySelectorAll<HTMLElement>('[data-occ-cell]'));
+    const pager = row.querySelector<HTMLElement>('.cmp-pager');
+    if (!pager || cells.length <= per) {
+      pager?.remove();
+      return;
+    }
+
+    const nums = Array.from(pager.querySelectorAll<HTMLElement>('.num'));
+    const arws = Array.from(pager.querySelectorAll<HTMLElement>('.cmp-pager__arw'));
+    const prev = arws[0];
+    const next = arws[1];
+    const pageCount = Math.ceil(cells.length / per);
+    let page = 1;
+
+    const render = () => {
+      cells.forEach((c, i) => {
+        c.hidden = Math.floor(i / per) + 1 !== page;
+      });
+      nums.forEach((n, i) => {
+        n.className = i === page - 1 ? 'num ts-42 on' : 'num ts-33';
+      });
+      [prev, next].forEach((a, i) => {
+        const disabled = i === 0 ? page === 1 : page === pageCount;
+        a.style.opacity = disabled ? '0.3' : '';
+        a.style.pointerEvents = disabled ? 'none' : '';
+      });
+    };
+
+    nums.forEach((n, i) =>
+      n.addEventListener('click', () => {
+        page = i + 1;
+        render();
+      }),
+    );
+    prev?.addEventListener('click', () => {
+      if (page > 1) {
+        page -= 1;
+        render();
+      }
+    });
+    next?.addEventListener('click', () => {
+      if (page < pageCount) {
+        page += 1;
+        render();
+      }
+    });
+
+    render();
+  });
+</script>

@@ -1,0 +1,51 @@
+---
+/**
+ * PAGE · /product/<slug> — detail produk. SSR: data + stok live dari DB (cache 60 dtk).
+ * 404 kalau slug tidak ada / status draft.
+ */
+import Site from '../../layouts/Site.astro';
+import ProductDetailSection from '../../components/templates/ProductDetailSection.astro';
+import CareInstructions from '../../components/templates/CareInstructions.astro';
+import ProductCard from '../../components/organisms/ProductCard.astro';
+import OccasionCard from '../../components/organisms/OccasionCard.astro';
+import PageNav from '../../components/atoms/PageNav.astro';
+import { toProduct } from '../../data/shop';
+import { addonExtras } from '../../data/care';
+import { getCatalog, getProductBySlug } from '../../lib/products';
+
+const { slug } = Astro.params;
+const item = await getProductBySlug(slug ?? '');
+if (!item) return new Response('Produk tidak ditemukan', { status: 404 });
+
+const images = (item.gallery && item.gallery.length ? item.gallery : [item.image, item.image2].filter(Boolean)) as string[];
+
+// related = 4 produk berikutnya (Premium Wrapped), bukan item ini
+const { premiumWrapped } = await getCatalog();
+const others = premiumWrapped.filter((p) => p.slug !== item.slug);
+const startIdx = Math.max(0, premiumWrapped.findIndex((p) => p.slug === item.slug));
+const related = [...others.slice(startIdx), ...others.slice(0, startIdx)].slice(0, 4);
+---
+
+<Site title={`${item.name} — ANIA Flower Boutique`} description={item.description.slice(0, 150)}>
+  <div class="ppage">
+    <ProductDetailSection item={item} images={images} />
+
+    <section class="related">
+      <h2 class="ts-07 related__title">You May Also Like</h2>
+      <div class="related__row">
+        {related.map((c) => <ProductCard {...toProduct(c)} slug={c.slug} href={`/product/${c.slug}`} />)}
+      </div>
+      <PageNav pages={19} current={1} />
+    </section>
+
+    <section class="addonx">
+      <h2 class="ts-06 addonx__title">Add On Cute Extras to Your Bouquet!</h2>
+      <div class="addonx__row">
+        {addonExtras.map((a) => <OccasionCard image={a.image} title={a.title} price={a.price} action="plus" slug={a.slug} />)}
+      </div>
+      <PageNav pages={19} current={1} />
+    </section>
+
+    <CareInstructions />
+  </div>
+</Site>

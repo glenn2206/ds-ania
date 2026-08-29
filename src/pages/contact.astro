@@ -1,0 +1,20 @@
+---
+/**
+ * PAGE · /contact — "How Can We Help You?" form + "We'd Love to See You".
+ * Konten statik → prerender.
+ */
+export const prerender = true;
+import Site from '../layouts/Site.astro';
+import ContactSection from '../components/templates/ContactSection.astro';
+import VisitSection from '../components/templates/VisitSection.astro';
+---
+
+<Site
+  title="Contact — ANIA Flower Boutique"
+  description="Get in touch with ANIA Flower Boutique — custom orders, special requests, or any question about our flowers."
+>
+  <div class="contactpage">
+    <ContactSection />
+    <VisitSection />
+  </div>
+</Site>

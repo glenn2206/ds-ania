@@ -1,0 +1,43 @@
+---
+/**
+ * Admin.astro — layout panel CMS. Tanpa Navbar/Footer situs.
+ * Halaman admin cek sesi sendiri di frontmatter (redirect ke /admin/login bila null).
+ */
+import '../styles/admin.css';
+
+interface Props {
+  title?: string;
+  active?: 'products' | 'orders';
+  user?: string;
+  bare?: boolean; // true = tanpa top bar (halaman login)
+}
+const { title = 'Admin — ANIA', active, user, bare = false } = Astro.props;
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title}</title>
+  </head>
+  <body class="admin-body">
+    {!bare && (
+      <header class="admin-top">
+        <span class="admin-top__brand">ANIA · CMS</span>
+        <nav class="admin-top__nav">
+          <a href="/admin" class={active === 'products' ? 'is-active' : ''}>Produk</a>
+          <a href="/admin/orders" class={active === 'orders' ? 'is-active' : ''}>Order</a>
+          <a href="/" target="_blank" rel="noopener">Lihat situs ↗</a>
+          {user && (
+            <form method="POST" action="/api/admin/logout" style="display:inline">
+              <button class="btn btn--sm" type="submit">Keluar ({user})</button>
+            </form>
+          )}
+        </nav>
+      </header>
+    )}
+    {bare ? <slot /> : <main class="admin-shell"><slot /></main>}
+  </body>
+</html>

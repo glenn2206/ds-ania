@@ -1,0 +1,118 @@
+---
+/**
+ * TEMPLATE · Hero — index.html screen 1.
+ * Carousel gambar (Progress difungsikan: auto-advance 5s + klik segmen).
+ * Token: .ts-37 / .ts-02 / .ts-01 / .ts-16 · Button · Progress · Icon(whatsapp).
+ */
+import Button from '../atoms/Button.astro';
+import Progress from '../atoms/Progress.astro';
+import Icon from '../atoms/Icon.astro';
+
+interface Props {
+  eyebrow?: string;
+  title?: string;
+  titleItalic?: string;
+  checklist?: string[];
+  slides?: string[];
+}
+const {
+  eyebrow = 'ANIA Flower Boutique',
+  title = 'Looking for the Perfect Flowers Today?',
+  titleItalic = 'We’ve Got You.',
+  checklist = [
+    'Handcrafted by Florists',
+    'Professionally arranged for 10+ years',
+    'Easy online ordering system',
+    'Same-Day Flower Delivery',
+  ],
+  slides = ['/assets/hero-bouquet-on-table.jpg'],
+} = Astro.props;
+---
+
+<section class="hero" data-hero>
+  <div class="hero__slides">
+    {
+      slides.map((src, i) => (
+        <div
+          class:list={['hero__slide', i === 0 && 'is-active']}
+          style={`background-image:url(${src})`}
+        />
+      ))
+    }
+  </div>
+
+  <div class="hero__inner">
+    <p class="ts-37">{eyebrow}</p>
+    <h2 class="hero__title ts-02">
+      {title}<br /><span class="ts-01">{titleItalic}</span>
+    </h2>
+    <ul class="hero__list ts-16">
+      {checklist.map((c) => <li>&#10003; {c}</li>)}
+    </ul>
+    <div class="hero__cta">
+      <Button>shop flowers</Button>
+      <Button variant="secondary">let’s talk flowers</Button>
+    </div>
+  </div>
+
+  <div class="hero__progress">
+    <Progress total={slides.length} active={0} />
+  </div>
+
+  <a class="hero__wa" title="WhatsApp" href="#">
+    <Icon name="whatsapp" alt="WhatsApp" style="width:30px;height:30px" />
+  </a>
+</section>
+
+<script>
+  // Carousel: auto-advance + progress klik/keyboard. Jeda saat hover.
+  const INTERVAL = 5000;
+
+  document.querySelectorAll<HTMLElement>('[data-hero]').forEach((hero) => {
+    const slides = Array.from(hero.querySelectorAll<HTMLElement>('.hero__slide'));
+    const dots = Array.from(hero.querySelectorAll<HTMLElement>('.hero__progress .cmp-progress i'));
+    if (slides.length < 2) return;
+
+    let idx = 0;
+    let timer: number | undefined;
+
+    const render = () => {
+      slides.forEach((s, i) => s.classList.toggle('is-active', i === idx));
+      dots.forEach((d, i) => d.classList.toggle('on', i === idx));
+    };
+    const go = (n: number) => {
+      idx = (n + slides.length) % slides.length;
+      render();
+    };
+    const stop = () => {
+      if (timer) window.clearInterval(timer);
+      timer = undefined;
+    };
+    const start = () => {
+      stop();
+      timer = window.setInterval(() => go(idx + 1), INTERVAL);
+    };
+
+    dots.forEach((d, i) => {
+      d.setAttribute('role', 'button');
+      d.setAttribute('tabindex', '0');
+      d.setAttribute('aria-label', `Slide ${i + 1}`);
+      d.style.cursor = 'pointer';
+      d.addEventListener('click', () => {
+        go(i);
+        start();
+      });
+      d.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          go(i);
+          start();
+        }
+      });
+    });
+
+    hero.addEventListener('mouseenter', stop);
+    hero.addEventListener('mouseleave', start);
+    start();
+  });
+</script>

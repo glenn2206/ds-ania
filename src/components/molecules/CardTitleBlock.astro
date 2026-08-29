@@ -1,0 +1,25 @@
+---
+/**
+ * MOLEKUL · CardTitleBlock — MEMANGGIL atom Pill + molekul PriceGroup.
+ * pill + judul .ts-12 + harga. Dipakai di ProductCard / OrderItemCard.
+ * <CardTitleBlock pill="Bloom Box" title="A Handful Flower Box"
+ *                 price={700000} compareAt={950000} />
+ */
+import Pill from '../atoms/Pill.astro';
+import PriceGroup from './PriceGroup.astro';
+
+interface Props {
+  pill?: string;
+  title: string;
+  price: number | string;
+  compareAt?: number | string;
+  currency?: string;
+}
+const { pill, title, price, compareAt, currency } = Astro.props;
+---
+
+{pill && <Pill sand>{pill}</Pill>}
+<div class="pcard__tp">
+  <span class="ts-12">{title}</span>
+  <PriceGroup price={price} compareAt={compareAt} currency={currency} />
+</div>

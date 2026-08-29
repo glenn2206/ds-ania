@@ -1,0 +1,17 @@
+---
+/**
+ * ATOM · Field — .cmp-field (input tampilan, h 67, chevron kanan)
+ * <Field>Select a city</Field>
+ * <Field full>Address</Field>
+ */
+interface Props {
+  full?: boolean;
+  class?: string;
+}
+const { full = false, class: extra = '' } = Astro.props;
+const style = full ? 'width:100%' : undefined;
+---
+
+<span class={['cmp-field', extra].filter(Boolean).join(' ')} style={style}>
+  <slot />
+</span>

@@ -1,0 +1,22 @@
+---
+/**
+ * ATOM · NavLink — .cmp-navlink (Open Sans 12 caps, chevron opsional)
+ * <NavLink>Shop</NavLink>
+ * <NavLink chevron>For Occasions</NavLink>
+ */
+interface Props {
+  href?: string;
+  chevron?: boolean;
+}
+const { href = '#', chevron = false } = Astro.props;
+---
+
+<a class="cmp-navlink" href={href} data-chevron={chevron ? '' : undefined}><slot /></a>
+
+<style>
+  /* chevron ::after milik .cmp-navlink digambar via border (global.css).
+     Sembunyikan kalau prop chevron=false. */
+  .cmp-navlink:not([data-chevron])::after {
+    display: none;
+  }
+</style>

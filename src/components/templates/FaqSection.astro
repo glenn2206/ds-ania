@@ -1,0 +1,116 @@
+---
+/**
+ * TEMPLATE · FaqSection — index.html "Frequently Asked Question".
+ * Judul + accordion (klik toggle buka/tutup; ikon lingkaran olive ikut berputar).
+ */
+import { faqTitle, faqItems } from '../../data/faq';
+---
+
+<section class="faq">
+  <h1 class="faq__title">{faqTitle}</h1>
+
+  <div class="faq__list">
+    {
+      faqItems.map((it) => (
+        <div class="faq__item" data-faq-item>
+          <button class="faq__head" type="button" data-faq-toggle aria-expanded={it.open ? 'true' : 'false'}>
+            <span class="faq__headtext">
+              <span class="faq__q">{it.q}</span>
+              <span class="faq__cat">{it.category}</span>
+            </span>
+            <img class="faq__icon" src="/assets-svg/03_arrow-down-circle.svg" alt="" width="28" height="28" />
+          </button>
+          <div class="faq__body" hidden={!it.open}>
+            {it.a.map((p) => <p>{p}</p>)}
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .faq {
+    padding: var(--sec-y) var(--gutter);
+  }
+  .faq__title {
+    margin: 0 0 44px;
+    text-align: center;
+    font: 400 clamp(30px, 3.4vw, 40px) / 1.1 'Cormorant Garamond', Georgia, serif;
+    color: #3D3B2F;
+  }
+  .faq__list {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .faq__item {
+    border-bottom: 1px solid var(--sand);
+  }
+  .faq__head {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    padding: 26px 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+  .faq__headtext {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+  }
+  .faq__q {
+    font: 400 22px/1.35 'Cormorant Garamond', Georgia, serif;
+    color: #525252;
+  }
+  .faq__cat {
+    font: 400 14px/1 'Open Sans', Arial, sans-serif;
+    color: var(--dim);
+  }
+  .faq__icon {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    padding: 8px;
+    border-radius: 50%;
+    transform: rotate(-90deg);
+    transition: transform 0.2s ease;
+  }
+  .faq__head[aria-expanded='true'] .faq__icon {
+    transform: rotate(0deg);
+  }
+  .faq__body {
+    padding: 0 76px 30px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .faq__body[hidden] { display: none; }
+  .faq__body p {
+    margin: 0;
+    font: 400 15px/1.6 'Open Sans', Arial, sans-serif;
+    color: #525252;
+  }
+
+  @media (max-width: 620px) {
+    .faq__head { gap: 16px; padding: 20px 0; }
+    .faq__icon { width: 38px; height: 38px; }
+    .faq__body { padding-right: 0; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-faq-toggle]').forEach((btn) => {
+    const body = btn.parentElement!.querySelector<HTMLElement>('.faq__body')!;
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+      body.hidden = open;
+    });
+  });
+</script>

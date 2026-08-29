@@ -1,0 +1,22 @@
+---
+/**
+ * ORGANISME · SendToCard — MEMANGGIL atom Icon. Kartu di "Who Are You Sending Flowers To?".
+ * Ikon + judul Cormorant 30 + body + baris "Best for: …".
+ */
+import Icon from '../atoms/Icon.astro';
+
+interface Props {
+  icon: string;
+  title: string;
+  body: string;
+  bestFor: string;
+}
+const { icon, title, body, bestFor } = Astro.props;
+---
+
+<article class="sendto__card">
+  <Icon name={icon} size={38} alt="" class="sendto__ico" />
+  <h3 class="sendto__tt">{title}</h3>
+  <p class="sendto__bd">{body}</p>
+  <p class="sendto__best">{bestFor}</p>
+</article>

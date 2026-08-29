@@ -1,0 +1,33 @@
+---
+/**
+ * ATOM · Swatch — .cmp-swatch (pemilih Standard / Premium)
+ * <Swatch options={['Standard','Premium']} images={['/assets/a.png','/assets/b.png']} />
+ */
+interface Props {
+  options?: string[];
+  /** url gambar sejajar options; opsional */
+  images?: string[];
+  /** nama grup radio; default acak */
+  name?: string;
+}
+const {
+  options = ['Standard', 'Premium'],
+  images = [],
+  name = `swatch-${Math.random().toString(36).slice(2, 8)}`,
+} = Astro.props;
+---
+
+<span class="cmp-swatch">
+  {
+    options.map((opt, i) => (
+      <label>
+        <input type="radio" name={name} checked={i === 0} />
+        <span
+          class="dot"
+          style={images[i] ? `background-image:url(${images[i]})` : undefined}
+        />
+        <span class="cap">{opt}</span>
+      </label>
+    ))
+  }
+</span>

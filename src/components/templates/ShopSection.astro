@@ -1,0 +1,203 @@
+---
+/**
+ * TEMPLATE · ShopSection — halaman katalog Shop, filter + pagination BERFUNGSI
+ * (client-side, situs tetap statik).
+ * judul .ts-07 + ShopSidebar (kiri) + [toolbar sort/filter, grid ProductCard, PageNav].
+ */
+import ShopSidebar from '../organisms/ShopSidebar.astro';
+import ProductCard from '../organisms/ProductCard.astro';
+import Icon from '../atoms/Icon.astro';
+import { toProduct } from '../../data/shop';
+import type { FilterGroupData } from '../../data/shop';
+import type { CatalogItem } from '../../data/catalog';
+
+interface Props {
+  title: string;
+  groups: FilterGroupData[];
+  items: CatalogItem[];
+  perPage?: number;
+  /** kategori aktif awal (slug), mis. "premium-wrapped" */
+  activeCategory?: string;
+}
+const { title, groups, items, perPage = 9, activeCategory = '' } = Astro.props;
+
+const searchText = (c: CatalogItem) =>
+  [c.name, c.pill, c.flowers, c.occasion ?? '', c.description]
+    .join(' ')
+    .toLowerCase();
+---
+
+<section class="shop" data-shop data-per-page={perPage} data-active-category={activeCategory}>
+  <h1 class="ts-07 shop__title" data-shop-title>{title}</h1>
+
+  <div class="shop__layout">
+    <ShopSidebar groups={groups} />
+
+    <div class="shop__main">
+      <div class="shop__toolbar">
+        <label class="shop__sort">
+          <span class="shop__sort-label">Sort</span>
+          <select data-sort>
+            <option value="default">Default sorting</option>
+            <option value="price-asc">Price: low to high</option>
+            <option value="price-desc">Price: high to low</option>
+            <option value="name">Name: A–Z</option>
+          </select>
+        </label>
+        <button class="shop__filterbtn" type="button" aria-label="Filter" data-filter-toggle>
+          <Icon name="burger" size={18} alt="filter" />
+        </button>
+      </div>
+
+      <div class="shop__grid" data-grid>
+        {
+          items.map((c, i) => (
+            <div
+              class="shop__cell"
+              data-cell
+              data-cat={c.category}
+              data-name={c.name}
+              data-price={c.price ?? ''}
+              data-search={searchText(c)}
+              data-index={i}
+            >
+              <ProductCard {...toProduct(c)} slug={c.slug} href={`/product/${c.slug}`} />
+            </div>
+          ))
+        }
+      </div>
+
+      <p class="shop__empty" data-empty hidden>No products match this filter.</p>
+      <div class="shop__pager" data-pagenav></div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // ---- Shop engine: filter (sidebar) + sort + pagination, semua di browser ----
+  const CAT_LABEL: Record<string, string> = {
+    'bloom-box': 'Bloom Box & Basket',
+    'premium-wrapped': 'Premium Wrapped Bloom',
+    standing: 'Standing Flower & Flower Board',
+    vase: 'Vase',
+    accessories: 'Accessories',
+    preserved: 'Preserved Flower',
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-shop]').forEach((root) => {
+    const grid = root.querySelector<HTMLElement>('[data-grid]')!;
+    const cells = Array.from(root.querySelectorAll<HTMLElement>('[data-cell]'));
+    const pagerBox = root.querySelector<HTMLElement>('[data-pagenav]')!;
+    const emptyMsg = root.querySelector<HTMLElement>('[data-empty]')!;
+    const titleEl = root.querySelector<HTMLElement>('[data-shop-title]')!;
+    const sortSel = root.querySelector<HTMLSelectElement>('[data-sort]')!;
+    const perPage = parseInt(root.dataset.perPage || '9', 10);
+
+    let filter = { group: 'category', value: root.dataset.activeCategory || '' };
+    let page = 1;
+
+    const num = (el: HTMLElement) => parseInt(el.dataset.price || '0', 10);
+    const byName = (a: HTMLElement, b: HTMLElement) =>
+      (a.dataset.name || '').localeCompare(b.dataset.name || '');
+
+    const matches = (el: HTMLElement) => {
+      const { group, value } = filter;
+      if (!value || group === 'all') return true;
+      if (group === 'category') return el.dataset.cat === value;
+      if (group === 'sale') return el.dataset.sale === 'true';
+      // occasion / flower / addon → cocokkan substring ke data-search
+      return (el.dataset.search || '').includes(value.toLowerCase());
+    };
+
+    const sorted = (list: HTMLElement[]) => {
+      const v = sortSel.value;
+      if (v === 'default')
+        return list.slice().sort((a, b) => +(a.dataset.index || 0) - +(b.dataset.index || 0));
+      // produk tanpa harga ("by request") selalu di belakang, apa pun arah sort
+      const priced = list.filter((el) => el.dataset.price);
+      const unpriced = list.filter((el) => !el.dataset.price);
+      if (v === 'price-asc') priced.sort((a, b) => num(a) - num(b));
+      else if (v === 'price-desc') priced.sort((a, b) => num(b) - num(a));
+      else if (v === 'name') { priced.sort(byName); unpriced.sort(byName); }
+      return [...priced, ...unpriced];
+    };
+
+    const pageList = (total: number): (number | '…')[] => {
+      if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+      const keep = new Set<number>([1, total, page, page - 1, page + 1]);
+      if (page <= 3) { keep.add(2); keep.add(3); }
+      if (page >= total - 2) { keep.add(total - 1); keep.add(total - 2); }
+      const nums = [...keep].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
+      const out: (number | '…')[] = [];
+      nums.forEach((n, i) => {
+        if (i > 0 && n - nums[i - 1] > 1) out.push('…');
+        out.push(n);
+      });
+      return out;
+    };
+
+    const renderPager = (total: number) => {
+      if (total <= 1) { pagerBox.innerHTML = ''; return; }
+      const items = pageList(total)
+        .map((it) =>
+          it === '…'
+            ? `<li class="cmp-pagenav__gap" aria-hidden="true">…</li>`
+            : `<li class="cmp-pagenav__item${it === page ? ' is-current' : ''}"><a href="#" data-page="${it}" ${it === page ? 'aria-current="page"' : ''}>${it}</a></li>`,
+        )
+        .join('');
+      pagerBox.innerHTML =
+        `<nav class="cmp-pagenav" aria-label="Pagination"><ol class="cmp-pagenav__list">${items}` +
+        `<li class="cmp-pagenav__next"><a href="#" data-page="${Math.min(page + 1, total)}" aria-label="Next page">` +
+        `<img class="ico" src="/assets-svg/arrow-right-black.svg" alt=""></a></li></ol></nav>`;
+    };
+
+    const apply = () => {
+      const visible = sorted(cells.filter(matches));
+      cells.forEach((c) => (c.hidden = true));
+      const totalPages = Math.max(1, Math.ceil(visible.length / perPage));
+      if (page > totalPages) page = 1;
+      const start = (page - 1) * perPage;
+      visible.slice(start, start + perPage).forEach((c) => (c.hidden = false));
+      // urutan tampil sesuai hasil sort
+      visible.forEach((c) => grid.appendChild(c));
+      emptyMsg.hidden = visible.length !== 0;
+      renderPager(totalPages);
+      // judul ikut kategori aktif
+      if (filter.group === 'category' && filter.value) titleEl.textContent = CAT_LABEL[filter.value] || titleEl.textContent;
+      else if (filter.group === 'all') titleEl.textContent = 'All Products';
+    };
+
+    // sidebar filter
+    root.querySelectorAll<HTMLAnchorElement>('[data-filter]').forEach((a) => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        root.querySelectorAll('.filtergrp__item.is-active').forEach((x) => x.classList.remove('is-active'));
+        a.closest('.filtergrp__item')?.classList.add('is-active');
+        filter = { group: a.dataset.group || 'all', value: a.dataset.value || '' };
+        page = 1;
+        apply();
+        root.querySelector('.shop__main')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    // sort
+    sortSel.addEventListener('change', () => { page = 1; apply(); });
+
+    // pagination (delegasi — pager di-render ulang)
+    pagerBox.addEventListener('click', (e) => {
+      const a = (e.target as HTMLElement).closest<HTMLElement>('[data-page]');
+      if (!a) return;
+      e.preventDefault();
+      page = parseInt(a.dataset.page || '1', 10);
+      apply();
+      root.querySelector('.shop__main')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    // mobile: tombol filter buka/tutup sidebar
+    root.querySelector('[data-filter-toggle]')?.addEventListener('click', () => {
+      root.querySelector('.shop__side')?.classList.toggle('is-open');
+    });
+
+    apply();
+  });
+</script>

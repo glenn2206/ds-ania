@@ -1,0 +1,71 @@
+---
+export const prerender = false;
+import Admin from '../../layouts/Admin.astro';
+import { getSession } from '../../lib/session';
+import { q } from '../../lib/db';
+
+const session = getSession(Astro.cookies);
+if (!session) return Astro.redirect('/admin/login');
+
+const rows = await q(
+  `SELECT p.id, p.slug, p.name, p.category, p.price, p.stock, p.status,
+          (SELECT COUNT(*) FROM product_images WHERE product_id = p.id) AS img_count
+     FROM products p ORDER BY p.sort_order, p.id`,
+);
+const money = (n: unknown) => (n == null ? '—' : 'Rp ' + Number(n).toLocaleString('id-ID'));
+const stockLabel = (s: unknown) => (s == null ? '∞' : String(Number(s)));
+---
+
+<Admin title="Produk — ANIA CMS" active="products" user={session.uname}>
+  <div class="admin-row">
+    <h1 class="admin-h" style="margin:0">Produk ({rows.length})</h1>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn" id="deploy" title="Build ulang situs (setelah update kode). Konten produk sudah live tanpa ini.">Deploy ulang</button>
+      <a class="btn btn--primary" href="/admin/products/new">+ Produk baru</a>
+    </div>
+  </div>
+  <p id="deploymsg" style="color:var(--a-muted);font-size:13px;margin:-4px 0 12px"></p>
+  <script>
+    const b = document.getElementById('deploy') as HTMLButtonElement | null;
+    const m = document.getElementById('deploymsg') as HTMLElement | null;
+    b?.addEventListener('click', async () => {
+      if (!m || !confirm('Jalankan build + deploy ulang situs lewat GitHub Actions?')) return;
+      b.disabled = true;
+      m.textContent = 'Memicu deploy…';
+      try {
+        const r = await fetch('/api/admin/deploy', { method: 'POST' });
+        const d = await r.json();
+        m.textContent = r.ok ? d.note : d.error;
+      } catch { m.textContent = 'Gagal menghubungi server.'; }
+      b.disabled = false;
+    });
+  </script>
+
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Nama</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Foto</th><th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((r) => (
+        <tr>
+          <td><a href={`/admin/products/${r.id}`}>{r.name}</a><br /><small style="color:var(--a-muted)">{r.slug}</small></td>
+          <td>{r.category}</td>
+          <td>{money(r.price)}</td>
+          <td>{stockLabel(r.stock)}</td>
+          <td>{Number(r.img_count)}</td>
+          <td>
+            {r.status === 'published'
+              ? <span class="tag tag--ok">published</span>
+              : <span class="tag tag--draft">draft</span>}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  <p style="color:var(--a-muted);margin-top:18px;font-size:13px">
+    Perubahan langsung tampil di situs dalam ±60 detik (cache). Stok kosong = <b>∞</b> (tidak dilacak).
+  </p>
+</Admin>

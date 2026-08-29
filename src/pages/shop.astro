@@ -1,0 +1,24 @@
+---
+/**
+ * PAGE · /shop — katalog produk. SSR: produk & stok live dari DB (cache 60 dtk).
+ * Filter + pagination client-side di ShopSection.
+ */
+import Site from '../layouts/Site.astro';
+import ShopSection from '../components/templates/ShopSection.astro';
+import { filters } from '../data/shop';
+import { getCatalog } from '../lib/products';
+
+const { allProducts } = await getCatalog();
+---
+
+<Site title="Shop — ANIA Flower Boutique">
+  <div class="shoppage">
+    <ShopSection
+      title="Premium Wrapped Bloom"
+      groups={filters}
+      items={allProducts}
+      perPage={9}
+      activeCategory="premium-wrapped"
+    />
+  </div>
+</Site>

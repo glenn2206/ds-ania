@@ -1,0 +1,66 @@
+---
+/**
+ * ORGANISME · OccasionCard — MEMANGGIL atom Icon. .mini--occ 321×382.
+ * gambar 292×292 + .ts-13 + .ts-22 + ikon aksi (panah / plus).
+ * <OccasionCard image="/assets/x.png" title="Plush Doll" price="Rp 50,000" action="plus" slug="addon-plush-doll" />
+ * <OccasionCard image="/assets/y.png" title="Graduation" price="Rp 500,000" action="arrow" />
+ * `slug` + action="plus" → tombol "+" benar-benar menambah ke keranjang.
+ */
+import Icon from '../atoms/Icon.astro';
+
+interface Props {
+  image: string;
+  title: string;
+  price: string;
+  action?: 'arrow' | 'plus';
+  slug?: string;
+}
+const { image, title, price, action = 'arrow', slug } = Astro.props;
+---
+
+<span class="mini mini--occ">
+  <span class="thumb" style={`background-image:url(${image})`}></span>
+  <span style="display:flex;justify-content:space-between;align-items:center;width:100%">
+    <span>
+      <span class="ts-13">{title}</span><br />
+      <span class="ts-22">{price}</span>
+    </span>
+    {
+      action === 'plus' ? (
+        slug ? (
+          <button class="mini__add" type="button" data-add-extra={slug} aria-label={`Add ${title} to cart`}>
+            <Icon name="plus-circle" size={24} alt="" />
+          </button>
+        ) : (
+          <Icon name="plus-circle" size={24} alt="add" />
+        )
+      ) : (
+        <Icon name="arrow-right-black" alt="open" style="width:auto;height:18px" />
+      )
+    }
+  </span>
+</span>
+
+<style>
+  .mini__add {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    line-height: 0;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+  }
+  .mini__add:hover { transform: scale(1.15); }
+  .mini__add.is-added { transform: scale(1.15); filter: hue-rotate(70deg) saturate(1.5); }
+</style>
+
+<script>
+  import { addItem } from '../../lib/cart';
+  document.querySelectorAll<HTMLButtonElement>('[data-add-extra]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      addItem(btn.dataset.addExtra!, 1);
+      btn.classList.add('is-added');
+      window.setTimeout(() => btn.classList.remove('is-added'), 900);
+    });
+  });
+</script>

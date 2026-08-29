@@ -1,0 +1,107 @@
+---
+/**
+ * ORGANISME · ProductCard — MEMANGGIL Badge / Button + CardTitleBlock + Swatch.
+ * Ukuran asli index.html: lebar 320, media 320×406.
+ * `slug` → tombol "Add to Cart" (muncul saat hover) yang benar-benar menambah ke keranjang.
+ */
+import Badge from '../atoms/Badge.astro';
+import Button from '../atoms/Button.astro';
+import Swatch from '../atoms/Swatch.astro';
+import CardTitleBlock from '../molecules/CardTitleBlock.astro';
+
+interface Props {
+  image: string;
+  title: string;
+  pill?: string;
+  price: number | string;
+  compareAt?: number | string;
+  currency?: string;
+  state?: 'default' | 'sale' | 'soldout' | 'hover';
+  swatchOptions?: string[];
+  swatchImages?: string[];
+  slug?: string;
+  href?: string;
+}
+const {
+  image,
+  title,
+  pill,
+  price,
+  compareAt,
+  currency,
+  state = 'default',
+  swatchOptions,
+  swatchImages,
+  slug,
+  href,
+} = Astro.props;
+---
+
+<div class="pcard" class:list={[slug && 'pcard--buyable', href && 'pcard--link']}>
+  {href && <a class="pcard__link" href={href} aria-label={title} />}
+  <div class="pcard__media">
+    <img class="ph" src={image} alt={title} loading="lazy" decoding="async" />
+    {state === 'sale' && <Badge>Sale</Badge>}
+    {state === 'soldout' && <span class="pcard__dim" />}
+    {state === 'hover' && !slug && <Button variant="secondary-onwhite">Add to Cart</Button>}
+    {
+      slug && (
+        <button class="cmp-btn-secondary cmp-btn-secondary--onwhite pcard__add" type="button" data-add={slug}>
+          Add to Cart
+        </button>
+      )
+    }
+  </div>
+  <div class="pcard__body">
+    <CardTitleBlock
+      pill={pill}
+      title={title}
+      price={price}
+      compareAt={compareAt}
+      currency={currency}
+    />
+    <Swatch options={swatchOptions} images={swatchImages} />
+  </div>
+</div>
+
+<style>
+  .pcard--buyable .pcard__add {
+    opacity: 0;
+    transition: opacity 0.18s ease;
+  }
+  .pcard--buyable:hover .pcard__add,
+  .pcard--buyable:focus-within .pcard__add {
+    opacity: 1;
+  }
+  .pcard__add.is-added {
+    background: var(--olive);
+    color: #fff;
+    outline-color: var(--olive);
+  }
+  /* seluruh kartu jadi link ke detail; tombol/swatch tetap bisa diklik */
+  .pcard--link { position: relative; }
+  .pcard__link { position: absolute; inset: 0; z-index: 1; }
+  /* .pcard__media diangkat z-index:2 → tombol "Add to Cart" (absolute, di dalamnya)
+     otomatis ikut di atas .pcard__link. JANGAN kasih position:relative ke .pcard__add
+     — nanti left/top:50% dari global.css bikin geser (parah di section text-align:center). */
+  .pcard--link .pcard__media,
+  .pcard--link .cmp-swatch { position: relative; z-index: 2; }
+  .pcard--link .ts-12 { transition: color 0.15s; }
+  .pcard--link:hover .ts-12 { color: var(--olive-ink); }
+</style>
+
+<script>
+  import { addItem } from '../../lib/cart';
+  document.querySelectorAll<HTMLButtonElement>('[data-add]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      addItem(btn.dataset.add!, 1);
+      const orig = btn.textContent;
+      btn.textContent = 'Added ✓';
+      btn.classList.add('is-added');
+      window.setTimeout(() => {
+        btn.textContent = orig;
+        btn.classList.remove('is-added');
+      }, 1100);
+    });
+  });
+</script>

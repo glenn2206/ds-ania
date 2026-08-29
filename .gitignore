@@ -1,0 +1,23 @@
+# build output
+dist/
+# generated types
+.astro/
+# deps
+node_modules/
+# logs
+npm-debug.log*
+*.log
+# env
+.env
+.env.production
+.env.local
+# uploaded product photos (persisted outside the repo in prod; local dev writes here)
+uploads/
+# os
+.DS_Store
+
+# --- arsip: CMS Express lama (docs/legacy-cms/) — runtime artefak saja yang diabaikan
+docs/legacy-cms/node_modules/
+docs/legacy-cms/.env
+docs/legacy-cms/uploads/
+docs/legacy-cms/.worker.lock

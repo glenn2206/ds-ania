@@ -1,0 +1,25 @@
+---
+/**
+ * PAGE · /occasions — "For Occasions".
+ * Intro + "What Do You Want to Say?" (baris per occasion) + Add-on extras +
+ * "Who Are You Sending Flowers To?".
+ */
+export const prerender = true; // showcase kurasi (data snapshot) — cepat, refresh saat deploy
+import Site from '../layouts/Site.astro';
+import OccasionIntro from '../components/templates/OccasionIntro.astro';
+import OccasionShowcase from '../components/templates/OccasionShowcase.astro';
+import AddOnExtrasSection from '../components/templates/AddOnExtrasSection.astro';
+import SendToSection from '../components/templates/SendToSection.astro';
+---
+
+<Site
+  title="For Occasions — ANIA Flower Boutique"
+  description="Find the right flowers for every moment — birthdays, anniversaries, graduations, sympathy, and more."
+>
+  <div class="occasionpage">
+    <OccasionIntro />
+    <OccasionShowcase />
+    <AddOnExtrasSection />
+    <SendToSection />
+  </div>
+</Site>

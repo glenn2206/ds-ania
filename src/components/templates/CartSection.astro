@@ -1,0 +1,456 @@
+---
+/**
+ * TEMPLATE · CartSection — halaman keranjang. Berfungsi penuh (client-side):
+ * item + qty + hapus (localStorage), ongkir via Biteship, total, checkout → WhatsApp.
+ * Kiri: daftar item + info & form pengiriman. Kanan: Continue Shopping + Cart Totals.
+ */
+import Icon from '../atoms/Icon.astro';
+
+/** nomor WA butik untuk kirim ringkasan order */
+const WA_NUMBER = '6281211091885';
+---
+
+<section class="cart" data-cart data-wa={WA_NUMBER}>
+  <div class="cart__grid">
+    <!-- ============ KIRI ============ -->
+    <div class="cart__left">
+      <ul class="cart__items" data-items></ul>
+
+      <p class="cart__empty" data-empty hidden>
+        Your cart is empty. <a href="/shop">Browse our bouquets →</a>
+      </p>
+
+      <div class="cart__deliverybox" data-delivery hidden>
+        <div class="cart__dcell">
+          <span class="cart__dlabel">Receive on:</span>
+          <input type="date" data-date class="cart__dinput" />
+        </div>
+        <div class="cart__dcell cart__dcell--addr">
+          <span class="cart__dlabel">Send to:</span>
+          <div class="cart__addrwrap">
+            <input
+              type="text"
+              data-addr
+              class="cart__dinput"
+              placeholder="Type district / area — e.g. Kebayoran Baru, Jakarta Selatan"
+              autocomplete="off"
+            />
+            <ul class="cart__addrlist" data-addrlist hidden></ul>
+          </div>
+          <Icon name="location" size={18} alt="" class="cart__pin" />
+        </div>
+        <div class="cart__dcell cart__dcell--courier" data-courierrow hidden>
+          <span class="cart__dlabel">Courier:</span>
+          <select data-courier class="cart__dinput"></select>
+          <span class="cart__estnote" data-estnote hidden>estimasi</span>
+        </div>
+      </div>
+
+      <div class="cart__form" data-form hidden>
+        <label class="cart__field">
+          <span>Sender Name:</span>
+          <input type="text" name="senderName" placeholder="Full name" />
+        </label>
+        <label class="cart__field">
+          <span>Sender WhatsApp:</span>
+          <input type="tel" name="senderWa" placeholder="(+62) 81212349876" />
+        </label>
+        <label class="cart__field">
+          <span>Sender Email:</span>
+          <input type="email" name="senderEmail" placeholder="you@email.com" />
+        </label>
+      </div>
+    </div>
+
+    <!-- ============ KANAN ============ -->
+    <div class="cart__right">
+      <a class="cart__continue" href="/shop">Continue Shopping?</a>
+
+      <div class="cart__totals" data-totals hidden>
+        <h2 class="cart__totalstitle">Cart Totals</h2>
+        <div class="cart__row"><span>Subtotal</span><b data-subtotal>Rp 0</b></div>
+        <div class="cart__row"><span>Delivery</span><b data-delivery-cost>—</b></div>
+        <div class="cart__row cart__row--total"><span>Total</span><b data-total>Rp 0</b></div>
+        <button class="cart__checkout" type="button" data-checkout>
+          Proceed to Checkout — <span data-checkout-total>Rp 0</span>
+        </button>
+        <p class="cart__note" data-checkoutnote hidden></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<template data-line-tpl>
+  <li class="cart__item">
+    <button class="cart__remove" type="button" aria-label="Remove" data-remove>&times;</button>
+    <span class="cart__thumb"></span>
+    <span class="cart__meta">
+      <span class="cart__name"></span>
+      <span class="cart__variant"></span>
+    </span>
+    <span class="cmp-stepper cart__stepper">
+      <b data-dec>&minus;</b><b class="v" data-qty>1</b><b data-inc>+</b>
+    </span>
+    <span class="cart__price"></span>
+  </li>
+</template>
+
+<script>
+  import {
+    getCart, setQty, removeItem, findProduct, unitPrice, subtotal, seedIfFirstVisit, rupiah,
+  } from '../../lib/cart';
+
+  interface RateOption { courier: string; service: string; price: number; etd: string }
+  interface Area { id: string; name: string; postal_code: number }
+  // ongkir & alamat lewat endpoint server (/api/shipping) — token Biteship tidak ke browser
+  const searchAreas = (input: string): Promise<Area[]> =>
+    input.trim().length < 3
+      ? Promise.resolve([])
+      : fetch('/api/shipping?q=' + encodeURIComponent(input))
+          .then((r) => r.json())
+          .then((j) => (Array.isArray(j.areas) ? (j.areas as Area[]) : []))
+          .catch(() => []);
+  const getRates = (opts: { destAreaId?: string; destPostal?: number; items: { name: string; quantity: number }[] }): Promise<{ options: RateOption[]; estimated: boolean }> =>
+    fetch('/api/shipping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        destAreaId: opts.destAreaId,
+        destPostal: opts.destPostal,
+        items: opts.items.map((it) => ({ slug: it.name, qty: it.quantity })),
+      }),
+    })
+      .then((r) => r.json())
+      .catch(() => ({ options: [] as RateOption[], estimated: true }));
+
+  const root = document.querySelector<HTMLElement>('[data-cart]');
+  if (root) {
+    seedIfFirstVisit();
+
+    const $ = <T extends Element = HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const itemsEl = $('[data-items]');
+    const emptyEl = $('[data-empty]');
+    const deliveryEl = $('[data-delivery]');
+    const formEl = $('[data-form]');
+    const totalsEl = $('[data-totals]');
+    const tpl = document.querySelector<HTMLTemplateElement>('[data-line-tpl]')!;
+    const courierSel = $<HTMLSelectElement>('[data-courier]');
+    const courierRow = $('[data-courierrow]');
+    const estNote = $('[data-estnote]');
+    const addrInput = $<HTMLInputElement>('[data-addr]');
+    const addrList = $('[data-addrlist]');
+    const dateInput = $<HTMLInputElement>('[data-date]');
+
+    // default tanggal = besok (waktu lokal)
+    const t = new Date(); t.setDate(t.getDate() + 1);
+    const iso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+    dateInput.min = iso; dateInput.value = iso;
+
+    let dest: { areaId?: string; postal?: number; label?: string } = {};
+    let rates: RateOption[] = [];
+    let estimated = false;
+
+    const renderItems = () => {
+      const cart = getCart();
+      itemsEl.innerHTML = '';
+      cart.forEach((l) => {
+        const p = findProduct(l.slug);
+        if (!p) return;
+        const node = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
+        (node.querySelector('.cart__thumb') as HTMLElement).style.backgroundImage = `url(${p.image})`;
+        node.querySelector('.cart__name')!.textContent = p.name;
+        node.querySelector('.cart__variant')!.textContent = p.pill;
+        node.querySelector('[data-qty]')!.textContent = String(l.qty);
+        node.querySelector('.cart__price')!.textContent =
+          typeof p.price === 'number' ? rupiah(unitPrice(l.slug) * l.qty) : (p.priceNote ? 'By request' : '—');
+        node.querySelector('[data-dec]')!.addEventListener('click', () => setQty(l.slug, l.qty - 1));
+        node.querySelector('[data-inc]')!.addEventListener('click', () => setQty(l.slug, l.qty + 1));
+        node.querySelector('[data-remove]')!.addEventListener('click', () => removeItem(l.slug));
+        itemsEl.appendChild(node);
+      });
+      const has = cart.length > 0;
+      emptyEl.hidden = has;
+      deliveryEl.hidden = !has;
+      formEl.hidden = !has;
+      totalsEl.hidden = !has;
+    };
+
+    const deliveryCost = (): number | null => {
+      if (!rates.length) return null;
+      const idx = courierSel.selectedIndex >= 0 ? courierSel.selectedIndex : 0;
+      return rates[idx]?.price ?? null;
+    };
+
+    const renderTotals = () => {
+      const sub = subtotal();
+      const ship = deliveryCost();
+      $('[data-subtotal]').textContent = rupiah(sub);
+      $('[data-delivery-cost]').textContent = ship == null ? '—' : rupiah(ship);
+      const total = sub + (ship ?? 0);
+      $('[data-total]').textContent = rupiah(total);
+      $('[data-checkout-total]').textContent = rupiah(total);
+    };
+
+    const loadRates = async () => {
+      if (!dest.areaId && !dest.postal) return;
+      const cart = getCart();
+      const items = cart.map((l) => ({ name: l.slug, quantity: l.qty }));
+      courierSel.innerHTML = '<option>Loading…</option>';
+      courierRow.hidden = false;
+      const res = await getRates({ destAreaId: dest.areaId, destPostal: dest.postal, items });
+      rates = res.options;
+      estimated = res.estimated;
+      estNote.hidden = !estimated;
+      courierSel.innerHTML = rates
+        .map((r) => `<option>${r.courier} · ${r.service} — ${rupiah(r.price)}${r.etd ? ` (${r.etd})` : ''}</option>`)
+        .join('');
+      renderTotals();
+    };
+
+    // --- address autocomplete ---
+    let acTimer: number | undefined;
+    addrInput.addEventListener('input', () => {
+      dest = {};
+      renderTotals();
+      window.clearTimeout(acTimer);
+      const q = addrInput.value;
+      acTimer = window.setTimeout(async () => {
+        const areas = await searchAreas(q);
+        if (!areas.length) { addrList.hidden = true; return; }
+        addrList.innerHTML = areas
+          .slice(0, 8)
+          .map((a) => `<li data-id="${a.id}" data-postal="${a.postal_code}">${a.name}</li>`)
+          .join('');
+        addrList.hidden = false;
+      }, 300);
+    });
+    addrList.addEventListener('click', (e) => {
+      const li = (e.target as HTMLElement).closest<HTMLElement>('li[data-id]');
+      if (!li) return;
+      dest = { areaId: li.dataset.id, postal: Number(li.dataset.postal), label: li.textContent || '' };
+      addrInput.value = dest.label!;
+      addrList.hidden = true;
+      loadRates();
+    });
+    document.addEventListener('click', (e) => {
+      if (!addrInput.parentElement!.contains(e.target as Node)) addrList.hidden = true;
+    });
+
+    courierSel.addEventListener('change', renderTotals);
+
+    // --- checkout → buat order + invoice Xendit ---
+    const waFallback = (code: string) => {
+      const cart = getCart();
+      const lines = cart.map((l) => {
+        const p = findProduct(l.slug)!;
+        const price = typeof p.price === 'number' ? rupiah(unitPrice(l.slug) * l.qty) : 'By request';
+        return `• ${p.name} (${p.pill}) ×${l.qty} — ${price}`;
+      });
+      const ship = deliveryCost();
+      const total = subtotal() + (ship ?? 0);
+      const msg = [
+        `Halo ANIA, saya mau order (kode ${code}):`,
+        ...lines,
+        '',
+        `Subtotal: ${rupiah(subtotal())}`,
+        `Ongkir: ${ship == null ? '-' : rupiah(ship)}${estimated ? ' (estimasi)' : ''} ${courierSel.value || ''}`.trim(),
+        `Total: ${rupiah(total)}`,
+        '',
+        `Kirim ke: ${dest.label}`,
+        `Tanggal terima: ${dateInput.value}`,
+      ].join('\n');
+      window.open(`https://wa.me/${root.dataset.wa}?text=${encodeURIComponent(msg)}`, '_blank');
+    };
+
+    const checkoutBtn = $<HTMLButtonElement>('[data-checkout]');
+    checkoutBtn.addEventListener('click', async () => {
+      const cart = getCart();
+      if (!cart.length) return;
+      const note = $('[data-checkoutnote]');
+      const name = (root.querySelector('[name="senderName"]') as HTMLInputElement).value.trim();
+      const wa = (root.querySelector('[name="senderWa"]') as HTMLInputElement).value.trim();
+      const email = (root.querySelector('[name="senderEmail"]') as HTMLInputElement).value.trim();
+      if (!dest.label) { note.hidden = false; note.textContent = 'Pilih alamat pengiriman dulu.'; return; }
+      if (!name || !wa) { note.hidden = false; note.textContent = 'Isi nama & WhatsApp pengirim.'; return; }
+      note.hidden = true;
+
+      const chosen = rates[courierSel.selectedIndex >= 0 ? courierSel.selectedIndex : 0];
+      checkoutBtn.disabled = true;
+      const orig = checkoutBtn.textContent;
+      checkoutBtn.textContent = 'Memproses…';
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: cart.map((l) => ({ slug: l.slug, qty: l.qty })),
+            customer: { name, phone: wa, email },
+            shipping: {
+              areaId: dest.areaId,
+              postal: dest.postal,
+              label: dest.label,
+              date: dateInput.value,
+              courier: chosen?.courier || '',
+              service: chosen?.service || '',
+              cost: deliveryCost() ?? 0,
+            },
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Checkout gagal');
+        if (data.invoiceUrl) { window.location.href = data.invoiceUrl; return; }
+        // Xendit belum aktif → tampilkan kode order + fallback WhatsApp
+        note.hidden = false;
+        note.textContent = `Order ${data.code} dibuat. Pembayaran online belum aktif — lanjut via WhatsApp.`;
+        waFallback(data.code);
+      } catch (err) {
+        note.hidden = false;
+        note.textContent = (err as Error).message;
+      } finally {
+        checkoutBtn.disabled = false;
+        checkoutBtn.textContent = orig;
+      }
+    });
+
+    window.addEventListener('cart:change', () => {
+      renderItems();
+      renderTotals();
+      if (dest.areaId || dest.postal) loadRates();
+    });
+
+    renderItems();
+    renderTotals();
+  }
+</script>
+
+<style>
+  .cart { width: 100%; padding: var(--sec-y) var(--gutter); }
+  .cart__grid {
+    display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 0;
+  }
+  .cart__left { padding-right: 56px; border-right: 1px solid var(--sand); }
+  .cart__right { padding-left: 56px; }
+
+  /* ---- items ---- */
+  .cart__items { list-style: none; margin: 0; padding: 0; }
+  .cart__item {
+    display: grid;
+    grid-template-columns: 28px 64px minmax(0, 1fr) auto auto;
+    align-items: center; gap: 20px;
+    padding: 22px 0; border-bottom: 1px solid var(--sand);
+  }
+  .cart__remove {
+    width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--sand);
+    background: #fff; color: var(--dim); cursor: pointer; font-size: 15px; line-height: 1;
+  }
+  .cart__thumb {
+    width: 64px; height: 64px; border-radius: 6px;
+    background: #e7e2d3 center/cover no-repeat;
+  }
+  .cart__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .cart__name { font: 600 15px/1.3 'Open Sans', Arial, sans-serif; color: #1E2934; }
+  .cart__variant { font: 400 13px/1 'Open Sans', Arial, sans-serif; color: var(--dim); }
+  .cart__stepper b { width: 33px; height: 33px; font-size: 14px; }
+  .cart__price {
+    font: 400 15px/1 'Open Sans', Arial, sans-serif; color: #1E2934; white-space: nowrap; text-align: right;
+  }
+  .cart__empty { font: 400 15px/1.6 'Open Sans', Arial, sans-serif; color: var(--dim); }
+
+  /* ---- delivery box ---- */
+  .cart__deliverybox {
+    margin: 28px 0 0; border: 1px solid var(--panel); border-radius: 6px; overflow: hidden;
+    display: grid;
+  }
+  .cart__dcell {
+    display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+    border-bottom: 1px solid var(--panel);
+  }
+  .cart__dcell:last-child { border-bottom: 0; }
+  .cart__dcell--addr { position: relative; }
+  .cart__dlabel {
+    font: 600 13px/1 'Open Sans', Arial, sans-serif; color: #1E2934; flex: none;
+  }
+  .cart__dinput {
+    flex: 1; border: 0; background: transparent; font: 400 14px/1.4 'Open Sans', Arial, sans-serif;
+    color: #3D3B2F; min-width: 0;
+  }
+  .cart__dinput:focus { outline: none; }
+  .cart__addrwrap { position: relative; flex: 1; }
+  .cart__addrlist {
+    position: absolute; left: 0; right: 0; top: 100%; z-index: 20; margin: 6px 0 0; padding: 4px;
+    list-style: none; background: #fff; border: 1px solid var(--hair); border-radius: 8px;
+    box-shadow: 0 12px 30px -14px rgba(60, 50, 20, 0.3); max-height: 260px; overflow: auto;
+  }
+  .cart__addrlist li {
+    padding: 8px 10px; border-radius: 6px; cursor: pointer;
+    font: 400 13px/1.4 'Open Sans', Arial, sans-serif; color: #3D3B2F;
+  }
+  .cart__addrlist li:hover { background: var(--soft); }
+  .cart__pin { opacity: 0.5; flex: none; }
+  .cart__estnote {
+    font: 400 11px/1 'Open Sans', Arial, sans-serif; text-transform: uppercase; letter-spacing: 1px;
+    color: #7E4C4C; background: #F6EBE3; border-radius: 99px; padding: 3px 8px; flex: none;
+  }
+  .cart__dcell--courier .cart__dinput { cursor: pointer; }
+
+  /* ---- form ---- */
+  .cart__form { margin: 28px 0 0; display: flex; flex-direction: column; gap: 22px; }
+  .cart__field { display: flex; flex-direction: column; gap: 10px; }
+  .cart__field span {
+    font: 400 12px/1 'Open Sans', Arial, sans-serif; color: #3D3B2F;
+  }
+  .cart__field input {
+    height: 60px; padding: 0 18px; border-radius: 6px;
+    border: 1px solid var(--panel); background: transparent;
+    font: 400 14px/1 'Open Sans', Arial, sans-serif; color: #3D3B2F;
+  }
+  .cart__field input::placeholder { color: rgba(109, 109, 109, 0.5); }
+  .cart__field input:focus { outline: none; border-color: var(--olive); }
+
+  /* ---- right ---- */
+  .cart__continue {
+    display: block; text-align: center; text-decoration: none;
+    padding: 22px; border: 1px solid var(--sand); border-radius: 10px;
+    font: 600 12px/1 'Open Sans', Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase;
+    color: #3D3B2F;
+  }
+  .cart__totals {
+    margin: 24px 0 0; padding: 26px; border: 1px solid var(--sand); border-radius: 10px;
+  }
+  .cart__totalstitle {
+    margin: 0 0 18px; font: 400 22px/1 'Cormorant Garamond', Georgia, serif; color: #1E2934;
+  }
+  .cart__row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 14px 0; border-bottom: 1px solid var(--sand);
+    font: 400 14px/1 'Open Sans', Arial, sans-serif; color: #6D6D6D;
+  }
+  .cart__row b { color: #1E2934; font-weight: 400; }
+  .cart__row--total { border-bottom: 0; font-size: 16px; }
+  .cart__row--total b { font-weight: 600; }
+  .cart__checkout {
+    width: 100%; margin: 18px 0 0; padding: 16px; border: 0; border-radius: 8px;
+    background: var(--olive); color: #fff; cursor: pointer;
+    font: 600 13px/1.3 'Open Sans', Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .cart__note { margin: 10px 0 0; font-size: 12px; color: #7E4C4C; }
+
+  @media (max-width: 960px) {
+    .cart__grid { grid-template-columns: 1fr; }
+    .cart__left { padding-right: 0; border-right: 0; }
+    .cart__right { padding-left: 0; margin-top: 32px; }
+  }
+  @media (max-width: 560px) {
+    .cart__item {
+      grid-template-columns: 24px 52px minmax(0, 1fr);
+      grid-template-areas: 'rm thumb meta' '. step price';
+      gap: 12px 14px;
+    }
+    .cart__remove { grid-area: rm; }
+    .cart__thumb { grid-area: thumb; width: 52px; height: 52px; }
+    .cart__meta { grid-area: meta; }
+    .cart__stepper { grid-area: step; }
+    .cart__price { grid-area: price; text-align: left; align-self: center; }
+    .cart__deliverybox { grid-template-columns: 1fr; }
+  }
+</style>

@@ -1,0 +1,24 @@
+---
+/**
+ * MOLEKUL · IconLink — MEMANGGIL atom Icon. Ikon + label (sosial / footer).
+ * <IconLink icon="instagram" href="#">Instagram</IconLink>
+ */
+import Icon from '../atoms/Icon.astro';
+
+interface Props {
+  icon: string;
+  href?: string;
+  size?: number;
+  class?: string;
+}
+const { icon, href = '#', size = 16, class: extra = '' } = Astro.props;
+---
+
+<a
+  class={extra}
+  href={href}
+  style="display:flex;align-items:center;gap:12px;color:#3D3B2F;text-decoration:none;font:400 16px/1 'Open Sans',Arial,sans-serif"
+>
+  <Icon name={icon} size={size} />
+  <slot />
+</a>

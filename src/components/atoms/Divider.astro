@@ -1,0 +1,12 @@
+---
+/**
+ * ATOM · Divider — .divider (1px #CCC8A8)
+ * <Divider />
+ */
+interface Props {
+  class?: string;
+}
+const { class: extra = '' } = Astro.props;
+---
+
+<span class={['divider', extra].filter(Boolean).join(' ')}></span>

@@ -1,0 +1,68 @@
+---
+/**
+ * MOLEKUL · PromoBar — bar promo index.html (bg #BBCCBF).
+ * teks .ts-34 + pill "frosted" (bg --soft, teks --panel) + chevron.
+ * <PromoBar text="Mother's Day Graduation Sale" cta="25% Off! Shop Now" href="/shop" />
+ */
+interface Props {
+  text?: string;
+  cta?: string;
+  href?: string;
+}
+const {
+  text = 'Mother’s Day Graduation Sale',
+  cta = '25% Off! Shop Now',
+  href = '#',
+} = Astro.props;
+---
+
+<div class="promo">
+  <span class="ts-34">{text}</span>
+  <span class="promo__frost">
+    <a class="promo__pill" href={href}>
+      {cta}
+      <span class="promo__chev" aria-hidden="true">&rsaquo;</span>
+    </a>
+  </span>
+</div>
+
+<style>
+  .promo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 35px;
+    padding: 4px 16px;
+    background: var(--panel);
+  }
+  /* lapisan luar "frosted" — index: rgba(171,171,171,.25) + blur */
+  .promo__frost {
+    display: inline-flex;
+    padding: 2px;
+    border-radius: 99px;
+    background: rgba(171, 171, 171, 0.28);
+    backdrop-filter: blur(2.5px);
+  }
+  .promo__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 12px;
+    border-radius: 99px;
+    background: var(--soft);
+    color: var(--panel);
+    font: 600 14px/1 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .promo__chev {
+    font-size: 16px;
+    line-height: 1;
+  }
+  @media (max-width: 560px) {
+    .promo .ts-34 {
+      display: none;
+    }
+  }
+</style>

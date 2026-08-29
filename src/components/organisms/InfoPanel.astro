@@ -1,0 +1,18 @@
+---
+/**
+ * ORGANISME · InfoPanel — MEMANGGIL atom Field. .mini--panel 472, pad 24.
+ * <InfoPanel title="Delivery Information" fields={['Select a city','Address']} />
+ */
+import Field from '../atoms/Field.astro';
+
+interface Props {
+  title: string;
+  fields: string[];
+}
+const { title, fields } = Astro.props;
+---
+
+<span class="mini mini--panel">
+  <span class="ts-25">{title}</span>
+  {fields.map((f) => <Field full>{f}</Field>)}
+</span>

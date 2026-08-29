@@ -1,0 +1,27 @@
+---
+export const prerender = false;
+import Admin from '../../layouts/Admin.astro';
+import { getSession } from '../../lib/session';
+
+if (getSession(Astro.cookies)) return Astro.redirect('/admin');
+const err = Astro.url.searchParams.get('err');
+---
+
+<Admin title="Masuk — ANIA CMS" bare>
+  <div class="login-wrap">
+    <form class="login-card" method="POST" action="/api/admin/login">
+      <h1>ANIA · CMS</h1>
+      <p class="sub">Masuk untuk mengelola katalog.</p>
+      {err && <div class="flash flash--err">{err}</div>}
+      <div class="field">
+        <label for="u">Username</label>
+        <input id="u" name="username" autocomplete="username" required autofocus />
+      </div>
+      <div class="field">
+        <label for="p">Password</label>
+        <input id="p" name="password" type="password" autocomplete="current-password" required />
+      </div>
+      <button class="btn btn--primary" type="submit">Masuk</button>
+    </form>
+  </div>
+</Admin>

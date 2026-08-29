@@ -1,0 +1,16 @@
+---
+/**
+ * ATOM · LangToggle — .cmp-lang (ENG / IND)
+ * <LangToggle active="ENG" />
+ */
+interface Props {
+  active?: 'ENG' | 'IND';
+  class?: string;
+}
+const { active = 'ENG', class: extra = '' } = Astro.props;
+---
+
+<span class={['cmp-lang', extra].filter(Boolean).join(' ')}>
+  <b class={active === 'ENG' ? 'on' : undefined}>ENG</b>
+  <b class={active === 'IND' ? 'on' : undefined}>IND</b>
+</span>

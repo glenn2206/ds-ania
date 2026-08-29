@@ -1,0 +1,27 @@
+---
+export const prerender = false;
+import Admin from '../../../layouts/Admin.astro';
+import ProductEditor, { type ProductRow, type ImageRow } from '../../../components/admin/ProductEditor.tsx';
+import { getSession } from '../../../lib/session';
+import { one, q } from '../../../lib/db';
+
+const session = getSession(Astro.cookies);
+if (!session) return Astro.redirect('/admin/login');
+
+const id = Number(Astro.params.id);
+const product = (Number.isFinite(id) ? await one('SELECT * FROM products WHERE id = ?', [id]) : null) as ProductRow | null;
+if (!product) return new Response('Produk tidak ada', { status: 404 });
+
+const images = (await q(
+  'SELECT id, filename, position FROM product_images WHERE product_id = ? ORDER BY position, id',
+  [id],
+)) as unknown as ImageRow[];
+---
+
+<Admin title={`${product.name} — ANIA CMS`} active="products" user={session.uname}>
+  <div class="admin-row">
+    <h1 class="admin-h" style="margin:0">{product.name}</h1>
+    <a class="btn btn--sm" href={`/product/${product.slug}`} target="_blank" rel="noopener">Lihat di situs ↗</a>
+  </div>
+  <ProductEditor client:load mode="edit" product={product} images={images} />
+</Admin>

@@ -1,0 +1,23 @@
+---
+/**
+ * PAGE · /about — "About Us". Konten statik → prerender.
+ */
+export const prerender = true;
+import Site from '../layouts/Site.astro';
+import AboutHero from '../components/templates/AboutHero.astro';
+import BehindTheFlower from '../components/templates/BehindTheFlower.astro';
+import AboutCollage from '../components/templates/AboutCollage.astro';
+import FlowerStory from '../components/templates/FlowerStory.astro';
+---
+
+<Site
+  title="About Us — ANIA Flower Boutique"
+  description="Who we are — a team that believes flowers say what words can't, committed to every detail from first stem to final delivery."
+>
+  <div class="aboutpage">
+    <AboutHero />
+    <BehindTheFlower />
+    <AboutCollage />
+    <FlowerStory />
+  </div>
+</Site>

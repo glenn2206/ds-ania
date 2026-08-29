@@ -1,0 +1,18 @@
+---
+/**
+ * ORGANISME · ShopSidebar — MEMANGGIL molekul FilterGroup.
+ * Kolom filter kiri halaman Shop. Isinya cuma deret FilterGroup dari data.
+ * <ShopSidebar groups={filters} />
+ */
+import FilterGroup from '../molecules/FilterGroup.astro';
+import type { FilterGroupData } from '../../data/shop';
+
+interface Props {
+  groups: FilterGroupData[];
+}
+const { groups } = Astro.props;
+---
+
+<aside class="shop__side" aria-label="Product filters">
+  {groups.map((g) => <FilterGroup {...g} />)}
+</aside>

@@ -1,0 +1,29 @@
+---
+/**
+ * TEMPLATE · AddOnExtrasSection — "Add On Cute Extras to Your Bouquet!".
+ * Judul .ts-06 rata tengah + 4 OccasionCard (action="plus") + tombol "View All Add-on".
+ * Pakai kelas .addonx dari global.css (dipakai juga di halaman detail produk).
+ */
+import OccasionCard from '../organisms/OccasionCard.astro';
+import Button from '../atoms/Button.astro';
+import { addOnExtras } from '../../data/occasions';
+
+interface Props {
+  title?: string;
+  cta?: string;
+  href?: string;
+}
+const { title = 'Add On Cute Extras to Your Bouquet!', cta = 'View All Add-on', href = '/shop' } = Astro.props;
+---
+
+<section class="addonx">
+  <h2 class="ts-06 addonx__title">{title}</h2>
+  <div class="addonx__row">
+    {addOnExtras.map((a) => <OccasionCard image={a.image} title={a.title} price={a.price} action="plus" slug={a.slug} />)}
+  </div>
+  <div class="addonx__foot"><Button href={href}>{cta}</Button></div>
+</section>
+
+<style>
+  .addonx__foot { display: flex; justify-content: center; margin: 8px 0 0; }
+</style>

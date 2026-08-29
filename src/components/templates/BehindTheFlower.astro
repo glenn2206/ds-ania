@@ -1,0 +1,74 @@
+---
+/**
+ * TEMPLATE · BehindTheFlower — index.html "Behind The Flower".
+ * Judul .ts-07 + subjudul + 3 langkah (ikon + judul + body) dipisah garis vertikal.
+ */
+import Icon from '../atoms/Icon.astro';
+import { behindTheFlower as b } from '../../data/about';
+---
+
+<section class="abt-behind">
+  <h2 class="ts-07 abt-behind__title">{b.title}</h2>
+  <p class="abt-behind__sub">{b.subtitle}</p>
+
+  <div class="abt-behind__grid">
+    {
+      b.steps.map((s) => (
+        <article class="abt-behind__step">
+          <Icon name={s.icon} size={40} alt="" class="abt-behind__ico" />
+          <h3 class="abt-behind__steptitle">{s.title}</h3>
+          <p class="abt-behind__stepbody">{s.body}</p>
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .abt-behind {
+    background: var(--soft);
+    padding: var(--sec-y) var(--gutter);
+    text-align: center;
+  }
+  .abt-behind__title { display: block; margin: 0 0 16px; }
+  .abt-behind__sub {
+    margin: 0 auto 44px;
+    max-width: 62ch;
+    font: 400 14px/1.7 'Open Sans', Arial, sans-serif;
+    color: #1E2934;
+  }
+  .abt-behind__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1120px;
+    margin: 0 auto;
+    border: 1px solid var(--sand);
+    border-block: 1px solid var(--sand);
+    border-inline: 0;
+  }
+  .abt-behind__step {
+    padding: 44px 40px;
+    text-align: left;
+    border-left: 1px solid var(--sand);
+  }
+  .abt-behind__step:first-child { border-left: 0; }
+  .abt-behind__ico { width: 40px; height: 40px; margin: 0 0 28px; }
+  .abt-behind__steptitle {
+    margin: 0 0 8px;
+    font: 600 30px/1.15 'Cormorant Garamond', Georgia, serif;
+    color: #525252;
+  }
+  .abt-behind__stepbody {
+    margin: 0;
+    font: 400 14px/1.5 'Open Sans', Arial, sans-serif;
+    color: #3D3B2F;
+  }
+
+  @media (max-width: 820px) {
+    .abt-behind__grid { grid-template-columns: 1fr; }
+    .abt-behind__step { border-left: 0; border-top: 1px solid var(--sand); }
+    .abt-behind__step:first-child { border-top: 0; }
+    .abt-behind__ico { margin-bottom: 16px; }
+    .abt-behind__steptitle { font-size: 26px; }
+  }
+</style>

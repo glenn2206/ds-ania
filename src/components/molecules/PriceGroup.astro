@@ -1,0 +1,25 @@
+---
+/**
+ * MOLEKUL · PriceGroup — .pcard__price = .ts-24 (coret) + .ts-22
+ * <PriceGroup price={700000} compareAt={950000} />
+ * <PriceGroup price="Rp 1,000,000" />
+ */
+interface Props {
+  price: number | string;
+  compareAt?: number | string;
+  currency?: string;
+  class?: string;
+}
+const { price, compareAt, currency = 'Rp ', class: extra = '' } = Astro.props;
+
+const fmt = (v: number | string | undefined) => {
+  if (v === undefined || v === '') return '';
+  if (typeof v === 'string') return v;
+  return currency + v.toLocaleString('en-US');
+};
+---
+
+<span class={['pcard__price', extra].filter(Boolean).join(' ')}>
+  {compareAt !== undefined && <span class="ts-24">{fmt(compareAt)}</span>}
+  <span class="ts-22">{fmt(price)}</span>
+</span>

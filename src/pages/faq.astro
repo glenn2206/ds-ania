@@ -1,0 +1,17 @@
+---
+/**
+ * PAGE · /faq — "Frequently Asked Question". Konten statik → prerender.
+ */
+export const prerender = true;
+import Site from '../layouts/Site.astro';
+import FaqSection from '../components/templates/FaqSection.astro';
+---
+
+<Site
+  title="FAQ — ANIA Flower Boutique"
+  description="Frequently asked questions about ordering, delivery, payment and more at ANIA Flower Boutique."
+>
+  <div class="faqpage">
+    <FaqSection />
+  </div>
+</Site>

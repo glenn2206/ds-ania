@@ -1,0 +1,58 @@
+---
+/**
+ * ATOM · PageNav — pagination bernomor (index.html shop): 1 2 3 … 19 ›
+ * BEDA dari <Pager> (‹ 1 2 3 ›): halaman aktif digaris-bawahi, ada ellipsis +
+ * halaman terakhir, dan hanya panah "next".
+ * <PageNav pages={19} current={1} />
+ */
+interface Props {
+  pages: number;
+  current?: number;
+  /** prefix href, mis. "/shop?page=" — kalau kosong render <span> */
+  base?: string;
+}
+const { pages, current = 1, base } = Astro.props;
+
+/** deret nomor + '…' — jendela di sekitar halaman aktif, selalu tampil 1 & terakhir */
+function pageList(total: number, cur: number): (number | '…')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const keep = new Set<number>([1, total, cur, cur - 1, cur + 1]);
+  if (cur <= 3) [2, 3].forEach((n) => keep.add(n));
+  if (cur >= total - 2) [total - 1, total - 2].forEach((n) => keep.add(n));
+  const nums = [...keep].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
+  const out: (number | '…')[] = [];
+  nums.forEach((n, i) => {
+    if (i > 0 && n - nums[i - 1] > 1) out.push('…');
+    out.push(n);
+  });
+  return out;
+}
+
+const items = pageList(pages, current);
+const nextHref = base ? `${base}${Math.min(current + 1, pages)}` : '#';
+---
+
+<nav class="cmp-pagenav" aria-label="Pagination">
+  <ol class="cmp-pagenav__list">
+    {
+      items.map((it) =>
+        it === '…' ? (
+          <li class="cmp-pagenav__gap" aria-hidden="true">…</li>
+        ) : (
+          <li class:list={['cmp-pagenav__item', it === current && 'is-current']}>
+            {base ? (
+              <a href={`${base}${it}`} aria-current={it === current ? 'page' : undefined}>{it}</a>
+            ) : (
+              <span aria-current={it === current ? 'page' : undefined}>{it}</span>
+            )}
+          </li>
+        )
+      )
+    }
+    <li class="cmp-pagenav__next">
+      <a href={nextHref} aria-label="Next page">
+        <img class="ico" src="/assets-svg/arrow-right-black.svg" alt="" />
+      </a>
+    </li>
+  </ol>
+</nav>

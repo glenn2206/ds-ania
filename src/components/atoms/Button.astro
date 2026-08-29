@@ -1,0 +1,30 @@
+---
+/**
+ * ATOM · Button — .cmp-btn-primary / .cmp-btn-secondary / --onwhite
+ * <Button>shop flowers</Button>
+ * <Button variant="secondary">let's talk</Button>
+ * <Button variant="secondary-onwhite">Add to Cart</Button>
+ */
+interface Props {
+  variant?: 'primary' | 'secondary' | 'secondary-onwhite';
+  href?: string;
+  type?: 'button' | 'submit';
+  class?: string;
+}
+const { variant = 'primary', href, type = 'button', class: extra = '' } = Astro.props;
+
+const cls = {
+  primary: 'cmp-btn-primary',
+  secondary: 'cmp-btn-secondary',
+  'secondary-onwhite': 'cmp-btn-secondary cmp-btn-secondary--onwhite',
+}[variant];
+const className = [cls, extra].filter(Boolean).join(' ');
+---
+
+{
+  href ? (
+    <a class={className} href={href}><slot /></a>
+  ) : (
+    <button class={className} type={type}><slot /></button>
+  )
+}

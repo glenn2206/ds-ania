@@ -1,0 +1,23 @@
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+import react from '@astrojs/react';
+
+/**
+ * Satu app: Astro SSR (adapter Node standalone) + React untuk panel admin.
+ *
+ * - `output: 'server'` → semua halaman SSR by default (konten produk selalu live dari DB).
+ * - Halaman marketing statik (`/about`, `/faq`, `/terms`, `/contact`) pakai
+ *   `export const prerender = true` di masing-masing file.
+ * - Build → `dist/server/entry.mjs` (dijalankan `app.mjs`) + `dist/client/` (aset statik,
+ *   ikut disajikan oleh server standalone).
+ */
+export default defineConfig({
+  site: process.env.PUBLIC_SITE_URL || 'http://localhost:4321',
+  output: 'server',
+  adapter: node({ mode: 'standalone' }),
+  integrations: [react()],
+  vite: {
+    // paket native / CJS — jangan di-bundle ke server output
+    ssr: { external: ['sharp', 'pg', 'pg-native', 'mysql2', 'bcryptjs'] },
+  },
+});

@@ -1,0 +1,17 @@
+---
+/**
+ * ATOM · Pill — .cmp-pill / .cmp-pill--sand
+ * <Pill sand>Bloom Box</Pill>
+ * <Pill>Premium Wrapped</Pill>
+ */
+interface Props {
+  sand?: boolean;
+  class?: string;
+}
+const { sand = false, class: extra = '' } = Astro.props;
+const className = ['cmp-pill', sand && 'cmp-pill--sand', extra]
+  .filter(Boolean)
+  .join(' ');
+---
+
+<span class={className}><slot /></span>

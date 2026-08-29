@@ -1,0 +1,76 @@
+---
+/**
+ * TEMPLATE · TestimonialSection — index.html "With Love, from Our Clients".
+ * Heading .ts-07 + marquee TestimonialCard (.mini--soft) — jalan terus, tanpa scrollbar.
+ */
+import TestimonialCard from '../organisms/TestimonialCard.astro';
+
+interface Item {
+  quote: string;
+  avatar?: string;
+  name: string;
+  city: string;
+}
+interface Props {
+  title?: string;
+  items: Item[];
+}
+const { title = 'With Love, from Our Clients', items } = Astro.props;
+
+// digandakan 3× supaya loop mulus (selalu ada kartu sebelum & sesudah viewport)
+const loop = [...items, ...items, ...items];
+---
+
+<section class="tsec">
+  <div class="tsec__head"><span class="ts-07">{title}</span></div>
+  <div class="tsec__marquee">
+    <div class="tsec__track">
+      {loop.map((t, i) => <TestimonialCard {...t} aria-hidden={i >= items.length ? 'true' : undefined} />)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .tsec__marquee {
+    overflow: hidden;
+    --fade: 56px;
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 var(--fade),
+      #000 calc(100% - var(--fade)),
+      transparent
+    );
+    mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 var(--fade),
+      #000 calc(100% - var(--fade)),
+      transparent
+    );
+  }
+  .tsec__track {
+    display: flex;
+    gap: 12px;
+    width: max-content;
+    /* 3 salinan → geser sejauh 1 salinan (33.333%). arah: ke kanan. */
+    animation: tsec-scroll 44s linear infinite;
+  }
+  .tsec__track:hover {
+    animation-play-state: paused;
+  }
+  @keyframes tsec-scroll {
+    from {
+      transform: translateX(-33.3333%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tsec__track {
+      animation: none;
+      transform: translateX(-33.3333%);
+    }
+  }
+</style>

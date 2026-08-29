@@ -1,0 +1,212 @@
+---
+/**
+ * TEMPLATE · ContactSection — index.html "How Can We Help You?".
+ * Judul .ts-07 + intro + form (Name/WA, Email, Occasions/Category, Message) + tombol.
+ * Berfungsi client-side: submit → susun pesan → buka WhatsApp (situs tetap statik).
+ */
+import { contactOccasions, contactCategories, office } from '../../data/contact';
+
+interface Props {
+  title?: string;
+  intro?: string;
+}
+const {
+  title = 'How Can We Help You?',
+  intro = 'Whether you need help choosing flowers, have a special request, or simply have a question, our team is here to help.',
+} = Astro.props;
+---
+
+<section class="contact">
+  <h1 class="contact__title ts-07">{title}</h1>
+  <p class="contact__intro">{intro}</p>
+
+  <form class="contact__form" data-contact-form data-wa={office.whatsapp} novalidate>
+    <div class="contact__grid">
+      <label class="contact__field">
+        <span class="contact__label">Your Name:</span>
+        <input class="contact__input" type="text" name="name" placeholder="Name" autocomplete="name" required />
+      </label>
+
+      <label class="contact__field">
+        <span class="contact__label">Your WhatsApp Number:</span>
+        <input class="contact__input" type="tel" name="whatsapp" placeholder="08xxxxxxxxxx" autocomplete="tel" required />
+      </label>
+
+      <label class="contact__field contact__field--wide">
+        <span class="contact__label">Your Email:</span>
+        <input class="contact__input" type="email" name="email" placeholder="you@email.com" autocomplete="email" />
+      </label>
+
+      <label class="contact__field">
+        <span class="contact__label">Choose Occasions:</span>
+        <span class="contact__select">
+          <select class="contact__input" name="occasion">
+            <option value="" disabled selected>Select an occasion</option>
+            {contactOccasions.map((o) => <option value={o}>{o}</option>)}
+          </select>
+        </span>
+      </label>
+
+      <label class="contact__field">
+        <span class="contact__label">Choose Category</span>
+        <span class="contact__select">
+          <select class="contact__input" name="category">
+            <option value="" disabled selected>Select a category</option>
+            {contactCategories.map((c) => <option value={c}>{c}</option>)}
+          </select>
+        </span>
+      </label>
+
+      <label class="contact__field contact__field--wide">
+        <span class="contact__label">Your Message:</span>
+        <textarea class="contact__input contact__textarea" name="message" rows={6} placeholder="Message" required></textarea>
+      </label>
+    </div>
+
+    <p class="contact__note" data-contact-note hidden></p>
+
+    <div class="contact__actions">
+      <button class="cmp-btn-primary contact__submit" type="submit">Custom Order Now</button>
+    </div>
+  </form>
+</section>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
+  if (form) {
+    const note = form.querySelector<HTMLElement>('[data-contact-note]')!;
+    const wa = form.dataset.wa || '';
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = new FormData(form);
+      const get = (k: string) => String(data.get(k) || '').trim();
+      const name = get('name');
+      const whatsapp = get('whatsapp');
+      const message = get('message');
+
+      if (!name || !whatsapp || !message) {
+        note.hidden = false;
+        note.textContent = 'Please fill in your name, WhatsApp number, and message.';
+        return;
+      }
+      note.hidden = true;
+
+      const lines = [
+        'Halo ANIA, saya mau tanya / custom order:',
+        '',
+        `Nama: ${name}`,
+        `WhatsApp: ${whatsapp}`,
+      ];
+      if (get('email')) lines.push(`Email: ${get('email')}`);
+      if (get('occasion')) lines.push(`Occasion: ${get('occasion')}`);
+      if (get('category')) lines.push(`Kategori: ${get('category')}`);
+      lines.push('', `Pesan: ${message}`);
+
+      window.open(`https://wa.me/${wa}?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
+    });
+  }
+</script>
+
+<style>
+  .contact {
+    width: 100%;
+    padding: var(--sec-y) var(--gutter) calc(var(--sec-y) * 0.8);
+  }
+  .contact__title {
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .contact__intro {
+    margin: 26px 0 0;
+    max-width: 1040px;
+    font: 400 14px/1.7 'Open Sans', Arial, sans-serif;
+    color: #1E2934;
+  }
+  .contact__form {
+    margin: 34px 0 0;
+  }
+  .contact__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+  .contact__field {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+  .contact__field--wide {
+    grid-column: 1 / -1;
+  }
+  .contact__label {
+    font: 400 12px/1 'Open Sans', Arial, sans-serif;
+    color: #3D3B2F;
+  }
+  .contact__input {
+    width: 100%;
+    height: 67px;
+    padding: 0 16px;
+    border-radius: 4px;
+    border: 1px solid #D1D1D1;
+    background: var(--field);
+    font: 400 14px/1 'Open Sans', Arial, sans-serif;
+    color: #3D3B2F;
+    appearance: none;
+  }
+  .contact__input::placeholder { color: #6D6D6D; }
+  .contact__input:focus { outline: none; border-color: var(--olive); }
+
+  .contact__select {
+    position: relative;
+    display: block;
+  }
+  .contact__select::after {
+    content: '';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #A2A2A2;
+    border-bottom: 2px solid #A2A2A2;
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+  .contact__select .contact__input { cursor: pointer; padding-right: 44px; }
+
+  .contact__textarea {
+    height: auto;
+    min-height: 208px;
+    padding: 26px 16px;
+    line-height: 1.7;
+    resize: vertical;
+  }
+
+  .contact__note {
+    margin: 16px 0 0;
+    font: 400 13px/1.5 'Open Sans', Arial, sans-serif;
+    color: #7E4C4C;
+  }
+
+  .contact__actions {
+    margin: 30px 0 0;
+    display: flex;
+    justify-content: center;
+  }
+  .contact__submit {
+    padding: 12px 22px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  @media (max-width: 720px) {
+    .contact__grid { grid-template-columns: 1fr; gap: 22px; }
+    .contact__actions { justify-content: stretch; }
+    .contact__submit { width: 100%; justify-content: center; }
+  }
+</style>

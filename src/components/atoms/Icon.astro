@@ -1,0 +1,65 @@
+---
+/**
+ * ATOM · Icon — <img class="ico"> dari /assets-svg (jangan gambar sendiri).
+ * <Icon name="cart" />
+ * <Icon name="plus-circle" size={24} />
+ * <Icon src="/assets-svg/arrow-right-black.svg" />
+ */
+const FILES: Record<string, string> = {
+  location: '01_location.svg',
+  cart: '02_cart.svg',
+  'arrow-down-circle': '03_arrow-down-circle.svg',
+  whatsapp: '04_whatsapp.svg',
+  search: '05_search.svg',
+  'arrow-left-circle': '06_arrow-left-circle.svg',
+  'truck-delivery': '07_truck-delivery.svg',
+  toko: '08_toko.svg',
+  visa: '09_visa.svg',
+  jcb: '10_jcb.svg',
+  mastercard: '11_mastercard.svg',
+  googlepay: '12_googlepay.svg',
+  paypal: '13_paypall.svg',
+  tiktok: '14_tiktok.svg',
+  instagram: '15_ig.svg',
+  facebook: '16_facebook.svg',
+  burger: '17_burger.svg',
+  clock: '18_clock.svg',
+  heart: '19_hearth.svg',
+  flower: '20_flower.svg',
+  'arrow-down': '21_arrow-down.svg',
+  'arrow-left': '22_arrow-left.svg',
+  sun: '23_sun.svg',
+  water: '24_water.svg',
+  watering: '25_watering.svg',
+  'leaf-circle': '26_leaf-circle.svg',
+  'ania-logo': '29_ania-logo.svg',
+  'plus-circle': '31_plus-circle.svg',
+  'arrow-left-black': 'arrow-left-black.svg',
+  'arrow-right-black': 'arrow-right-black.svg',
+};
+
+interface Props {
+  name?: keyof typeof FILES | string;
+  src?: string;
+  size?: number;
+  /** dimensi intrinsik (attr width/height) — cegah layout shift saat SVG belum load */
+  width?: number;
+  height?: number;
+  alt?: string;
+  class?: string;
+  style?: string;
+}
+const { name, src, size, width, height, alt, class: extra = '', style } = Astro.props;
+const file = src ?? (name && FILES[name] ? `/assets-svg/${FILES[name]}` : '');
+const sizeStyle = size ? `width:${size}px;height:${size}px` : '';
+const finalStyle = [sizeStyle, style].filter(Boolean).join(';') || undefined;
+---
+
+<img
+  class={['ico', extra].filter(Boolean).join(' ')}
+  src={file}
+  alt={alt ?? (typeof name === 'string' ? name : '')}
+  width={width ?? size}
+  height={height ?? size}
+  style={finalStyle}
+/>

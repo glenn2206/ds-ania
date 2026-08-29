@@ -1,0 +1,64 @@
+---
+/**
+ * ORGANISME · Gallery — carousel gambar produk (panah + Progress, sama pola Hero).
+ * <Gallery images={['/assets/products/x-1.jpg', ...]} alt="A Handful Flower Box" />
+ */
+import Progress from '../atoms/Progress.astro';
+
+interface Props {
+  images: string[];
+  alt?: string;
+}
+const { images, alt = '' } = Astro.props;
+const slides = images.length ? images : ['/assets/hero-bouquet-on-table.jpg'];
+---
+
+<div class="gallery" data-gallery>
+  <div class="gallery__stage">
+    {
+      slides.map((src, i) => (
+        <img
+          class:list={['gallery__img', i === 0 && 'is-active']}
+          src={src}
+          alt={i === 0 ? alt : ''}
+          loading={i === 0 ? "eager" : "lazy"} decoding="async"
+        />
+      ))
+    }
+    {
+      slides.length > 1 && (
+        <>
+          <button class="gallery__nav gallery__nav--prev" type="button" data-prev aria-label="Previous">
+            <img src="/assets-svg/arrow-left-black.svg" alt="" />
+          </button>
+          <button class="gallery__nav gallery__nav--next" type="button" data-next aria-label="Next">
+            <img src="/assets-svg/arrow-right-black.svg" alt="" />
+          </button>
+        </>
+      )
+    }
+  </div>
+  {slides.length > 1 && <div class="gallery__progress"><Progress total={slides.length} active={0} /></div>}
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((g) => {
+    const imgs = Array.from(g.querySelectorAll<HTMLElement>('.gallery__img'));
+    const dots = Array.from(g.querySelectorAll<HTMLElement>('.gallery__progress .cmp-progress i'));
+    if (imgs.length < 2) return;
+    let i = 0;
+    const go = (n: number) => {
+      i = (n + imgs.length) % imgs.length;
+      imgs.forEach((im, k) => im.classList.toggle('is-active', k === i));
+      dots.forEach((d, k) => d.classList.toggle('on', k === i));
+    };
+    g.querySelector('[data-prev]')?.addEventListener('click', () => go(i - 1));
+    g.querySelector('[data-next]')?.addEventListener('click', () => go(i + 1));
+    dots.forEach((d, k) => {
+      d.style.cursor = 'pointer';
+      d.setAttribute('role', 'button');
+      d.setAttribute('tabindex', '0');
+      d.addEventListener('click', () => go(k));
+    });
+  });
+</script>

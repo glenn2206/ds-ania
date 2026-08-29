@@ -1,0 +1,15 @@
+---
+/**
+ * ATOM · Progress — .cmp-progress (segmen carousel hero)
+ * <Progress total={3} active={0} />
+ */
+interface Props {
+  total?: number;
+  active?: number;
+}
+const { total = 3, active = 0 } = Astro.props;
+---
+
+<span class="cmp-progress">
+  {Array.from({ length: total }).map((_, i) => <i class={i === active ? 'on' : undefined} />)}
+</span>

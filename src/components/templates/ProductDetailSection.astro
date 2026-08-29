@@ -1,0 +1,37 @@
+---
+/**
+ * TEMPLATE · ProductDetailSection — atas halaman detail: Gallery kiri + BuyBox kanan,
+ * lalu Description di bawah kolom kiri.
+ */
+import Gallery from '../organisms/Gallery.astro';
+import BuyBox from '../organisms/BuyBox.astro';
+import type { CatalogItem } from '../../data/catalog';
+
+interface Props {
+  item: CatalogItem;
+  images: string[];
+}
+const { item, images } = Astro.props;
+---
+
+<section class="pdetail">
+  <div class="pdetail__top">
+    <div class="pdetail__gallery">
+      <Gallery images={images} alt={item.name} />
+    </div>
+
+    <BuyBox item={item} />
+
+    <div class="pdetail__desc">
+      <h2 class="pdetail__desctitle">Description</h2>
+      <p>{item.description}</p>
+      {
+        item.flowers && item.flowers !== '—' && (
+          <p><b>Browse by flower:</b> {item.flowers}</p>
+        )
+      }
+      {item.size && <p><b>Size:</b> {item.size}</p>}
+      {item.occasion && <p><b>Best for:</b> {item.occasion}</p>}
+    </div>
+  </div>
+</section>

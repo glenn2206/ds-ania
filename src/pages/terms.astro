@@ -1,0 +1,17 @@
+---
+/**
+ * PAGE · /terms — "Terms & Condition". Konten statik → prerender.
+ */
+export const prerender = true;
+import Site from '../layouts/Site.astro';
+import TermsSection from '../components/templates/TermsSection.astro';
+---
+
+<Site
+  title="Terms & Condition — ANIA Flower Boutique"
+  description="Terms and conditions for ordering from ANIA Flower Boutique."
+>
+  <div class="termspage">
+    <TermsSection />
+  </div>
+</Site>

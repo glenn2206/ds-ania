@@ -1,0 +1,33 @@
+---
+/**
+ * TEMPLATE · OccasionShowcase — "What Do You Want to Say?" + daftar OccasionRow.
+ */
+import OccasionRow from './OccasionRow.astro';
+import { occasionRows } from '../../data/occasions';
+
+interface Props {
+  title?: string;
+}
+const { title = 'What Do You Want to Say?' } = Astro.props;
+---
+
+<section class="oshow">
+  <h2 class="oshow__title ts-07">{title}</h2>
+  <div class="oshow__rows">
+    {occasionRows.map((row) => <OccasionRow {...row} />)}
+  </div>
+</section>
+
+<style>
+  .oshow {
+    padding: var(--sec-y) var(--gutter);
+  }
+  .oshow__title {
+    display: block;
+    text-align: center;
+    margin: 0 0 24px;
+  }
+  .oshow__rows > :global(.orow:last-child) {
+    border-bottom: 1px solid var(--hair);
+  }
+</style>
