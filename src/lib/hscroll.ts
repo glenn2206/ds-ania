@@ -81,43 +81,58 @@ export function initHScroll(row: HTMLElement, opts: HScrollOpts = {}): HScrollCo
     idle = window.setTimeout(play, idleMs);
   };
 
-  // --- drag-to-scroll (mouse), 1:1 ---
-  let drag: { x: number; left: number; moved: boolean } | null = null;
+  // --- drag-to-scroll (mouse) — TAP/klik biasa tetap tembus ke link ---
+  // Kunci: JANGAN capture pointer & JANGAN pasang .is-dragging sampai jari
+  // benar-benar bergeser > THRESHOLD. Sebelum itu, event mengalir normal → <a> bisa diklik.
+  const THRESHOLD = 6;
+  let drag: { id: number; x: number; left: number; moved: boolean; captured: boolean } | null = null;
+
   row.addEventListener('pointerdown', (e) => {
-    if (e.pointerType === 'touch') return; // HP: swipe native
-    drag = { x: e.clientX, left: row.scrollLeft, moved: false };
-    row.classList.add('is-dragging');
-    row.setPointerCapture(e.pointerId);
+    if (e.pointerType === 'touch' || e.button !== 0) return; // HP: swipe native; hanya klik kiri
+    drag = { id: e.pointerId, x: e.clientX, left: row.scrollLeft, moved: false, captured: false };
     pause();
   });
   row.addEventListener('pointermove', (e) => {
-    if (!drag) return;
+    if (!drag || e.pointerId !== drag.id) return;
     const dx = e.clientX - drag.x;
-    if (Math.abs(dx) > 3) drag.moved = true;
+    if (!drag.moved) {
+      if (Math.abs(dx) <= THRESHOLD) return; // masih diam → biarkan jadi klik
+      drag.moved = true;
+      row.classList.add('is-dragging');
+      try {
+        row.setPointerCapture(drag.id);
+        drag.captured = true;
+      } catch {}
+    }
+    e.preventDefault();
     row.scrollLeft = drag.left - dx;
     pos = row.scrollLeft;
     wrap();
   });
-  const endDrag = (e: PointerEvent) => {
-    if (!drag) return;
-    try {
-      row.releasePointerCapture(e.pointerId);
-    } catch {}
-    row.classList.remove('is-dragging');
+  const endDrag = (id?: number) => {
+    if (!drag || (id !== undefined && id !== drag.id)) return;
+    if (drag.captured) {
+      try {
+        row.releasePointerCapture(drag.id);
+      } catch {}
+    }
     const moved = drag.moved;
     drag = null;
+    row.classList.remove('is-dragging');
     if (moved) {
+      // habis di-drag → telan 1 klik berikutnya biar link tidak kebuka
       const kill = (ev: Event) => {
         ev.preventDefault();
         ev.stopPropagation();
       };
       row.addEventListener('click', kill, { capture: true, once: true });
-      window.setTimeout(() => row.removeEventListener('click', kill, true), 60);
+      window.setTimeout(() => row.removeEventListener('click', kill, true), 200);
     }
     bump();
   };
-  row.addEventListener('pointerup', endDrag);
-  row.addEventListener('pointercancel', endDrag);
+  row.addEventListener('pointerup', (e) => endDrag(e.pointerId));
+  row.addEventListener('pointercancel', (e) => endDrag(e.pointerId));
+  row.addEventListener('lostpointercapture', () => endDrag());
   row.addEventListener('dragstart', (e) => e.preventDefault());
 
   // --- panah (loop tanpa ujung → tak pernah disabled) ---

@@ -76,8 +76,11 @@ const addonPages = Math.max(1, Math.ceil(addonExtras.length / ADDON_PER));
 <script>
   // Pagination klien untuk "You May Also Like" / "Add On …": tampilkan `per` kartu,
   // pager di-render ulang tiap ganti halaman → format ringkas 1 2 3 … N + panah ‹ / › kondisional.
+  // Auto-slide halaman tiap 4 dtk (numbering TETAP — khusus halaman detail produk).
   const NAV_L = '/assets-svg/arrow-left-black.svg';
   const NAV_R = '/assets-svg/arrow-right-black.svg';
+  const AUTO_MS = 4000;
+  const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const pageList = (total: number, cur: number): (number | '…')[] => {
     if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
@@ -120,14 +123,33 @@ const addonPages = Math.max(1, Math.ceil(addonExtras.length / ADDON_PER));
       drawPager();
     };
 
+    // --- auto-slide halaman (numbering tetap) ---
+    let timer = 0;
+    const stop = () => { window.clearInterval(timer); timer = 0; };
+    const startAuto = () => {
+      stop();
+      if (REDUCE || document.hidden || total <= 1) return;
+      timer = window.setInterval(() => { page = (page % total) + 1; render(); }, AUTO_MS);
+    };
+    const bump = () => { stop(); window.setTimeout(startAuto, AUTO_MS + 1500); };
+
     nav.addEventListener('click', (e) => {
       const a = (e.target as HTMLElement).closest<HTMLElement>('a[data-page]');
       if (!a) return;
       e.preventDefault();
       const n = parseInt(a.dataset.page || '1', 10);
       if (n >= 1 && n <= total && n !== page) { page = n; render(); }
+      bump();
     });
 
+    const sec = row.closest('section');
+    sec?.addEventListener('pointerenter', (e) => { if ((e as PointerEvent).pointerType !== 'touch') stop(); });
+    sec?.addEventListener('pointerleave', (e) => { if ((e as PointerEvent).pointerType !== 'touch') startAuto(); });
+    sec?.addEventListener('focusin', stop);
+    sec?.addEventListener('focusout', startAuto);
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : startAuto()));
+
     render();
+    startAuto();
   });
 </script>

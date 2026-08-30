@@ -844,6 +844,7 @@
   position: sticky; top: 20px;
 }
 .buybox__head {
+  background: #fff;
   border: 1px solid var(--sand); border-radius: 10px; padding: 22px;
   display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
 }
@@ -851,7 +852,8 @@
 .buybox__price { margin: 0; font: 400 20px/1 'Open Sans', Arial, sans-serif; color: #1E2934; }
 
 .buybox__delivery {
-  border: 1px solid var(--panel); border-radius: 10px; padding: 20px;
+  background: #fff;
+  border: 1px solid var(--sand); border-radius: 10px; padding: 20px;
   display: flex; flex-direction: column; gap: 14px;
 }
 .buybox__dtitle { font: 600 14px/1 'Open Sans', Arial, sans-serif; color: #1E2934; }
@@ -913,8 +915,9 @@
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
   max-width: 1100px; margin: 0 auto; text-align: left;
   border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);   /* stroke di bawah section */
 }
-/* hairlines between cells — top rule + column rules + one row rule (same as SendTo) */
+/* hairlines between cells — top+bottom rule + column rules + row rule (same as SendTo) */
 .care__item {
   display: flex; flex-direction: column; gap: 10px;
   padding: 44px 40px;
@@ -923,7 +926,7 @@
 }
 .care__grid > .care__item:nth-child(3n + 1) { padding-left: 0; }
 .care__grid > .care__item:nth-child(3n) { padding-right: 0; border-right: 0; }
-.care__grid > .care__item:nth-child(n + 4) { padding-bottom: 0; border-bottom: 0; }
+.care__grid > .care__item:nth-child(n + 4) { border-bottom: 0; }
 .care__icon { opacity: .8; }
 .care__itemtitle { margin: 4px 0 0; font: 600 14px/1.4 'Open Sans', Arial, sans-serif; color: #3D3B2F; }
 .care__body { margin: 0; font: 400 13px/1.7 'Open Sans', Arial, sans-serif; color: #6D6D6D; }
@@ -936,10 +939,9 @@
   .pdetail__top > .buybox { order: 2; }
   .pdetail__top > .pdetail__desc { order: 3; margin-top: 0; }
   .buybox { position: static; }
-  .care__grid { grid-template-columns: repeat(2, 1fr); column-gap: 40px; border-top: 0; }
+  .care__grid { grid-template-columns: repeat(2, 1fr); column-gap: 40px; border-top: 0; border-bottom: 0; }
   .care__item { padding: 32px 0; border-right: 0; border-bottom: 1px solid var(--rule); }
   .care__grid > .care__item:nth-child(n + 4) { padding-bottom: 32px; border-bottom: 1px solid var(--rule); }
-  .care__grid > .care__item:last-child { border-bottom: 0; }
 }
 @media (max-width: 620px) {
   .care__grid { grid-template-columns: 1fr; }

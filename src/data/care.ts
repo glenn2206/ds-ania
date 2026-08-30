@@ -1,4 +1,4 @@
-/** Care Instructions — teks dari index.html. */
+/** Care Instructions — urutan & ikon sesuai desain. */
 export const careInstructions = [
   {
     icon: 'sun',
@@ -7,13 +7,19 @@ export const careInstructions = [
       'Place your flowers in a cool spot away from windows, heating vents, or appliances. Direct sunlight and heat will cause petals to wilt and dry out faster.',
   },
   {
-    icon: 'water',
+    icon: 'watering',
+    title: 'Occasionally mist your flower',
+    body:
+      'Lightly spray a fine mist of water on the petals and leaves every 1–2 days. This keeps the blooms hydrated and adds humidity, especially in air-conditioned rooms.',
+  },
+  {
+    icon: 'waves',
     title: 'Fill up and change water daily',
     body:
       'Refresh the vase water every day to prevent bacterial buildup that blocks stems. Top it up to ensure stems are always submerged at least 5–7 cm deep.',
   },
   {
-    icon: 'watering',
+    icon: 'water',
     title: 'Ensure floral foam is never completely dry',
     body:
       'If your arrangement uses floral foam, keep it moist at all times by adding water regularly. Dry foam cannot reabsorb water and will cause stems to dehydrate quickly.',
@@ -25,13 +31,7 @@ export const careInstructions = [
       "Promptly trim away any dead or drooping flowers and yellow leaves using clean scissors. Wilted parts drain energy and nutrients from healthy blooms, shortening the arrangement's life.",
   },
   {
-    icon: 'watering',
-    title: 'Occasionally mist your flower',
-    body:
-      'Lightly spray a fine mist of water on the petals and leaves every 1–2 days. This keeps the blooms hydrated and adds humidity, especially in air-conditioned rooms.',
-  },
-  {
-    icon: 'water',
+    icon: 'wash',
     title: 'Discard water and wash vase every second day',
     body:
       'Every other day, empty the vase completely and clean it with mild soap to remove bacteria and residue. A clean vase keeps the water fresher for longer and extends bloom life.',
