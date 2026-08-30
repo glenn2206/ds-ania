@@ -2,7 +2,7 @@
 /**
  * TEMPLATE · ShopSection — halaman katalog Shop, filter + pagination BERFUNGSI
  * (client-side, situs tetap statik).
- * judul .ts-07 + ShopSidebar (kiri) + [toolbar sort/filter, grid ProductCard, PageNav].
+ * judul .type-h2 + ShopSidebar (kiri) + [toolbar sort/filter, grid ProductCard, PageNav].
  */
 import ShopSidebar from '../organisms/ShopSidebar.astro';
 import ProductCard from '../organisms/ProductCard.astro';
@@ -28,7 +28,7 @@ const searchText = (c: CatalogItem) =>
 ---
 
 <section class="shop" data-shop data-per-page={perPage} data-active-category={activeCategory}>
-  <h1 class="ts-07 shop__title" data-shop-title>{title}</h1>
+  <h1 class="type-h2 shop__title" data-shop-title>{title}</h1>
 
   <div class="shop__layout">
     <ShopSidebar groups={groups} />
@@ -80,7 +80,7 @@ const searchText = (c: CatalogItem) =>
     'premium-wrapped': 'Premium Wrapped Bloom',
     standing: 'Standing Flower & Flower Board',
     vase: 'Vase',
-    accessories: 'Accessories',
+    accessory: 'Add On Extras',
     preserved: 'Preserved Flower',
   };
 
@@ -95,6 +95,27 @@ const searchText = (c: CatalogItem) =>
 
     let filter = { group: 'category', value: root.dataset.activeCategory || '' };
     let page = 1;
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // scroll balik ke atas grid — offset navbar sticky, dan hanya kalau user memang sudah scroll lewat
+    const scrollToGrid = () => {
+      const navH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 80;
+      const target = Math.max(0, window.scrollY + grid.getBoundingClientRect().top - navH - 12);
+      if (window.scrollY <= target + 8) return;
+      window.scrollTo({ top: target, behavior: reduce ? 'auto' : 'smooth' });
+    };
+
+    // fade-up bertahap untuk kartu yang baru tampil
+    const animateIn = (els: HTMLElement[]) => {
+      if (reduce) return;
+      els.forEach((el, i) => {
+        (el.querySelector('.pcard') || el).animate(
+          [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }],
+          { duration: 320, delay: Math.min(i, 8) * 40, easing: 'cubic-bezier(.2,.6,.2,1)', fill: 'backwards' },
+        );
+      });
+    };
 
     const num = (el: HTMLElement) => parseInt(el.dataset.price || '0', 10);
     const byName = (a: HTMLElement, b: HTMLElement) =>
@@ -123,7 +144,7 @@ const searchText = (c: CatalogItem) =>
     };
 
     const pageList = (total: number): (number | '…')[] => {
-      if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+      if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
       const keep = new Set<number>([1, total, page, page - 1, page + 1]);
       if (page <= 3) { keep.add(2); keep.add(3); }
       if (page >= total - 2) { keep.add(total - 1); keep.add(total - 2); }
@@ -138,17 +159,23 @@ const searchText = (c: CatalogItem) =>
 
     const renderPager = (total: number) => {
       if (total <= 1) { pagerBox.innerHTML = ''; return; }
-      const items = pageList(total)
+      const prev =
+        page > 1
+          ? `<li class="cmp-pagenav__prev"><a href="#" data-page="${page - 1}" aria-label="Previous page"><img class="ico" src="/assets-svg/arrow-left-black.svg" alt=""></a></li>`
+          : '';
+      const nums = pageList(total)
         .map((it) =>
           it === '…'
             ? `<li class="cmp-pagenav__gap" aria-hidden="true">…</li>`
             : `<li class="cmp-pagenav__item${it === page ? ' is-current' : ''}"><a href="#" data-page="${it}" ${it === page ? 'aria-current="page"' : ''}>${it}</a></li>`,
         )
         .join('');
+      const next =
+        page < total
+          ? `<li class="cmp-pagenav__next"><a href="#" data-page="${page + 1}" aria-label="Next page"><img class="ico" src="/assets-svg/arrow-right-black.svg" alt=""></a></li>`
+          : '';
       pagerBox.innerHTML =
-        `<nav class="cmp-pagenav" aria-label="Pagination"><ol class="cmp-pagenav__list">${items}` +
-        `<li class="cmp-pagenav__next"><a href="#" data-page="${Math.min(page + 1, total)}" aria-label="Next page">` +
-        `<img class="ico" src="/assets-svg/arrow-right-black.svg" alt=""></a></li></ol></nav>`;
+        `<nav class="cmp-pagenav" aria-label="Pagination"><ol class="cmp-pagenav__list">${prev}${nums}${next}</ol></nav>`;
     };
 
     const apply = () => {
@@ -157,11 +184,13 @@ const searchText = (c: CatalogItem) =>
       const totalPages = Math.max(1, Math.ceil(visible.length / perPage));
       if (page > totalPages) page = 1;
       const start = (page - 1) * perPage;
-      visible.slice(start, start + perPage).forEach((c) => (c.hidden = false));
+      const shown = visible.slice(start, start + perPage);
+      shown.forEach((c) => (c.hidden = false));
       // urutan tampil sesuai hasil sort
       visible.forEach((c) => grid.appendChild(c));
       emptyMsg.hidden = visible.length !== 0;
       renderPager(totalPages);
+      animateIn(shown);
       // judul ikut kategori aktif
       if (filter.group === 'category' && filter.value) titleEl.textContent = CAT_LABEL[filter.value] || titleEl.textContent;
       else if (filter.group === 'all') titleEl.textContent = 'All Products';
@@ -176,7 +205,7 @@ const searchText = (c: CatalogItem) =>
         filter = { group: a.dataset.group || 'all', value: a.dataset.value || '' };
         page = 1;
         apply();
-        root.querySelector('.shop__main')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollToGrid();
       });
     });
 
@@ -190,7 +219,7 @@ const searchText = (c: CatalogItem) =>
       e.preventDefault();
       page = parseInt(a.dataset.page || '1', 10);
       apply();
-      root.querySelector('.shop__main')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      scrollToGrid();
     });
 
     // mobile: tombol filter buka/tutup sidebar

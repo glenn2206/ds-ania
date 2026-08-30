@@ -8,11 +8,16 @@ import PromoBar from '../molecules/PromoBar.astro';
 import NavLink from '../atoms/NavLink.astro';
 import LangToggle from '../atoms/LangToggle.astro';
 import Icon from '../atoms/Icon.astro';
+import { getPromo } from '../../lib/settings';
 
 interface Props {
   promo?: boolean;
 }
 const { promo = true } = Astro.props;
+
+// bar promo di atas navbar — teks/CTA/aktif diatur dari panel admin (tabel site_settings)
+const promoCfg = await getPromo();
+const showPromo = promo && promoCfg.enabled;
 
 const mobileMenu = [
   { label: 'Standing Flower', href: '/shop' },
@@ -36,7 +41,7 @@ const mobileMenu = [
 ---
 
 <header class="nav">
-  {promo && <PromoBar href="/shop" />}
+  {showPromo && <PromoBar text={promoCfg.text} cta={promoCfg.cta} href={promoCfg.href} />}
 
   <div class="nav__bar">
     <button class="nav__burger" type="button" data-drawer-open aria-label="Open menu">

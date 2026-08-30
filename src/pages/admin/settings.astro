@@ -1,0 +1,132 @@
+---
+/**
+ * PAGE · /admin/settings — pengaturan situs. Saat ini: bar promo di atas navbar.
+ * Simpan → tabel site_settings; situs SSR ikut ±60 detik (cache). Halaman statik
+ * (About/FAQ/dll.) ikut setelah "Deploy ulang".
+ */
+export const prerender = false;
+import Admin from '../../layouts/Admin.astro';
+import { getSession } from '../../lib/session';
+import { getPromo } from '../../lib/settings';
+
+const session = getSession(Astro.cookies);
+if (!session) return Astro.redirect('/admin/login');
+
+const promo = await getPromo();
+---
+
+<Admin title="Pengaturan — ANIA CMS" active="settings" user={session.uname}>
+  <h1 class="admin-h">Pengaturan situs</h1>
+
+  <div class="card">
+    <h2>Bar promo (di atas navbar)</h2>
+    <div id="flash" class="flash" hidden></div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label for="p-enabled">Tampilkan bar</label>
+        <select id="p-enabled">
+          <option value="1" selected={promo.enabled}>Ya — tampil</option>
+          <option value="0" selected={!promo.enabled}>Tidak — sembunyikan</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="p-href">Link tujuan</label>
+        <input id="p-href" type="text" value={promo.href} placeholder="/shop" />
+        <span class="hint">Path internal (mis. <code>/shop</code>) atau URL lengkap https://…</span>
+      </div>
+      <div class="field field--full">
+        <label for="p-text">Teks promo</label>
+        <input id="p-text" type="text" value={promo.text} placeholder="Mother’s Day Graduation Sale" />
+      </div>
+      <div class="field field--full">
+        <label for="p-cta">Teks tombol</label>
+        <input id="p-cta" type="text" value={promo.cta} placeholder="25% Off! Shop Now" />
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center;margin-top:16px">
+      <button class="btn btn--primary" id="save">Simpan</button>
+      <span id="msg" style="color:var(--a-muted);font-size:13px"></span>
+    </div>
+
+    <div class="promo-preview" id="preview" aria-hidden="true">
+      <span class="promo-preview__text" id="pv-text"></span>
+      <span class="promo-preview__pill" id="pv-cta"></span>
+    </div>
+  </div>
+
+  <p style="color:var(--a-muted);font-size:13px">
+    Perubahan tampil di halaman dinamis (Beranda, Shop, Produk) dalam ±60 detik.
+    Halaman statik (About, FAQ, Kontak, Terms) ikut setelah <b>Deploy ulang</b> di menu Produk.
+  </p>
+
+  <style>
+    .promo-preview {
+      margin-top: 18px; display: flex; align-items: center; justify-content: center; gap: 12px;
+      min-height: 35px; padding: 6px 16px; border-radius: 8px;
+      background: #BBCCBF; color: #fff;
+      font: 400 14px/1.4 'Open Sans', Arial, sans-serif;
+    }
+    .promo-preview[hidden] { display: none; }
+    .promo-preview__pill {
+      display: inline-flex; align-items: center; padding: 3px 12px; border-radius: 99px;
+      background: #FDF6F1; color: #BBCCBF; font-weight: 600; white-space: nowrap;
+    }
+    .promo-preview__pill:empty, .promo-preview__text:empty { display: none; }
+  </style>
+
+  <script is:inline>
+    const $ = (id) => document.getElementById(id);
+    const enabledEl = $('p-enabled');
+    const textEl = $('p-text');
+    const ctaEl = $('p-cta');
+    const hrefEl = $('p-href');
+    const msg = $('msg');
+    const flash = $('flash');
+    const preview = $('preview');
+
+    const renderPreview = () => {
+      const on = enabledEl.value === '1';
+      preview.hidden = !on;
+      $('pv-text').textContent = textEl.value;
+      $('pv-cta').textContent = ctaEl.value;
+    };
+    [enabledEl, textEl, ctaEl].forEach((el) => el.addEventListener('input', renderPreview));
+    renderPreview();
+
+    $('save').addEventListener('click', async () => {
+      flash.hidden = true;
+      msg.textContent = 'Menyimpan…';
+      try {
+        const res = await fetch('/api/admin/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            promo: {
+              enabled: enabledEl.value === '1',
+              text: textEl.value,
+              cta: ctaEl.value,
+              href: hrefEl.value,
+            },
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal menyimpan.');
+        msg.textContent = '';
+        flash.className = 'flash flash--ok';
+        flash.textContent = 'Tersimpan. Situs ikut dalam ±60 detik.';
+        flash.hidden = false;
+        if (data.promo) {
+          hrefEl.value = data.promo.href;
+          renderPreview();
+        }
+      } catch (err) {
+        msg.textContent = '';
+        flash.className = 'flash flash--err';
+        flash.textContent = err.message;
+        flash.hidden = false;
+      }
+    });
+  </script>
+</Admin>

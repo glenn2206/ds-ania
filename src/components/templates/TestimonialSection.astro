@@ -1,7 +1,7 @@
 ---
 /**
  * TEMPLATE · TestimonialSection — index.html "With Love, from Our Clients".
- * Heading .ts-07 + marquee TestimonialCard (.mini--soft) — jalan terus, tanpa scrollbar.
+ * Heading .type-h2 + marquee TestimonialCard (.mini--soft) — jalan terus, tanpa scrollbar.
  */
 import TestimonialCard from '../organisms/TestimonialCard.astro';
 
@@ -22,7 +22,7 @@ const loop = [...items, ...items, ...items];
 ---
 
 <section class="tsec">
-  <div class="tsec__head"><span class="ts-07">{title}</span></div>
+  <div class="tsec__head"><span class="type-h2">{title}</span></div>
   <div class="tsec__marquee">
     <div class="tsec__track">
       {loop.map((t, i) => <TestimonialCard {...t} aria-hidden={i >= items.length ? 'true' : undefined} />)}

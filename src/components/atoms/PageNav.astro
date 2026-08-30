@@ -13,9 +13,10 @@ interface Props {
 }
 const { pages, current = 1, base } = Astro.props;
 
-/** deret nomor + '…' — jendela di sekitar halaman aktif, selalu tampil 1 & terakhir */
+/** deret nomor + '…' — jendela di sekitar halaman aktif, selalu tampil 1 & terakhir.
+ * Selalu ringkas untuk >5 halaman: 1 2 3 … N  (bukan semua nomor). */
 function pageList(total: number, cur: number): (number | '…')[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
   const keep = new Set<number>([1, total, cur, cur - 1, cur + 1]);
   if (cur <= 3) [2, 3].forEach((n) => keep.add(n));
   if (cur >= total - 2) [total - 1, total - 2].forEach((n) => keep.add(n));
@@ -29,11 +30,19 @@ function pageList(total: number, cur: number): (number | '…')[] {
 }
 
 const items = pageList(pages, current);
+const prevHref = base ? `${base}${Math.max(current - 1, 1)}` : '#';
 const nextHref = base ? `${base}${Math.min(current + 1, pages)}` : '#';
 ---
 
 <nav class="cmp-pagenav" aria-label="Pagination">
   <ol class="cmp-pagenav__list">
+    {current > 1 && (
+      <li class="cmp-pagenav__prev">
+        <a href={prevHref} aria-label="Previous page">
+          <img class="ico" src="/assets-svg/arrow-left-black.svg" alt="" />
+        </a>
+      </li>
+    )}
     {
       items.map((it) =>
         it === '…' ? (
@@ -49,10 +58,12 @@ const nextHref = base ? `${base}${Math.min(current + 1, pages)}` : '#';
         )
       )
     }
-    <li class="cmp-pagenav__next">
-      <a href={nextHref} aria-label="Next page">
-        <img class="ico" src="/assets-svg/arrow-right-black.svg" alt="" />
-      </a>
-    </li>
+    {current < pages && (
+      <li class="cmp-pagenav__next">
+        <a href={nextHref} aria-label="Next page">
+          <img class="ico" src="/assets-svg/arrow-right-black.svg" alt="" />
+        </a>
+      </li>
+    )}
   </ol>
 </nav>

@@ -1,7 +1,7 @@
 ---
 /**
  * MOLEKUL · PromoBar — bar promo index.html (bg #BBCCBF).
- * teks .ts-34 + pill "frosted" (bg --soft, teks --panel) + chevron.
+ * teks .type-p2 type--ondark + pill "frosted" (bg --soft, teks --panel) + chevron.
  * <PromoBar text="Mother's Day Graduation Sale" cta="25% Off! Shop Now" href="/shop" />
  */
 interface Props {
@@ -17,7 +17,7 @@ const {
 ---
 
 <div class="promo">
-  <span class="ts-34">{text}</span>
+  <span class="type-p2 type--ondark">{text}</span>
   <span class="promo__frost">
     <a class="promo__pill" href={href}>
       {cta}
@@ -61,7 +61,7 @@ const {
     line-height: 1;
   }
   @media (max-width: 560px) {
-    .promo .ts-34 {
+    .promo .type-p2 type--ondark {
       display: none;
     }
   }

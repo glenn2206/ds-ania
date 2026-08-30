@@ -13,6 +13,9 @@ const searchText = (c: (typeof allProducts)[number]) =>
   [c.name, c.pill, c.flowers, c.occasion ?? '', c.category, c.description]
     .join(' ')
     .toLowerCase();
+
+/** chip pencarian cepat — muncul saat input kosong */
+const SUGGESTIONS = ['Roses', 'Peonies', 'Tulips', 'Birthday', 'Anniversary', 'Graduation', 'Bloom Box', 'Sympathy'];
 ---
 
 <div class="search" data-search hidden>
@@ -30,6 +33,15 @@ const searchText = (c: (typeof allProducts)[number]) =>
       <button class="search__clear" type="button" data-search-clear aria-label="Clear search" hidden>
         <span class="search__x" aria-hidden="true"></span>
       </button>
+    </div>
+
+    <div class="search__suggest" data-search-suggest hidden>
+      <span class="search__suggestlabel">Popular searches</span>
+      <div class="search__chips">
+        {SUGGESTIONS.map((s) => (
+          <button type="button" class="search__chip" data-search-chip={s}>{s}</button>
+        ))}
+      </div>
     </div>
 
     <p class="search__count" data-search-count></p>
@@ -62,20 +74,39 @@ const searchText = (c: (typeof allProducts)[number]) =>
     const countEl = root.querySelector<HTMLElement>('[data-search-count]')!;
     const emptyEl = root.querySelector<HTMLElement>('[data-search-empty]')!;
     const clearBtn = root.querySelector<HTMLElement>('[data-search-clear]')!;
+    const suggestEl = root.querySelector<HTMLElement>('[data-search-suggest]')!;
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const DEFAULT_N = 8; // "popular picks" saat input kosong
+
+    const animateIn = (els: HTMLElement[]) => {
+      if (reduce) return;
+      els.forEach((el, i) => {
+        (el.querySelector('.pcard') || el).animate(
+          [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
+          { duration: 300, delay: Math.min(i, 12) * 30, easing: 'cubic-bezier(.2,.6,.2,1)', fill: 'backwards' },
+        );
+      });
+    };
 
     const render = () => {
       const q = input.value.trim().toLowerCase();
       const tokens = q.split(/\s+/).filter(Boolean);
       clearBtn.hidden = q.length === 0;
 
+      // input kosong → tampilkan chip + "popular picks" (bukan halaman kosong)
       if (!tokens.length) {
+        suggestEl.hidden = false;
+        const def = cells.slice(0, DEFAULT_N);
         cells.forEach((c) => (c.hidden = true));
-        countEl.textContent = '';
-        emptyEl.textContent = 'Type a flower, colour or occasion to search.';
-        emptyEl.hidden = false;
+        def.forEach((c) => { c.hidden = false; grid.appendChild(c); });
+        countEl.textContent = 'Popular picks';
+        emptyEl.hidden = true;
+        animateIn(def);
         return;
       }
 
+      suggestEl.hidden = true;
       let n = 0;
       const visible: HTMLElement[] = [];
       cells.forEach((c) => {
@@ -90,9 +121,10 @@ const searchText = (c: (typeof allProducts)[number]) =>
         .sort((a, b) => +(a.dataset.index || 0) - +(b.dataset.index || 0))
         .forEach((c) => grid.appendChild(c));
 
-      countEl.textContent = `${n} RESULT${n === 1 ? '' : 'S'}`;
+      countEl.textContent = `${n} result${n === 1 ? '' : 's'}`;
       emptyEl.textContent = 'No products match your search.';
       emptyEl.hidden = n !== 0;
+      animateIn(visible);
     };
 
     let timer: number | undefined;
@@ -101,17 +133,27 @@ const searchText = (c: (typeof allProducts)[number]) =>
       timer = window.setTimeout(render, 120);
     });
 
+    root.querySelectorAll<HTMLElement>('[data-search-chip]').forEach((b) =>
+      b.addEventListener('click', () => {
+        input.value = b.dataset.searchChip || b.textContent || '';
+        render();
+        input.focus();
+      }),
+    );
+
     const open = () => {
       root.hidden = false;
+      void root.offsetWidth; // paksa reflow → transisi punya state awal (opacity 0)
+      root.classList.add('is-open');
       document.documentElement.style.overflow = 'hidden';
       render();
       window.setTimeout(() => input.focus(), 30);
     };
     const close = () => {
-      root.hidden = true;
+      root.classList.remove('is-open');
       document.documentElement.style.overflow = '';
-      input.value = '';
-      render();
+      const finish = () => { root.hidden = true; input.value = ''; render(); };
+      reduce ? finish() : window.setTimeout(finish, 180);
     };
 
     document.querySelectorAll('[data-search-open]').forEach((b) => b.addEventListener('click', open));

@@ -21,3 +21,8 @@ docs/legacy-cms/node_modules/
 docs/legacy-cms/.env
 docs/legacy-cms/uploads/
 docs/legacy-cms/.worker.lock
+
+# arsip upload manual (npm run pack)
+ania-app.tgz
+ania-app.zip
+uploads.tgz

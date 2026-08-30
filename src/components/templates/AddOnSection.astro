@@ -1,7 +1,7 @@
 ---
 /**
  * TEMPLATE · AddOnSection — index.html "Make It Personal".
- * Kolom teks kiri (.ts-06 + .ts-16 + Button) + 3 OccasionCard (action="plus").
+ * Kolom teks kiri (.type-h2 + .type-p1 + Button) + 3 OccasionCard (action="plus").
  */
 import Button from '../atoms/Button.astro';
 import OccasionCard from '../organisms/OccasionCard.astro';
@@ -16,21 +16,23 @@ interface Props {
   title?: string;
   subtitle?: string;
   cta?: string;
+  href?: string;
   cards: Card[];
 }
 const {
   title = 'Make It Personal',
   subtitle = 'Complete your bouquet with a special add-on, thoughtfully chosen to make your gift even more meaningful.',
   cta = 'View All Add-on',
+  href = '/shop?filter=addon',
   cards,
 } = Astro.props;
 ---
 
 <section class="addon">
   <div class="addon__text">
-    <span class="ts-06">{title}</span>
-    <span class="ts-16">{subtitle}</span>
-    <Button>{cta}</Button>
+    <span class="type-h2">{title}</span>
+    <span class="type-p1">{subtitle}</span>
+    <Button href={href}>{cta}</Button>
   </div>
   <div class="addon__cards">
     {cards.map((c) => <OccasionCard image={c.image} title={c.title} price={c.price} action="plus" slug={c.slug} />)}

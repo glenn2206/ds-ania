@@ -1,6 +1,7 @@
 ---
 /**
  * PAGE · /shop — katalog produk. SSR: produk & stok live dari DB (cache 60 dtk).
+ * `?filter=addon` → mulai dengan filter Add On aktif (produk kategori accessory).
  * Filter + pagination client-side di ShopSection.
  */
 import Site from '../layouts/Site.astro';
@@ -8,17 +9,20 @@ import ShopSection from '../components/templates/ShopSection.astro';
 import { filters } from '../data/shop';
 import { getCatalog } from '../lib/products';
 
-const { allProducts } = await getCatalog();
+const cat = await getCatalog();
+const addonMode = Astro.url.searchParams.get('filter') === 'addon';
+// add-on ikut masuk grid supaya bisa difilter/di-browse
+const items = [...cat.allProducts, ...cat.addons];
 ---
 
-<Site title="Shop — ANIA Flower Boutique">
+<Site title={addonMode ? 'Add On Extras — ANIA Flower Boutique' : 'Shop — ANIA Flower Boutique'}>
   <div class="shoppage">
     <ShopSection
-      title="Premium Wrapped Bloom"
+      title={addonMode ? 'Add On Extras' : 'Premium Wrapped Bloom'}
       groups={filters}
-      items={allProducts}
+      items={items}
       perPage={9}
-      activeCategory="premium-wrapped"
+      activeCategory={addonMode ? 'accessory' : 'premium-wrapped'}
     />
   </div>
 </Site>

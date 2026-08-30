@@ -17,7 +17,10 @@ if (!existsSync(jsonPath)) {
   process.exit(1);
 }
 const rows = JSON.parse(readFileSync(jsonPath, 'utf8'));
-const photoSrc = path.resolve('public/assets/products');
+// sumber foto: public/assets/products (repo) atau dist/client/assets/products (hasil build)
+const photoSrc = [path.resolve('public/assets/products'), path.resolve('dist/client/assets/products')].find(
+  (p) => existsSync(p),
+) || path.resolve('public/assets/products');
 const uploadDir = process.env.UPLOADS_DIR || path.resolve('uploads');
 mkdirSync(uploadDir, { recursive: true });
 

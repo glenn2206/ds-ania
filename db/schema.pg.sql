@@ -81,3 +81,10 @@ CREATE TABLE IF NOT EXISTS order_items (
   line_total  INTEGER      NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items (order_id);
+
+-- key/value pengaturan situs yang bisa diubah dari panel admin (mis. bar promo di atas navbar)
+CREATE TABLE IF NOT EXISTS site_settings (
+  skey        VARCHAR(64)  PRIMARY KEY,
+  svalue      TEXT         NOT NULL DEFAULT '',
+  updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
+);

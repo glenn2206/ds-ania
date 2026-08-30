@@ -10,6 +10,7 @@ import AddOnSection from '../components/templates/AddOnSection.astro';
 import WhyAniaSection from '../components/templates/WhyAniaSection.astro';
 import TestimonialSection from '../components/templates/TestimonialSection.astro';
 import UnspokenWordsSection from '../components/templates/UnspokenWordsSection.astro';
+import FloatingWhatsApp from '../components/organisms/FloatingWhatsApp.astro';
 
 import { heroSlides, addons, whyAnia, testimonials, toFeatured } from '../data/home';
 import { getCatalog } from '../lib/products';
@@ -32,4 +33,6 @@ const products = toFeatured(premiumWrapped);
     <TestimonialSection items={testimonials} />
     <UnspokenWordsSection />
   </div>
+
+  <FloatingWhatsApp />
 </Site>

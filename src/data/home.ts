@@ -47,6 +47,7 @@ export const products: Product[] = toFeatured(premiumWrapped);
 export const heroSlides = [
   '/assets/hero-bouquet-on-table.jpg',
   '/assets/hero-bride-with-bouquet.jpg',
+  '/assets/hero-bouquet-on-table.jpg',
 ];
 
 export const tiles = [

@@ -12,22 +12,24 @@ interface Props {
   subtitle?: string;
   products: Product[];
   cta?: string;
+  href?: string;
 }
 const {
   title = 'Flowers They’ll Never Forget',
   subtitle = 'Discover our ready-to-send bouquets, thoughtfully arranged and ready to make someone’s day.',
   products,
   cta = 'View All Product',
+  href = '/shop',
 } = Astro.props;
 ---
 
 <section class="pgrid">
   <div class="pgrid__head">
-    <span class="ts-07">{title}</span>
-    <span class="ts-16">{subtitle}</span>
+    <span class="type-h2">{title}</span>
+    <span class="type-p1">{subtitle}</span>
   </div>
   <div class="pgrid__row">
     {products.map((p) => <ProductCard {...p} />)}
   </div>
-  <div class="pgrid__foot"><Button>{cta}</Button></div>
+  <div class="pgrid__foot"><Button href={href}>{cta}</Button></div>
 </section>

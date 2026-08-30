@@ -32,7 +32,7 @@ const allTiles = chooseTabs.flatMap((tab) =>
   data-subs={JSON.stringify(chooseSub)}
 >
   <div class="cflow__head">
-    <span class="ts-06">
+    <span class="type-h2">
       {chooseHeadingLead}<br />Choose your Flower by <span data-choose-by>{activeTab}</span>
     </span>
   </div>
@@ -53,7 +53,7 @@ const allTiles = chooseTabs.flatMap((tab) =>
     </div>
 
     <div class="cflow__panel">
-      <p class="cflow__sub ts-16" data-choose-sub>{chooseSub[activeTab]}</p>
+      <p class="cflow__sub type-p1" data-choose-sub>{chooseSub[activeTab]}</p>
 
       <div class="cflow__row" data-choose-row>
         {
@@ -66,7 +66,7 @@ const allTiles = chooseTabs.flatMap((tab) =>
       </div>
 
       <div class="cflow__foot">
-        <Button>Check Other {activeTab}</Button>
+        <Button href="/occasions">Check Other {activeTab}</Button>
         <span class="cmp-pager" data-choose-pager></span>
       </div>
     </div>
@@ -76,6 +76,12 @@ const allTiles = chooseTabs.flatMap((tab) =>
 <script>
   const ARROW_L = '/assets-svg/arrow-left-black.svg';
   const ARROW_R = '/assets-svg/arrow-right-black.svg';
+  // tujuan tombol "Check Other …" per tab
+  const CTA_LINK: Record<string, string> = {
+    Occasions: '/occasions',
+    Category: '/shop',
+    Flower: '/shop',
+  };
 
   document.querySelectorAll<HTMLElement>('[data-choose]').forEach((root) => {
     const per = parseInt(root.dataset.perPage || '3', 10);
@@ -98,7 +104,7 @@ const allTiles = chooseTabs.flatMap((tab) =>
       if (pc <= 1) { pagerBox.innerHTML = ''; return; }
       const nums = Array.from({ length: pc }, (_, i) => {
         const on = i === page - 1;
-        return `<span class="num ${on ? 'ts-42 on' : 'ts-33'}" data-p="${i + 1}">${i + 1}</span>`;
+        return `<span class="num ${on ? 'type-p2 type--strong on' : 'type-p2 type--faint'}" data-p="${i + 1}">${i + 1}</span>`;
       }).join('');
       pagerBox.innerHTML =
         `<img class="cmp-pager__arw" data-p="prev" src="${ARROW_L}" alt="prev">` +
@@ -120,7 +126,10 @@ const allTiles = chooseTabs.flatMap((tab) =>
       tabBtns.forEach((b) => b.classList.toggle('cflow__tab--on', b.dataset.chooseTab === tab));
       byEl.textContent = tab;
       subEl.textContent = subs[tab] || subEl.textContent;
-      if (ctaEl) ctaEl.textContent = `Check Other ${tab}`;
+      if (ctaEl) {
+        ctaEl.textContent = `Check Other ${tab}`;
+        (ctaEl as HTMLAnchorElement).href = CTA_LINK[tab] || '/occasions';
+      }
       renderPager();
     };
 

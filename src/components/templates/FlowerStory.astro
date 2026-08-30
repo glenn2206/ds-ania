@@ -130,6 +130,9 @@ import { flowerStory as s } from '../../data/about';
   const ARROW_L = '/assets-svg/arrow-left-black.svg';
   const ARROW_R = '/assets-svg/arrow-right-black.svg';
 
+  const AUTO_MS = 5000;
+  const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   document.querySelectorAll<HTMLElement>('[data-story]').forEach((root) => {
     const pairs = Array.from(root.querySelectorAll<HTMLElement>('[data-story-pair]'));
     const pagerBox = root.querySelector<HTMLElement>('[data-story-pager]')!;
@@ -137,10 +140,18 @@ import { flowerStory as s } from '../../data/about';
     let page = 1;
     const total = pairs.length;
 
+    let timer = 0;
+    const stop = () => { window.clearInterval(timer); timer = 0; };
+    const start = () => {
+      stop();
+      if (REDUCE || document.hidden) return;
+      timer = window.setInterval(() => { page = (page % total) + 1; render(); }, AUTO_MS);
+    };
+
     const renderPager = () => {
       const nums = Array.from({ length: total }, (_, i) => {
         const on = i === page - 1;
-        return `<span class="num ${on ? 'ts-42 on' : 'ts-33'}" data-p="${i + 1}">${i + 1}</span>`;
+        return `<span class="num ${on ? 'type-p2 type--strong on' : 'type-p2 type--faint'}" data-p="${i + 1}">${i + 1}</span>`;
       }).join('');
       pagerBox.innerHTML =
         `<img class="cmp-pager__arw" data-p="prev" src="${ARROW_L}" alt="prev">` +
@@ -165,7 +176,17 @@ import { flowerStory as s } from '../../data/about';
       else if (v === 'next') page = Math.min(total, page + 1);
       else page = parseInt(v, 10);
       render();
+      start(); // reset the countdown after a manual jump
     });
+
+    // pause while the visitor is looking at / interacting with the slides
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
+    root.addEventListener('focusin', stop);
+    root.addEventListener('focusout', start);
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+
     render();
+    start();
   });
 </script>

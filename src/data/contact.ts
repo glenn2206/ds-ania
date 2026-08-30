@@ -30,5 +30,5 @@ export const office = {
   phone: '0821-1109-1885',
   /** nomor WA tujuan pesan form (E.164 tanpa +) */
   whatsapp: '6282111091885',
-  image: '/assets/hero-bride-with-bouquet.jpg',
+  image: '/assets/scene-studio-vases.png',
 };

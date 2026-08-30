@@ -80,6 +80,63 @@ const svgIcons = [
     <!-- ATOM -->
     <div class="layer" id="atom"><span class="no">1</span><h2>Atom</h2><span class="rule"></span></div>
 
+    <div class="card"><h3>Color &amp; Radius <s class="svg">--tokens</s></h3>
+      <div class="r"><div class="d" style="gap:18px;flex-wrap:wrap">
+        {[
+          ['Primary','Paper Off White','#FDF6F1','--bg'],
+          ['Secondary','Olive Green','#899B7A','--olive'],
+          ['Text','Dark Grey','#525252','--ink'],
+          ['Accent','Sage Green','#BAC6BB','--sage'],
+        ].map(([role,name,hex,v]) => (
+          <div style="text-align:center;font-size:12px">
+            <div style={`width:56px;height:56px;border-radius:var(--radius);background:${hex};box-shadow:inset 0 0 0 1px var(--hair);margin:0 auto 6px`}></div>
+            <b>{role}</b><br />{name}<br /><code>{hex}</code><br /><code>{v}</code>
+          </div>
+        ))}
+      </div><div class="i">Pantone tambahan: 875 U <code>--bronze #B08662</code> · Rose Gold Foil <code>--rose-gold #B87333</code>.</div></div>
+      <div class="r"><div class="d" style="align-items:flex-end;gap:18px">
+        <div style="text-align:center;font-size:12px"><div style="width:80px;height:44px;background:var(--olive);border-radius:8px;margin-bottom:6px"></div>Desktop <code>--radius: 8px</code></div>
+        <div style="text-align:center;font-size:12px"><div style="width:80px;height:44px;background:var(--olive);border-radius:5px;margin-bottom:6px"></div>Mobile <code>--radius: 5px</code> (≤760px)</div>
+      </div><div class="i">Tombol &amp; kartu pakai <code>var(--radius)</code>; pill/badge tetap penuh (100px).</div></div>
+    </div>
+
+    <div class="card"><h3>Typography <s class="svg">.type-*</s></h3>
+      <div class="r"><div class="d" style="display:block">
+        <p class="type-h1">Heading 1</p>
+        <div class="i" style="margin:0 0 18px">Cormorant Garamond · Regular · <b>60 / 32</b> (desktop / mobile) — <code>.type-h1</code> · <code>--italic</code></div>
+
+        <p class="type-h2">Heading 2</p>
+        <div class="i" style="margin:0 0 18px">Crimson Text · Regular · <b>32 / 24</b> — <code>.type-h2</code></div>
+
+        <p class="type-p1">Paragraf 1 — Open Sans Regular</p>
+        <div class="i" style="margin:0 0 18px">Open Sans · Regular · <b>18 / 16</b> — <code>.type-p1</code></div>
+
+        <p class="type-price">Paragraf 2 / Price Tag — Rp 750.000</p>
+        <div class="i" style="margin:0 0 18px">Open Sans · Regular · <b>16 / 14</b> — <code>.type-p2</code> / <code>.type-price</code></div>
+
+        <p class="type-accent1">Accent Text 1 — Cormorant Garamond Regular</p>
+        <div class="i" style="margin:0 0 18px">Cormorant Garamond · Regular · <b>14 / 12</b> — <code>.type-accent1</code></div>
+
+        <p class="type-accent2">Accent Text 2</p>
+        <div class="i" style="margin:0 0 18px">Open Sans · Semibold · 14 · tracking 40% · UPPERCASE — <code>.type-accent2</code></div>
+
+        <p class="type-btn">Button Text</p>
+        <div class="i" style="margin:0 0 6px">Open Sans · Semibold · 12 · UPPERCASE — <code>.type-btn</code></div>
+      </div></div>
+
+      <div class="r"><div class="d" style="display:block">
+        <b style="display:block;margin:0 0 8px">Catatan penyesuaian</b>
+        <ul style="margin:0;padding-left:18px;line-height:1.7;color:var(--dim);font-size:13px">
+          <li>Skala lama <code>.ts-01</code>…<code>.ts-64</code> <b>dihapus total</b>. Semua komponen (92 titik di 31 file) dipetakan ke 8 kelas di atas + modifier — pilih yang paling mirip berdasarkan font, ukuran, warna.</li>
+          <li>Berat hanya dua: <b>Regular 400</b> (heading &amp; paragraf) dan <b>Semibold 600</b> (Accent Text 2, Button, modifier <code>--strong</code>). Berat 300/500/700 lama dibuang.</li>
+          <li><b>Inter</b>, <b>Mulish</b>, <b>Lexend</b> dibuang — bukan font brand. Semua non-serif → Open Sans.</li>
+          <li>Warna teks utama (<code>#3D3B2F</code>, <code>#1E2934</code>) → <b>Text <code>#525252</code></b>. Abu &amp; aksen jadi modifier: <code>--muted --faint --ondark --olive --sale</code>.</li>
+          <li>Ukuran &lt; 14px (fine print) → <code>.type-caption</code> (Open Sans 12) — turunan terdekat, tidak ada di guidelines tapi dibutuhkan.</li>
+          <li>Crimson Text tak punya berat 300 — Heading 2 pakai Regular 400 sesuai guidelines.</li>
+        </ul>
+      </div></div>
+    </div>
+
     <div class="card"><h3>Icon <s class="svg">assets-svg/</s></h3>
       <div class="r"><div class="d" style="gap:14px">
         {svgIcons.map((n) => <Icon name={n} />)}
@@ -110,12 +167,12 @@ const svgIcons = [
     <!-- MOLEKUL -->
     <div class="layer" id="mol"><span class="no">2</span><h2>Molekul</h2><span class="rule"></span></div>
     <div class="card">
-      <div class="r"><div class="d"><PriceGroup price={700000} compareAt={950000} /></div><div class="i"><b>PriceGroup</b> = <code>.ts-24</code> + <code>.ts-22</code></div></div>
+      <div class="r"><div class="d"><PriceGroup price={700000} compareAt={950000} /></div><div class="i"><b>PriceGroup</b> = <code>.type-p2 type--strike</code> + <code>.type-p2</code></div></div>
       <div class="r"><div class="d" style="flex-direction:column;align-items:flex-start;gap:3px"><CardTitleBlock pill="Bloom Box" title="A Handful Flower Box" price={700000} compareAt={950000} /></div><div class="i"><b>CardTitleBlock</b> = <code>&lt;Pill&gt;</code> + <code>&lt;PriceGroup&gt;</code></div></div>
-      <div class="r"><div class="d"><TestimonialAuthor avatar="/assets/profile-claudia.jpg" name="Claudia S" city="Jakarta Utara" /></div><div class="i"><b>TestimonialAuthor</b> = <code>&lt;Avatar&gt;</code> + <code>.ts-35</code> + <code>.ts-50</code></div></div>
+      <div class="r"><div class="d"><TestimonialAuthor avatar="/assets/profile-claudia.jpg" name="Claudia S" city="Jakarta Utara" /></div><div class="i"><b>TestimonialAuthor</b> = <code>&lt;Avatar&gt;</code> + <code>.type-p2 type--strong</code> + <code>.type-caption type--faint</code></div></div>
       <div class="r"><div class="d" style="flex-direction:column;align-items:flex-start;gap:12px"><CategoryTileBar label="Anniversary" /><CategoryTileBar label="Graduation" olive /></div><div class="i"><b>CategoryTileBar</b> — strip 400×52, default / <code>olive</code></div></div>
       <div class="r"><div class="d"><IconLink icon="instagram">Instagram</IconLink></div><div class="i"><b>IconLink</b> = <code>&lt;Icon&gt;</code> + label</div></div>
-      <div class="r"><div class="d" style="padding:0"><PromoBar /></div><div class="i"><b>PromoBar</b> — bar <code>#BBCCBF</code>, teks <code>.ts-34</code> + pill frosted (bg <code>--soft</code>, teks <code>--panel</code>) + chevron. Dipakai di atas Navbar.</div></div>
+      <div class="r"><div class="d" style="padding:0"><PromoBar /></div><div class="i"><b>PromoBar</b> — bar <code>#BBCCBF</code>, teks <code>.type-p2 type--ondark</code> + pill frosted (bg <code>--soft</code>, teks <code>--panel</code>) + chevron. Dipakai di atas Navbar.</div></div>
       <div class="r"><div class="d" style="display:block;max-width:340px"><FilterGroup title="Category" collapsible active="Premium Wrapped Bloom" items={['Bloom Box & Basket', 'Premium Wrapped Bloom', 'Vase Arrangement', 'Accessories']} /></div><div class="i"><b>FilterGroup</b> — heading 18/700 + chevron + hairline + item ber-bullet (aktif = <code>#525252</code>/600). Dipakai di sidebar Shop.</div></div>
     </div>
 
@@ -146,8 +203,8 @@ const svgIcons = [
     <div class="card"><h3>Kartu lain</h3>
       <div class="r"><div class="d"><TestimonialCard quote="The bouquet was stunning and on time." avatar="/assets/profile-claudia.jpg" name="Claudia S" city="Jakarta Utara" /></div><div class="i"><b>&lt;TestimonialCard&gt;</b> = <code>.mini--soft</code> + <code>&lt;TestimonialAuthor&gt;</code></div></div>
       <div class="r"><div class="d"><OccasionCard image="/assets/bouquet-love-symphony-wrap.jpg" title="Graduation" price="Rp 500,000" action="arrow" /><OccasionCard image="/assets/bouquet-rouge-elegance.jpg" title="Plush Doll" price="Rp 50,000" action="plus" /></div><div class="i"><b>&lt;OccasionCard&gt;</b> — action <code>arrow</code> / <code>plus</code></div></div>
-      <div class="r"><div class="d"><InfoPanel title="Delivery Information" fields={['Select a city', 'Address']} /></div><div class="i"><b>&lt;InfoPanel&gt;</b> = <code>.ts-25</code> + <code>&lt;Field&gt;</code> ×N</div></div>
-      <div class="r"><div class="d"><OrderItemCard title="A Handful Flower Box" pill="Bloom Box" price="Rp 950,000" swatch /></div><div class="i"><b>&lt;OrderItemCard&gt;</b> = <code>.ts-07</code> + <code>&lt;Pill&gt;</code> + <code>.ts-14</code> + <code>&lt;Swatch&gt;</code></div></div>
+      <div class="r"><div class="d"><InfoPanel title="Delivery Information" fields={['Select a city', 'Address']} /></div><div class="i"><b>&lt;InfoPanel&gt;</b> = <code>.type-p2 type--strong</code> + <code>&lt;Field&gt;</code> ×N</div></div>
+      <div class="r"><div class="d"><OrderItemCard title="A Handful Flower Box" pill="Bloom Box" price="Rp 950,000" swatch /></div><div class="i"><b>&lt;OrderItemCard&gt;</b> = <code>.type-h2</code> + <code>&lt;Pill&gt;</code> + <code>.type-p1</code> + <code>&lt;Swatch&gt;</code></div></div>
     </div>
 
     <div class="card"><h3>Navbar <s class="svg">PromoBar + centered logo</s></h3>

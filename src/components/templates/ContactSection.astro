@@ -1,7 +1,7 @@
 ---
 /**
  * TEMPLATE · ContactSection — index.html "How Can We Help You?".
- * Judul .ts-07 + intro + form (Name/WA, Email, Occasions/Category, Message) + tombol.
+ * Judul .type-h2 + intro + form (Name/WA, Email, Occasions/Category, Message) + tombol.
  * Berfungsi client-side: submit → susun pesan → buka WhatsApp (situs tetap statik).
  */
 import { contactOccasions, contactCategories, office } from '../../data/contact';
@@ -17,7 +17,7 @@ const {
 ---
 
 <section class="contact">
-  <h1 class="contact__title ts-07">{title}</h1>
+  <h1 class="contact__title type-h2">{title}</h1>
   <p class="contact__intro">{intro}</p>
 
   <form class="contact__form" data-contact-form data-wa={office.whatsapp} novalidate>

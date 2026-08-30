@@ -12,7 +12,7 @@ const { title = 'What Do You Want to Say?' } = Astro.props;
 ---
 
 <section class="oshow">
-  <h2 class="oshow__title ts-07">{title}</h2>
+  <h2 class="oshow__title type-h2">{title}</h2>
   <div class="oshow__rows">
     {occasionRows.map((row) => <OccasionRow {...row} />)}
   </div>

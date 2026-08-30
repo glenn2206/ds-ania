@@ -103,7 +103,7 @@ const pageCount = Math.max(1, Math.ceil(products.length / PER_PAGE));
         c.hidden = Math.floor(i / per) + 1 !== page;
       });
       nums.forEach((n, i) => {
-        n.className = i === page - 1 ? 'num ts-42 on' : 'num ts-33';
+        n.className = i === page - 1 ? 'num type-p2 type--strong on' : 'num type-p2 type--faint';
       });
       [prev, next].forEach((a, i) => {
         const disabled = i === 0 ? page === 1 : page === pageCount;

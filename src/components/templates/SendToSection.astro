@@ -14,7 +14,7 @@ const { title = 'Who Are You Sending Flowers To?' } = Astro.props;
 ---
 
 <section class="sendto">
-  <h2 class="sendto__title ts-07">{title}</h2>
+  <h2 class="sendto__title type-h2">{title}</h2>
   <div class="sendto__grid">
     {sendTo.map((c) => <SendToCard {...c} />)}
 
@@ -30,6 +30,7 @@ const { title = 'Who Are You Sending Flowers To?' } = Astro.props;
 <style>
   .sendto {
     padding: var(--sec-y) var(--gutter);
+    --rule: var(--sand); /* #CCC8A8 — warm khaki hairline */
   }
   .sendto__title {
     display: block;
@@ -39,44 +40,74 @@ const { title = 'Who Are You Sending Flowers To?' } = Astro.props;
   .sendto__grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 44px 40px;
+    gap: 0;
     max-width: 1160px;
     margin: 0 auto;
+    border-top: 1px solid var(--rule);
   }
-  .sendto__card {
+  /* hairlines between cells — top rule + column rules + one row rule.
+     :global(.sendto__card) reaches the <SendToCard> roots (all 6 cells carry it). */
+  .sendto__grid > :global(.sendto__card) {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 14px;
+    gap: 8px;
+    padding: 44px 40px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
   }
-  .sendto__ico { opacity: 0.85; }
-  .sendto__tt {
+  .sendto__grid > :global(.sendto__card:nth-child(3n + 1)) { padding-left: 0; }
+  .sendto__grid > :global(.sendto__card:nth-child(3n)) {
+    padding-right: 0;
+    border-right: 0;
+  }
+  .sendto__grid > :global(.sendto__card:nth-child(n + 4)) {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+  /* card contents live in child components (SendToCard) → :global to reach them */
+  .sendto__grid :global(.sendto__ico) { opacity: 0.85; margin-bottom: 12px; }
+  .sendto__grid :global(.sendto__tt) {
     margin: 0;
     font: 600 30px/1.15 'Cormorant Garamond', Georgia, serif;
     color: #525252;
   }
-  .sendto__tt--lg { font-size: 44px; font-weight: 400; line-height: 1.1; }
-  .sendto__bd {
+  .sendto__grid :global(.sendto__tt--lg) { font-size: 44px; font-weight: 400; line-height: 1.1; }
+  .sendto__grid :global(.sendto__bd) {
     margin: 0;
     font: 400 14px/1.5 'Open Sans', Arial, sans-serif;
     color: #3D3B2F;
   }
-  .sendto__best {
-    margin: 4px 0 0;
+  .sendto__grid :global(.sendto__best) {
+    margin: 0;
     font: 600 14px/1.5 'Open Sans', Arial, sans-serif;
     color: #3D3B2F;
   }
-  .sendto__card--unspoken { gap: 18px; }
+  .sendto__card--unspoken { gap: 8px; }
   .sendto__eyebrow {
     font: 600 12px/1 'Open Sans', Arial, sans-serif;
     text-transform: uppercase;
     letter-spacing: 4.8px;
     color: #525252;
   }
-  .sendto__card--unspoken :global(.cmp-btn-primary) { margin-top: 6px; }
+  .sendto__card--unspoken :global(.cmp-btn-primary) { margin-top: 8px; }
 
   @media (max-width: 1000px) {
-    .sendto__grid { grid-template-columns: repeat(2, 1fr); }
+    .sendto__grid {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: 40px;
+      border-top: 0;
+    }
+    .sendto__grid > :global(.sendto__card) {
+      padding: 32px 0;
+      border-right: 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .sendto__grid > :global(.sendto__card:nth-child(n + 4)) {
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .sendto__grid > :global(.sendto__card:last-child) { border-bottom: 0; }
   }
   @media (max-width: 640px) {
     .sendto__grid { grid-template-columns: 1fr; }

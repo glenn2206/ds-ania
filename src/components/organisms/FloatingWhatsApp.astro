@@ -1,0 +1,54 @@
+---
+/**
+ * ORGANISME · FloatingWhatsApp — tombol WA melayang (fixed) di landing page.
+ * Nomor butik: 0821-1109-1885 → wa.me/6282111091885.
+ */
+import Icon from '../atoms/Icon.astro';
+
+interface Props {
+  phone?: string;
+  message?: string;
+  label?: string;
+}
+const {
+  phone = '6282111091885',
+  message = 'Halo ANIA, saya mau tanya soal bunga.',
+  label = 'Chat WhatsApp',
+} = Astro.props;
+const href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+---
+
+<a class="wa-float" href={href} target="_blank" rel="noopener" aria-label={label} title={label}>
+  <Icon name="whatsapp" alt="" style="width:30px;height:30px" />
+</a>
+
+<style>
+  .wa-float {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 60;
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #25d366;
+    box-shadow: 0 8px 24px -6px rgba(37, 211, 102, 0.55), 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .wa-float:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 12px 30px -6px rgba(37, 211, 102, 0.65), 0 3px 8px rgba(0, 0, 0, 0.18);
+  }
+  .wa-float :global(img) {
+    filter: brightness(0) invert(1);
+  }
+  @media (max-width: 560px) {
+    .wa-float { right: 16px; bottom: 16px; width: 50px; height: 50px; }
+    .wa-float :global(img) { width: 26px !important; height: 26px !important; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wa-float { transition: none; }
+  }
+</style>

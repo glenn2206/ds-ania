@@ -22,10 +22,11 @@ import { intro } from '../../data/occasions';
 <style>
   .ointro {
     display: grid;
-    grid-template-columns: 530px minmax(0, 1fr);
-    gap: 56px;
+    /* 2 kolom sama besar, tengahnya kosong 55px (kalibrasi @1440: pad-x 175px) */
+    grid-template-columns: 1fr 1fr;
+    gap: 55px;
     align-items: center;
-    padding: calc(var(--sec-y) * 0.9) var(--gutter);
+    padding: calc(var(--sec-y) * 0.9) clamp(28px, 12.15vw, 175px);
   }
   .ointro__media {
     aspect-ratio: 530 / 580;
@@ -38,7 +39,6 @@ import { intro } from '../../data/occasions';
     flex-direction: column;
     align-items: flex-start;
     gap: 24px;
-    max-width: 507px;
   }
   .ointro__eyebrow {
     font: 600 14px/1 'Open Sans', Arial, sans-serif;
@@ -58,7 +58,12 @@ import { intro } from '../../data/occasions';
   }
 
   @media (max-width: 900px) {
-    .ointro { grid-template-columns: 1fr; gap: 32px; }
+    .ointro {
+      grid-template-columns: 1fr;
+      gap: 32px;
+      padding-left: var(--gutter);
+      padding-right: var(--gutter);
+    }
     .ointro__media { max-width: 420px; }
     .ointro__title { font-size: 40px; }
   }

@@ -1,7 +1,7 @@
 ---
 /**
  * MOLEKUL · TestimonialAuthor — MEMANGGIL atom Avatar.
- * avatar 48 + nama .ts-35 + kota .ts-50
+ * avatar 48 + nama .type-p2 type--strong + kota .type-caption type--faint
  * <TestimonialAuthor avatar="/assets/profile-claudia.jpg" name="Claudia S" city="Jakarta Utara" />
  */
 import Avatar from '../atoms/Avatar.astro';
@@ -17,7 +17,7 @@ const { avatar, name, city } = Astro.props;
 <span class="tcard__by">
   <Avatar src={avatar} />
   <span>
-    <span class="ts-35">{name}</span><br />
-    <span class="ts-50">{city}</span>
+    <span class="type-p2 type--strong">{name}</span><br />
+    <span class="type-caption type--faint">{city}</span>
   </span>
 </span>

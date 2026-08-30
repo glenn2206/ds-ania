@@ -77,3 +77,10 @@ CREATE TABLE IF NOT EXISTS order_items (
   CONSTRAINT fk_oi_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
   CONSTRAINT fk_oi_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- key/value pengaturan situs yang bisa diubah dari panel admin (mis. bar promo di atas navbar)
+CREATE TABLE IF NOT EXISTS site_settings (
+  skey        VARCHAR(64)  NOT NULL PRIMARY KEY,
+  svalue      TEXT         NOT NULL,
+  updated_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -8,6 +8,12 @@
  */
 import 'dotenv/config';
 import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+// Passenger kadang menjalankan app dengan cwd berbeda → simpan lokasi absolut
+// folder build supaya route /uploads bisa fallback ke foto bawaan.
+process.env.APP_ROOT = fileURLToPath(new URL('.', import.meta.url));
+process.env.CLIENT_DIR = fileURLToPath(new URL('./dist/client', import.meta.url));
 
 const entry = new URL('./dist/server/entry.mjs', import.meta.url);
 if (!existsSync(entry)) {

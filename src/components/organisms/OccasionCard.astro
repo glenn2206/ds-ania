@@ -1,7 +1,7 @@
 ---
 /**
  * ORGANISME · OccasionCard — MEMANGGIL atom Icon. .mini--occ 321×382.
- * gambar 292×292 + .ts-13 + .ts-22 + ikon aksi (panah / plus).
+ * gambar 292×292 + .type-h2 + .type-p2 + ikon aksi (panah / plus).
  * <OccasionCard image="/assets/x.png" title="Plush Doll" price="Rp 50,000" action="plus" slug="addon-plush-doll" />
  * <OccasionCard image="/assets/y.png" title="Graduation" price="Rp 500,000" action="arrow" />
  * `slug` + action="plus" → tombol "+" benar-benar menambah ke keranjang.
@@ -22,8 +22,8 @@ const { image, title, price, action = 'arrow', slug } = Astro.props;
   <span class="thumb" style={`background-image:url(${image})`}></span>
   <span style="display:flex;justify-content:space-between;align-items:center;width:100%">
     <span>
-      <span class="ts-13">{title}</span><br />
-      <span class="ts-22">{price}</span>
+      <span class="type-h2">{title}</span><br />
+      <span class="type-p2">{price}</span>
     </span>
     {
       action === 'plus' ? (

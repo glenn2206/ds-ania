@@ -37,25 +37,33 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          cat > ~/.ssh/config <<EOF
+          Host cpanel
+            HostName ${{ secrets.SSH_HOST }}
+            User ${{ secrets.SSH_USER }}
+            Port ${{ secrets.SSH_PORT || 22 }}
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking accept-new
+            PubkeyAcceptedKeyTypes +ssh-rsa
+            HostKeyAlgorithms +ssh-rsa
+          EOF
 
       - name: Rsync build output ke server
         run: |
-          SSH="ssh -p ${{ secrets.SSH_PORT || 22 }} -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new"
-          DEST="${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}"
+          DEST="cpanel:${{ secrets.DEPLOY_PATH }}"
           # dist/ diganti penuh (--delete); file lain disalin/di-update saja
-          rsync -az --delete -e "$SSH" dist "$DEST/"
-          rsync -az        -e "$SSH" \
+          rsync -az --delete -e ssh dist "$DEST/"
+          rsync -az           -e ssh \
             app.mjs package.json package-lock.json \
             db scripts src/data/products.generated.json \
             "$DEST/"
 
       - name: Install deps + restart Passenger
         run: |
-          ssh -p "${{ secrets.SSH_PORT || 22 }}" -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" bash -lc '
+          ssh cpanel bash -lc '
               set -e
               cd "${{ secrets.DEPLOY_PATH }}"
               VENV=$(ls -d "$HOME"/nodevenv/*/[0-9]*/bin/activate 2>/dev/null | head -1)

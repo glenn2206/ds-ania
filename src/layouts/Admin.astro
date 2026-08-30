@@ -7,7 +7,7 @@ import '../styles/admin.css';
 
 interface Props {
   title?: string;
-  active?: 'products' | 'orders';
+  active?: 'products' | 'orders' | 'settings';
   user?: string;
   bare?: boolean; // true = tanpa top bar (halaman login)
 }
@@ -29,6 +29,7 @@ const { title = 'Admin — ANIA', active, user, bare = false } = Astro.props;
         <nav class="admin-top__nav">
           <a href="/admin" class={active === 'products' ? 'is-active' : ''}>Produk</a>
           <a href="/admin/orders" class={active === 'orders' ? 'is-active' : ''}>Order</a>
+          <a href="/admin/settings" class={active === 'settings' ? 'is-active' : ''}>Pengaturan</a>
           <a href="/" target="_blank" rel="noopener">Lihat situs ↗</a>
           {user && (
             <form method="POST" action="/api/admin/logout" style="display:inline">

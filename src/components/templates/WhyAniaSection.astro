@@ -1,7 +1,7 @@
 ---
 /**
  * TEMPLATE · WhyAniaSection — index.html "Why ANIA?".
- * Judul .ts-07 + grid 4 WhyAniaCard (kartu ke-2 varian soft #F6EBE3).
+ * Judul .type-h2 + grid 4 WhyAniaCard (kartu ke-2 varian soft #F6EBE3).
  */
 import WhyAniaCard from '../organisms/WhyAniaCard.astro';
 
@@ -20,7 +20,7 @@ const { title = 'Why ANIA?', cards } = Astro.props;
 ---
 
 <section class="whyania">
-  <div class="ts-07" style="display:block;margin:0 0 28px">{title}</div>
+  <div class="type-h2" style="display:block;margin:0 0 28px;text-align: center;">{title}</div>
   <div class="whyania__grid">
     {cards.map((c, i) => <WhyAniaCard {...c} petals={Math.min(i + 1, 4)} />)}
   </div>

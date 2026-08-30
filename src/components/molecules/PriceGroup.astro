@@ -1,6 +1,6 @@
 ---
 /**
- * MOLEKUL · PriceGroup — .pcard__price = .ts-24 (coret) + .ts-22
+ * MOLEKUL · PriceGroup — .pcard__price = .type-p2 type--strike (coret) + .type-p2
  * <PriceGroup price={700000} compareAt={950000} />
  * <PriceGroup price="Rp 1,000,000" />
  */
@@ -20,6 +20,6 @@ const fmt = (v: number | string | undefined) => {
 ---
 
 <span class={['pcard__price', extra].filter(Boolean).join(' ')}>
-  {compareAt !== undefined && <span class="ts-24">{fmt(compareAt)}</span>}
-  <span class="ts-22">{fmt(price)}</span>
+  {compareAt !== undefined && <span class="type-p2 type--strike">{fmt(compareAt)}</span>}
+  <span class="type-p2">{fmt(price)}</span>
 </span>

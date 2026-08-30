@@ -1,7 +1,7 @@
 ---
 /**
  * ORGANISME · OrderItemCard — MEMANGGIL atom Pill. .mini--order 473, rata tengah.
- * .ts-07 judul + pill + .ts-14 harga + swatch.
+ * .type-h2 judul + pill + .type-p1 harga + swatch.
  * <OrderItemCard title="A Handful Flower Box" pill="Bloom Box" price="Rp 950,000" />
  */
 import Pill from '../atoms/Pill.astro';
@@ -17,8 +17,8 @@ const { title, pill, price, swatch = false } = Astro.props;
 ---
 
 <span class="mini mini--order">
-  <span class="ts-07">{title}</span>
+  <span class="type-h2">{title}</span>
   {pill && <Pill>{pill}</Pill>}
-  <span class="ts-14">{price}</span>
+  <span class="type-p1">{price}</span>
   {swatch && <Swatch />}
 </span>

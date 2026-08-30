@@ -13,6 +13,7 @@
     "db:seed": "node scripts/seed.mjs",
     "db:user": "node scripts/create-user.mjs",
     "snapshot": "node scripts/snapshot.mjs",
+    "pack": "node scripts/pack.mjs",
     "optimize-assets": "node scripts/optimize-assets.mjs"
   },
   "dependencies": {

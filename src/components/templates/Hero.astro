@@ -2,11 +2,10 @@
 /**
  * TEMPLATE · Hero — index.html screen 1.
  * Carousel gambar (Progress difungsikan: auto-advance 5s + klik segmen).
- * Token: .ts-37 / .ts-02 / .ts-01 / .ts-16 · Button · Progress · Icon(whatsapp).
+ * Token: .type-accent2 / .type-h1 / .type-h1 type--italic / .type-p1 · Button · Progress · Icon(whatsapp).
  */
 import Button from '../atoms/Button.astro';
 import Progress from '../atoms/Progress.astro';
-import Icon from '../atoms/Icon.astro';
 
 interface Props {
   eyebrow?: string;
@@ -42,26 +41,22 @@ const {
   </div>
 
   <div class="hero__inner">
-    <p class="ts-37">{eyebrow}</p>
-    <h2 class="hero__title ts-02">
-      {title}<br /><span class="ts-01">{titleItalic}</span>
+    <p class="type-accent2">{eyebrow}</p>
+    <h2 class="hero__title type-h1">
+      {title}<br /><span class="type-h1 type--italic">{titleItalic}</span>
     </h2>
-    <ul class="hero__list ts-16">
+    <ul class="hero__list type-p1">
       {checklist.map((c) => <li>&#10003; {c}</li>)}
     </ul>
     <div class="hero__cta">
-      <Button>shop flowers</Button>
-      <Button variant="secondary">let’s talk flowers</Button>
+      <Button href="/shop">shop flowers</Button>
+      <Button variant="secondary" href="/contact">let’s talk flowers</Button>
     </div>
   </div>
 
   <div class="hero__progress">
     <Progress total={slides.length} active={0} />
   </div>
-
-  <a class="hero__wa" title="WhatsApp" href="#">
-    <Icon name="whatsapp" alt="WhatsApp" style="width:30px;height:30px" />
-  </a>
 </section>
 
 <script>

@@ -21,7 +21,7 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
 
 <aside class="buybox" data-buybox data-slug={item.slug} data-price={typeof item.price === 'number' ? item.price : 0} data-soldout={item.soldOut ? '1' : undefined}>
   <div class="buybox__head">
-    <h1 class="ts-06 buybox__name">{item.name}</h1>
+    <h1 class="type-h2 buybox__name">{item.name}</h1>
     <Pill>{item.pill}</Pill>
     <p class="buybox__price">{priceLabel}</p>
     <Swatch options={['Standard', 'Premium']} images={swatchImages} />

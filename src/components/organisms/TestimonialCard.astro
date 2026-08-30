@@ -1,7 +1,7 @@
 ---
 /**
  * ORGANISME · TestimonialCard — MEMANGGIL molekul TestimonialAuthor.
- * .mini--soft 366×200, kutipan .ts-27 + author.
+ * .mini--soft 366×200, kutipan .type-p2 + author.
  * <TestimonialCard quote="..." avatar="/assets/profile-claudia.jpg" name="Claudia S" city="Jakarta Utara" />
  */
 import TestimonialAuthor from '../molecules/TestimonialAuthor.astro';
@@ -16,6 +16,6 @@ const { quote, avatar, name, city } = Astro.props;
 ---
 
 <span class="mini mini--soft">
-  <span class="ts-27">{quote}</span>
+  <span class="type-p2">{quote}</span>
   <TestimonialAuthor avatar={avatar} name={name} city={city} />
 </span>

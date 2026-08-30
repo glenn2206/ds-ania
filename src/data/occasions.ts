@@ -98,31 +98,31 @@ export interface SendToCard {
 
 export const sendTo: SendToCard[] = [
   {
-    icon: 'heart',
+    icon: 'partner',
     title: 'Your Romantic Partner',
     body: 'For your partner, romantic and meaningful blooms are always a beautiful choice. Classic roses are timeless, while their favourite flowers or a bouquet in their favourite colour can make the gesture feel even more personal.',
     bestFor: 'Best for: Anniversaries · Valentine’s Day · Birthdays · Just Because',
   },
   {
-    icon: 'flower',
+    icon: 'parents',
     title: 'Your Parents',
     body: 'Soft, elegant arrangements in cheerful or sophisticated colours are a lovely way to show appreciation. Consider flowers that feel warm, graceful, and thoughtful rather than overly romantic.',
     bestFor: 'Best for: Mother’s Day · Father’s Day · Birthdays · Thank You',
   },
   {
-    icon: 'sun',
+    icon: 'friend',
     title: 'A Friend',
     body: 'Colourful bouquets and playful arrangements work beautifully for friends. Choose something that reflects their personality or simply brings a little happiness to their day.',
     bestFor: 'Best for: Birthdays · Congratulations · Get Well Soon',
   },
   {
-    icon: 'leaf-circle',
+    icon: 'colleague',
     title: 'A Colleague or Business Partner',
     body: 'For corporate gifting, opt for sophisticated arrangements with a refined colour palette. Minimal, elegant designs are ideal when you want to express appreciation without feeling too personal.',
     bestFor: 'Best for: Congratulations · Thank You · New Business · Corporate Events',
   },
   {
-    icon: 'clock',
+    icon: 'difficult',
     title: 'Someone Going Through a Difficult Time',
     body: 'Let the flowers speak gently. Choose elegant, understated arrangements in soft or calming tones. The gesture is more important than the size — thoughtful flowers can quietly communicate that you’re thinking of them.',
     bestFor: 'Best for: Sympathy · Condolences · Get Well Soon · Thinking of You',

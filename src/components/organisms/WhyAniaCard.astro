@@ -11,18 +11,17 @@ interface Props {
   icon: string;
   title: string;
   body: string;
-  soft?: boolean;
   mutedBody?: boolean;
   petals?: number;
 }
-const { icon, title, body, soft = false, mutedBody = false, petals = 1 } = Astro.props;
+const { icon, title, body, mutedBody = false, petals = 1 } = Astro.props;
 
 // urutan tumbuh: kiri-atas → kanan-atas (mirror H) → kiri-bawah (mirror V) → kanan-bawah (mirror H+V)
 const QUAD = ['tl', 'tr', 'bl', 'br'] as const;
 const shown = QUAD.slice(0, Math.max(1, Math.min(petals, 4)));
 ---
 
-<div class={['whycard', soft && 'whycard--soft'].filter(Boolean).join(' ')}>
+<div class={['whycard'].filter(Boolean).join(' ')}>
   <span class="whycard__mark" aria-hidden="true">
     {shown.map((q) => (
       <img class={`whycard__petal whycard__petal--${q}`} src="/assets-svg/30_step-by-step-lfower.svg" alt="" />

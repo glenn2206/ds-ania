@@ -3,7 +3,7 @@
  * MOLEKUL · SectionHeader — eyebrow + judul + subjudul (pakai token .ts-*).
  * <SectionHeader eyebrow="ANIA Flower Boutique" title="Flowers They'll Never Forget"
  *                subtitle="..." align="center" />
- * titleClass default .ts-07 (Crimson 32). Override sesuai section.
+ * titleClass default .type-h2 (Crimson 32). Override sesuai section.
  */
 interface Props {
   eyebrow?: string;
@@ -20,9 +20,9 @@ const {
   title,
   subtitle,
   align = 'center',
-  eyebrowClass = 'ts-37',
-  titleClass = 'ts-07',
-  subtitleClass = 'ts-16',
+  eyebrowClass = 'type-accent2',
+  titleClass = 'type-h2',
+  subtitleClass = 'type-p1',
   class: extra = '',
 } = Astro.props;
 ---
