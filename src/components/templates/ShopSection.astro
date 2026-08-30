@@ -18,8 +18,10 @@ interface Props {
   perPage?: number;
   /** kategori aktif awal (slug), mis. "premium-wrapped" */
   activeCategory?: string;
+  /** filter awal generik dari query (?cat / ?occasion / ?flower) — menimpa activeCategory */
+  activeFilter?: { group: string; value: string };
 }
-const { title, groups, items, perPage = 9, activeCategory = '' } = Astro.props;
+const { title, groups, items, perPage = 9, activeCategory = '', activeFilter } = Astro.props;
 
 const searchText = (c: CatalogItem) =>
   [c.name, c.pill, c.flowers, c.occasion ?? '', c.description]
@@ -27,7 +29,13 @@ const searchText = (c: CatalogItem) =>
     .toLowerCase();
 ---
 
-<section class="shop" data-shop data-per-page={perPage} data-active-category={activeCategory}>
+<section
+  class="shop"
+  data-shop
+  data-per-page={perPage}
+  data-active-category={activeCategory}
+  data-active-filter={activeFilter ? JSON.stringify(activeFilter) : ''}
+>
   <h1 class="type-h2 shop__title" data-shop-title>{title}</h1>
 
   <div class="shop__layout">
@@ -93,8 +101,27 @@ const searchText = (c: CatalogItem) =>
     const sortSel = root.querySelector<HTMLSelectElement>('[data-sort]')!;
     const perPage = parseInt(root.dataset.perPage || '9', 10);
 
-    let filter = { group: 'category', value: root.dataset.activeCategory || '' };
+    let filter: { group: string; value: string } = {
+      group: 'category',
+      value: root.dataset.activeCategory || '',
+    };
+    try {
+      const af = root.dataset.activeFilter ? JSON.parse(root.dataset.activeFilter) : null;
+      if (af && af.group) filter = { group: String(af.group), value: String(af.value || '') };
+    } catch {}
     let page = 1;
+
+    // sorot item sidebar yang cocok dengan filter awal (dari query)
+    const highlightInitial = () => {
+      if (!filter.value && filter.group !== 'all') return;
+      const link = root.querySelector<HTMLElement>(
+        `[data-filter][data-group="${filter.group}"][data-value="${filter.value}"]`,
+      );
+      if (!link) return;
+      root.querySelectorAll('.filtergrp__item.is-active').forEach((x) => x.classList.remove('is-active'));
+      link.closest('.filtergrp__item')?.classList.add('is-active');
+      link.closest('.filtergrp')?.classList.remove('is-collapsed');
+    };
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -126,7 +153,9 @@ const searchText = (c: CatalogItem) =>
       if (!value || group === 'all') return true;
       if (group === 'category') return el.dataset.cat === value;
       if (group === 'sale') return el.dataset.sale === 'true';
-      // occasion / flower / addon → cocokkan substring ke data-search
+      if (group === 'addon')
+        return el.dataset.cat === 'accessory' && (el.dataset.name || '').toLowerCase() === value;
+      // occasion / flower → cocokkan substring ke data-search
       return (el.dataset.search || '').includes(value.toLowerCase());
     };
 
@@ -227,6 +256,7 @@ const searchText = (c: CatalogItem) =>
       root.querySelector('.shop__side')?.classList.toggle('is-open');
     });
 
+    highlightInitial();
     apply();
   });
 </script>

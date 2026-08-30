@@ -119,13 +119,15 @@ const {
     text-align: center;
   }
   .contact__intro {
-    margin: 26px 0 0;
-    max-width: 1040px;
+    margin: 40px auto 0;              /* spacing lebih lega antara judul & subheading */
+    max-width: 60ch;
+    text-align: center;
     font: 400 14px/1.7 'Open Sans', Arial, sans-serif;
     color: #1E2934;
   }
   .contact__form {
-    margin: 34px 0 0;
+    margin: 40px auto 0;
+    max-width: 80%;                   /* bagian tengah ambil ~80% lebar section */
   }
   .contact__grid {
     display: grid;
@@ -204,6 +206,9 @@ const {
     cursor: pointer;
   }
 
+  @media (max-width: 1024px) {
+    .contact__form { max-width: 100%; }
+  }
   @media (max-width: 720px) {
     .contact__grid { grid-template-columns: 1fr; gap: 22px; }
     .contact__actions { justify-content: stretch; }

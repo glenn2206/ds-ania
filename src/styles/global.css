@@ -154,12 +154,13 @@
   }
 
   /* ===== component tokens ===== */
+  /* Button Text — pukul rata semua varian: Open Sans Semibold 12 · UPPERCASE */
   .cmp-btn-primary{display:inline-flex;align-items:center;gap:10px;padding:10px 18px;border:0;border-radius:var(--radius);
-    background:var(--olive);color:#fff;font:600 14px/1 'Open Sans';text-transform:uppercase;letter-spacing:.2px;cursor:pointer}
+    background:var(--olive);color:#fff;font:600 12px/1 'Open Sans';text-transform:uppercase;letter-spacing:.2px;cursor:pointer}
   .cmp-btn-secondary{display:inline-flex;align-items:center;gap:10px;padding:10px 18px;border-radius:var(--radius);
     background:transparent;outline:1px solid var(--olive);outline-offset:-1px;border:0;color:var(--olive);
-    font:600 12px/1 'Open Sans';text-transform:uppercase;cursor:pointer}
-  .cmp-btn-secondary--onwhite{background:#fff;font-size:18px}
+    font:600 12px/1 'Open Sans';text-transform:uppercase;letter-spacing:.2px;cursor:pointer}
+  .cmp-btn-secondary--onwhite{background:#fff}
   .cmp-badge{display:inline-flex;padding:10px 16px;border-radius:100px;background:var(--olive);color:#fff;font:400 12px/1 'Open Sans'}
   .cmp-badge--soldout{background:#fff;color:var(--dim);box-shadow:inset 0 0 0 1px var(--hair)}
   .cmp-pill{display:inline-flex;padding:10px 16px;border-radius:100px;outline:1px solid var(--grey);outline-offset:-1px;
@@ -222,9 +223,9 @@
     font:400 24px/1.1 'Cormorant Garamond',Georgia,serif}
   .cmp-tile > .cti-bar{position:absolute;left:0;right:0;bottom:0;width:auto}
   .cti-bar::after{content:"";position:absolute;right:22px;top:50%;transform:translateY(-50%);
-    width:20px;height:20px;background:url(/assets-svg/arrow-left-black.svg) center/contain no-repeat}
+    width:20px;height:20px;background:url(/assets-svg/arrow-right-black.svg) center/contain no-repeat}
   .cti-bar--olive{background:var(--olive);border-color:var(--olive);color:#fff}
-  .cti-bar--olive::after{background-image:url(/assets-svg/22_arrow-left.svg)}
+  .cti-bar--olive::after{background-image:url(/assets-svg/22_arrow-left.svg)}   /* 22_arrow-left = panah KANAN putih (nama file menyesatkan) */
   .divider{width:320px;max-width:100%;height:1px;background:var(--sand);display:block}
   .avatar{width:48px;height:48px;border-radius:99px;display:block;flex:none;overflow:hidden;
     background:#e7e2d3 linear-gradient(135deg,#e7e2d3,#d8cfc0) center/cover no-repeat}
@@ -296,21 +297,24 @@
   @media (max-width:560px){ .pgrid__row{grid-template-columns:1fr;max-width:360px} }
   /* choose-your-flower section — index.html "Choose your Flower by ..." (heading di ATAS, panel #F6EBE3 + tab folder) */
   .choose{padding:var(--sec-y) var(--gutter)}
-  .cflow__head{text-align:center;line-height:1.2;margin:0 0 6px}            /* index: heading top:1844, Cormorant 32/500, di atas panel */
-  .cflow{position:relative;margin-top:66px}
-  .cflow__tabs{position:absolute;left:0;top:-71px;display:flex;align-items:flex-end}
+  .cflow__head{text-align:center;line-height:1.2;margin:0 0 8px;padding-top:24px}   /* jarak lebih lega dari section/navbar di atasnya */
+  .cflow{position:relative;margin-top:92px}
+  .cflow__tabs{position:absolute;left:0;top:-70px;display:flex;align-items:flex-end}
   .cflow__tab{font:400 24px/1 'Crimson Text',Georgia,'Times New Roman',serif;color:#1E2934;padding:23px 34px;position:relative;
     border:0;background:transparent;cursor:pointer}
   .cflow__tab--on{background:var(--field);border-radius:12px 12px 0 0}
   .cflow__tab--on::after{content:"";position:absolute;left:34px;right:34px; bottom: 18px;;height:2px;background:#525252} /* index: underline 118×2 #525252 @ top:2000 */
   .cflow__panel{background:var(--field);border-radius:0 8px 8px 8px;padding:35px}
   .cflow__sub{margin:0 0 22px}                                             /* index: subjudul .type-p1 @ top:2046 */
-  .cflow__row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}  /* index: 3 tile — Graduation / Anniversary / Just For Me — selalu sebaris */
-  .cflow__cell{min-width:0;display:flex}
+  /* carousel: auto-geser mulus (marquee) + bisa di-drag/scroll manual — tanpa mask */
+  .cflow__row{display:flex;gap:20px;overflow-x:auto;overscroll-behavior-x:contain;
+    padding-bottom:6px;scrollbar-width:none}
+  .cflow__row::-webkit-scrollbar{display:none}
+  .cflow__cell{flex:0 0 clamp(230px,30%,340px);min-width:0;display:flex}
   .cflow__cell[hidden]{display:none}
   .cflow__row .cmp-tile{display:block;width:100%;height:auto;aspect-ratio:400/540}
   .cflow__row .cti-bar{width:100%}
-  .cflow__foot{position:relative;display:flex;justify-content:center;align-items:center;margin:44px 0 0}
+  .cflow__foot{position:relative;display:flex;justify-content:center;align-items:center;margin:20px 0 0}
   .cflow__foot .cmp-pager{position:absolute;right:0}                       /* index: pager @ top:2668 left:1267 · tombol @ top:2709 */
   .cflow__foot .cmp-pager:empty{display:none}
   /* add-on section — index.html "Make It Personal" (teks kiri + 3 kartu add-on kanan) */
@@ -391,7 +395,9 @@
   .ppage > :last-child{margin-bottom:var(--sec-y)}
   /* hero landing: navbar (sticky, ikut flow) + hero = tepat 1 layar */
   .home-hero{min-height:calc(100svh - var(--nav-h, 148px));display:flex}
-  .home-hero > .hero{flex:1 1 auto;min-height:0;aspect-ratio:auto;width:100%}
+  /* min-height 740 → di layar pendek konten hero (top:176 + judul 3 baris + list + CTA)
+     tidak nabrak progress bar yang absolute di bawah; layar tinggi tetap 1 layar penuh */
+  .home-hero > .hero{flex:1 1 auto;min-height:740px;aspect-ratio:auto;width:100%}
 
   /* pemisah antar-section landing — hairline inset gutter
      (index.html: <div> 1340×1px #CCC8A8 @ left:50) */
@@ -436,10 +442,8 @@
 }
 
 @media (max-width: 760px) {
-  /* stack 1 kolom — pakai flex (bukan grid + margin:auto) supaya .cflow__cell
-     tetap punya lebar pasti dan aspect-ratio .cmp-tile kebaca */
-  .cflow__row { display: flex; flex-direction: column; align-items: center; }
-  .cflow__cell { display: block; width: 100%; max-width: 360px; }
+  /* tetap horizontal (swipe) di mobile — tile lebih lebar biar ada peek */
+  .cflow__cell { flex: 0 0 78%; }
 }
 
 @media (max-width: 720px) {
@@ -471,10 +475,8 @@
   .cflow__tab { font-size: 18px; padding: 8px 14px; }
   .cflow__panel { padding: 24px 18px 28px; }
   .cflow__sub { font-size: 14px; margin-bottom: 24px; }
-  .cflow__row { gap: 18px; }
-  .cmp-tile { width: 100%; max-width: 360px; height: auto; aspect-ratio: 400 / 540; }
-  .cflow__foot { flex-direction: column; gap: 16px; margin-top: 32px; }
-  .cflow__foot .cmp-pager { position: static; }
+  .cflow__row { gap: 14px; }
+  .cflow__foot { flex-direction: column; gap: 16px; margin-top: 28px; }
 
   /* ADD-ON */
   .addon { flex-direction: column; gap: 24px; }

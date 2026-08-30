@@ -3,6 +3,7 @@
  * ORGANISME · CategoryTile — MEMANGGIL molekul CategoryTileBar.
  * 400×540, gambar penuh + bar 52px di dasar.
  * <CategoryTile image="/assets/x.png" label="Graduation" olive />
+ * <CategoryTile image="/assets/x.png" label="Roses" href="/shop?flower=Rose" />  ← klik = ke shop terfilter
  */
 import CategoryTileBar from '../molecules/CategoryTileBar.astro';
 
@@ -10,10 +11,39 @@ interface Props {
   image: string;
   label: string;
   olive?: boolean;
+  href?: string;
 }
-const { image, label, olive = false } = Astro.props;
+const { image, label, olive = false, href } = Astro.props;
+const Tag = href ? 'a' : 'span';
 ---
 
-<span class="cmp-tile" style={`background-image:url(${image})`}>
+<Tag
+  class:list={['cmp-tile', href && 'cmp-tile--link']}
+  style={`background-image:url(${image})`}
+  {...href ? { href, 'aria-label': label } : {}}
+>
   <CategoryTileBar label={label} olive={olive} />
-</span>
+</Tag>
+
+<style>
+  .cmp-tile--link { text-decoration: none; color: inherit; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+  .cmp-tile--link:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -16px rgba(60, 50, 20, 0.4); }
+  .cmp-tile--link:focus-visible { outline: 2px solid var(--olive-ink); outline-offset: 3px; }
+
+  /* hover: bar non-olive berubah jadi olive (seperti tile "Graduation") */
+  .cmp-tile--link :global(.cti-bar) {
+    transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+  }
+  .cmp-tile--link:hover :global(.cti-bar:not(.cti-bar--olive)),
+  .cmp-tile--link:focus-visible :global(.cti-bar:not(.cti-bar--olive)) {
+    background: var(--olive);
+    border-color: var(--olive);
+    color: #fff;
+  }
+  .cmp-tile--link:hover :global(.cti-bar:not(.cti-bar--olive))::after,
+  .cmp-tile--link:focus-visible :global(.cti-bar:not(.cti-bar--olive))::after {
+    background-image: url(/assets-svg/22_arrow-left.svg); /* panah putih */
+  }
+
+  @media (prefers-reduced-motion: reduce) { .cmp-tile--link { transition: none; } .cmp-tile--link:hover { transform: none; } }
+</style>

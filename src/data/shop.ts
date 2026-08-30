@@ -19,10 +19,15 @@ export function toProduct(c: CatalogItem): Product {
 /** Katalog aktif = "Premium Wrapped Bloom" (25 produk). */
 export const shopProducts: Product[] = premiumWrapped.map(toProduct);
 
+export interface FilterItem {
+  label: string;
+  value: string;
+}
 export interface FilterGroupData {
   title: string;
   group?: string;
-  items?: string[];
+  /** label saja (nilai diturunkan otomatis) atau pasangan {label,value} eksplisit */
+  items?: (string | FilterItem)[];
   collapsible?: boolean;
   active?: string;
 }

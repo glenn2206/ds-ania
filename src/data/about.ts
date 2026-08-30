@@ -58,15 +58,20 @@ export const flowerStory = {
   titleItalic: 'Story',
   body:
     'From joyful celebrations to quiet gestures, see how our flowers become part of life’s most meaningful moments.',
-  /** tiap slide = sepasang gambar; pager di bawah menggantinya */
+  /** akun IG — fallback saat sebuah slide belum punya link post sendiri */
+  instagramUrl: 'https://www.instagram.com/ania_flowerboutique/',
+  /**
+   * tiap slide = sepasang gambar + (opsional) URL post IG terkait.
+   * TODO: isi elemen ke-3 dengan permalink post IG masing-masing (butuh data dari klien).
+   */
   slides: [
     ['/assets/scene-bride-lace-kebaya.jpg', '/assets/bouquet-yellow-blue-wrap.jpg'],
     ['/assets/scene-bride-pastel-bouquet.jpg', '/assets/bouquet-peach-garden-roses.jpg'],
     ['/assets/bouquet-pink-carnation.jpg', '/assets/bouquet-yellow-poms.jpg'],
-  ],
+  ] as [string, string, string?][],
   socialLabel: 'Visit Our Social Media',
   socials: [
-    { icon: 'instagram', label: 'Instagram', href: '#' },
+    { icon: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/ania_flowerboutique/' },
     { icon: 'tiktok', label: 'TikTok', href: '#' },
     { icon: 'facebook', label: 'Facebook', href: '#' },
   ],

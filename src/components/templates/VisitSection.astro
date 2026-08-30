@@ -27,13 +27,18 @@ const { title = 'We’d Love to See You' } = Astro.props;
 
 <style>
   .visit {
+    --rule: var(--sand); /* #CCC8A8 — hairline sama seperti "Who Are You Sending Flowers To?" */
     display: grid;
     grid-template-columns: minmax(0, 769fr) minmax(0, 600fr);
     overflow: hidden;
+    border-block: 1px solid var(--rule);
   }
   .visit__img {
+    align-self: stretch;                 /* selalu setinggi kolom teks */
+    height: 100%;
     min-height: 383px;
     background: #eef1f0 center/cover no-repeat;
+    border-right: 1px solid var(--rule); /* garis vertikal antara gambar & teks */
   }
   .visit__inner {
     padding: var(--sec-y) var(--gutter);
@@ -69,7 +74,7 @@ const { title = 'We’d Love to See You' } = Astro.props;
 
   @media (max-width: 860px) {
     .visit { grid-template-columns: 1fr; }
-    .visit__img { min-height: 300px; }
+    .visit__img { min-height: 300px; border-right: 0; border-bottom: 1px solid var(--rule); }
     .visit__title { font-size: 40px; }
   }
   @media (max-width: 480px) {

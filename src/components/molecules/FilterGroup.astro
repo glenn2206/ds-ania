@@ -6,12 +6,13 @@
  * Emit data-group / data-value → dibaca engine di ShopSection.
  */
 import Icon from '../atoms/Icon.astro';
+import type { FilterItem } from '../../data/shop';
 
 interface Props {
   title: string;
   /** kunci filter: all | sale | category | occasion | flower | addon */
   group?: string;
-  items?: string[];
+  items?: (string | FilterItem)[];
   collapsible?: boolean;
   active?: string;
 }
@@ -21,19 +22,26 @@ const { title, group = '', items = [], collapsible = false, active } = Astro.pro
 const CATEGORY_SLUG: Record<string, string> = {
   'Bloom Box & Basket': 'bloom-box',
   'Premium Wrapped Bloom': 'premium-wrapped',
+  'Standing Flower & Board': 'standing',
   'Standing Flower & Flower Board': 'standing',
+  'Vase Arrangement': 'vase',
   Vase: 'vase',
   Accessories: 'accessory',
   'Preserved Flower': 'preserved',
 };
 const valueFor = (label: string) =>
   group === 'category' ? (CATEGORY_SLUG[label] ?? label.toLowerCase()) : label;
+
+// normalkan ke {label,value}
+const rows: FilterItem[] = items.map((it) =>
+  typeof it === 'string' ? { label: it, value: valueFor(it) } : it,
+);
 ---
 
-<div class="filtergrp" data-collapsible={collapsible && items.length ? '' : undefined}>
-  <div class="filtergrp__head" data-collapse-head={collapsible && items.length ? '' : undefined}>
+<div class="filtergrp" data-collapsible={collapsible && rows.length ? '' : undefined}>
+  <div class="filtergrp__head" data-collapse-head={collapsible && rows.length ? '' : undefined}>
     {
-      items.length === 0 ? (
+      rows.length === 0 ? (
         <a class="filtergrp__title filtergrp__title--link" href="#" data-filter data-group={group} data-value="">
           {title}
         </a>
@@ -45,13 +53,13 @@ const valueFor = (label: string) =>
   </div>
   <span class="filtergrp__rule"></span>
   {
-    items.length > 0 && (
+    rows.length > 0 && (
       <ul class="filtergrp__list">
-        {items.map((it) => (
-          <li class:list={['filtergrp__item', it === active && 'is-active']}>
+        {rows.map((it) => (
+          <li class:list={['filtergrp__item', it.label === active && 'is-active']}>
             <span class="filtergrp__dot" aria-hidden="true">&bull;</span>
-            <a href="#" data-filter data-group={group} data-value={valueFor(it)}>
-              {it}
+            <a href="#" data-filter data-group={group} data-value={it.value}>
+              {it.label}
             </a>
           </li>
         ))}

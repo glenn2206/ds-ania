@@ -1,28 +1,87 @@
 ---
 /**
  * PAGE · /shop — katalog produk. SSR: produk & stok live dari DB (cache 60 dtk).
- * `?filter=addon` → mulai dengan filter Add On aktif (produk kategori accessory).
- * Filter + pagination client-side di ShopSection.
+ * Query awal (opsional, dari tile "Choose your Flower" / link lain):
+ *   ?filter=addon              → mulai dengan Add On aktif
+ *   ?cat=<slug>                → kategori (premium-wrapped, bloom-box, standing, vase, accessory, preserved)
+ *   ?occasion=<label>          → filter occasion (Anniversary, Birthday, …)
+ *   ?flower=<label>            → filter bunga (Rose, Tulip, …)
+ * Filter + pagination selebihnya client-side di ShopSection.
  */
 import Site from '../layouts/Site.astro';
 import ShopSection from '../components/templates/ShopSection.astro';
-import { filters } from '../data/shop';
 import { getCatalog } from '../lib/products';
+import { shopFilterGroups } from '../lib/facets';
 
 const cat = await getCatalog();
-const addonMode = Astro.url.searchParams.get('filter') === 'addon';
+const params = Astro.url.searchParams;
+const addonMode = params.get('filter') === 'addon';
+
+const CAT_SLUGS = ['premium-wrapped', 'bloom-box', 'standing', 'vase', 'accessory', 'preserved'];
+const CAT_LABEL: Record<string, string> = {
+  'premium-wrapped': 'Premium Wrapped Bloom',
+  'bloom-box': 'Bloom Box & Basket',
+  standing: 'Standing Flower & Flower Board',
+  vase: 'Vase Arrangement',
+  accessory: 'Add On Extras',
+  preserved: 'Preserved Flower',
+};
+
+const qsCat = params.get('cat');
+const qsOcc = params.get('occasion');
+const qsFlw = params.get('flower');
+// default: tampilkan SEMUA produk. Query menimpa.
+let activeFilter: { group: string; value: string } = { group: 'all', value: '' };
+if (addonMode) activeFilter = { group: 'category', value: 'accessory' };
+else if (qsCat && CAT_SLUGS.includes(qsCat)) activeFilter = { group: 'category', value: qsCat };
+else if (qsOcc) activeFilter = { group: 'occasion', value: qsOcc.slice(0, 40) };
+else if (qsFlw) activeFilter = { group: 'flower', value: qsFlw.slice(0, 40) };
+
+const titleCase = (s: string) => s.replace(/\b\w/g, (m) => m.toUpperCase());
+let title = 'All Products';
+if (addonMode) title = 'Add On Extras';
+else if (activeFilter.group === 'category') title = CAT_LABEL[activeFilter.value] ?? title;
+else if (activeFilter.group === 'occasion') title = `${titleCase(activeFilter.value)} Flowers`;
+else if (activeFilter.group === 'flower') title = titleCase(activeFilter.value);
+
+const initialCat = activeFilter.group === 'category' ? activeFilter.value : 'premium-wrapped';
+
+// selang-seling per kategori → tampilan "All Products" (default) tidak diborong premium-wrapped
+function interleave<T extends { category: string }>(list: T[]): T[] {
+  const buckets = new Map<string, T[]>();
+  for (const c of list) {
+    if (!buckets.has(c.category)) buckets.set(c.category, []);
+    buckets.get(c.category)!.push(c);
+  }
+  const arr = [...buckets.values()];
+  const out: T[] = [];
+  for (let more = true; more; ) {
+    more = false;
+    for (const b of arr) {
+      const x = b.shift();
+      if (x) {
+        out.push(x);
+        more = true;
+      }
+    }
+  }
+  return out;
+}
 // add-on ikut masuk grid supaya bisa difilter/di-browse
-const items = [...cat.allProducts, ...cat.addons];
+const items = interleave([...cat.allProducts, ...cat.addons]);
+// sidebar filter diturunkan dari isi katalog (grup kosong tidak muncul)
+const groups = shopFilterGroups(items);
 ---
 
-<Site title={addonMode ? 'Add On Extras — ANIA Flower Boutique' : 'Shop — ANIA Flower Boutique'}>
+<Site title={`${title} — ANIA Flower Boutique`}>
   <div class="shoppage">
     <ShopSection
-      title={addonMode ? 'Add On Extras' : 'Premium Wrapped Bloom'}
-      groups={filters}
+      title={title}
+      groups={groups}
       items={items}
       perPage={9}
-      activeCategory={addonMode ? 'accessory' : 'premium-wrapped'}
+      activeCategory={initialCat}
+      activeFilter={activeFilter}
     />
   </div>
 </Site>

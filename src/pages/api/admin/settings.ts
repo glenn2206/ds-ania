@@ -4,7 +4,7 @@
  *      { promo: { enabled: boolean, text: string, cta: string, href: string } }
  */
 import { withAdmin, jsonResponse } from '../../../lib/admin';
-import { getPromo, savePromo, type PromoSettings } from '../../../lib/settings';
+import { getPromo, savePromo } from '../../../lib/settings';
 
 export const prerender = false;
 
@@ -13,7 +13,7 @@ export const GET = withAdmin(async () => {
 });
 
 export const PUT = withAdmin(async ({ request }) => {
-  const body = (await request.json().catch(() => ({}))) as { promo?: Partial<PromoSettings> };
+  const body = (await request.json().catch(() => ({}))) as { promo?: Record<string, unknown> };
   const p = body.promo ?? {};
 
   const text = String(p.text ?? '').trim();

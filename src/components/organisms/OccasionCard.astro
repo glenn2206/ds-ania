@@ -3,7 +3,7 @@
  * ORGANISME · OccasionCard — MEMANGGIL atom Icon. .mini--occ 321×382.
  * gambar 292×292 + .type-h2 + .type-p2 + ikon aksi (panah / plus).
  * <OccasionCard image="/assets/x.png" title="Plush Doll" price="Rp 50,000" action="plus" slug="addon-plush-doll" />
- * <OccasionCard image="/assets/y.png" title="Graduation" price="Rp 500,000" action="arrow" />
+ * `slug` → gambar & judul jadi link ke /product/<slug> (kecuali href diisi manual).
  * `slug` + action="plus" → tombol "+" benar-benar menambah ke keranjang.
  */
 import Icon from '../atoms/Icon.astro';
@@ -14,15 +14,26 @@ interface Props {
   price: string;
   action?: 'arrow' | 'plus';
   slug?: string;
+  href?: string;
 }
-const { image, title, price, action = 'arrow', slug } = Astro.props;
+const { image, title, price, action = 'arrow', slug, href } = Astro.props;
+const link = href ?? (slug ? `/product/${slug}` : undefined);
 ---
 
 <span class="mini mini--occ">
-  <span class="thumb" style={`background-image:url(${image})`}></span>
+  {link ? (
+    <a class="thumb thumb--link" href={link} style={`background-image:url(${image})`} aria-label={title}></a>
+  ) : (
+    <span class="thumb" style={`background-image:url(${image})`}></span>
+  )}
   <span style="display:flex;justify-content:space-between;align-items:center;width:100%">
     <span>
-      <span class="type-h2">{title}</span><br />
+      {link ? (
+        <a class="mini__ttlink type-h2" href={link}>{title}</a>
+      ) : (
+        <span class="type-h2">{title}</span>
+      )}
+      <br />
       <span class="type-p2">{price}</span>
     </span>
     {
@@ -42,6 +53,11 @@ const { image, title, price, action = 'arrow', slug } = Astro.props;
 </span>
 
 <style>
+  .thumb--link { display: block; cursor: pointer; transition: transform 0.15s ease; }
+  .thumb--link:hover { transform: scale(1.02); }
+  .thumb--link:focus-visible { outline: 2px solid var(--olive-ink); outline-offset: 3px; }
+  .mini__ttlink { text-decoration: none; color: inherit; transition: color 0.15s ease; }
+  .mini__ttlink:hover { color: var(--olive-ink); }
   .mini__add {
     border: 0;
     background: transparent;
@@ -52,6 +68,9 @@ const { image, title, price, action = 'arrow', slug } = Astro.props;
   }
   .mini__add:hover { transform: scale(1.15); }
   .mini__add.is-added { transform: scale(1.15); filter: hue-rotate(70deg) saturate(1.5); }
+  @media (prefers-reduced-motion: reduce) {
+    .thumb--link, .thumb--link:hover { transition: none; transform: none; }
+  }
 </style>
 
 <script>

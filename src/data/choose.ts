@@ -1,8 +1,9 @@
 /**
  * Data section "Choose your Flower by …" (landing).
- * Tab (Occasions / Category / Flower) + tile per tab. Tab & pagination dinamis
- * di ChooseFlowerSection.astro (client-side).
+ * Tab (Occasions / Category / Flower) — tile-nya DINAMIS, diturunkan dari isi
+ * katalog lewat `chooseTilesFrom(facets)` di ChooseFlowerSection.astro.
  */
+import type { Facets } from '../lib/facets';
 
 export const chooseHeadingLead = 'Find the Perfect Flowers for Every Moment.';
 
@@ -22,6 +23,8 @@ export interface ChooseTile {
   image: string;
   label: string;
   olive?: boolean;
+  /** klik tile → halaman shop dengan filter sudah aktif */
+  href: string;
 }
 
 // pool foto yang sudah ada di /public/assets — dirotasi untuk tile
@@ -37,40 +40,23 @@ const POOL = [
   'scene-holding-yellow-bouquet.jpg',
 ];
 const img = (i: number) => `/assets/${POOL[i % POOL.length]}`;
-const tiles = (labels: { label: string; olive?: boolean }[]): ChooseTile[] =>
-  labels.map((l, i) => ({ image: img(i), label: l.label, olive: l.olive }));
 
-export const chooseTiles: Record<ChooseTab, ChooseTile[]> = {
-  Occasions: tiles([
-    { label: 'Graduation', olive: true },
-    { label: 'Anniversary' },
-    { label: 'Just For Me' },
-    { label: 'Birthday' },
-    { label: 'Get Well Soon' },
-    { label: 'Sympathy' },
-    { label: 'Wedding' },
-    { label: 'New Baby' },
-    { label: 'Thank You' },
-  ]),
-  Category: tiles([
-    { label: 'Premium Wrapped Bloom' },
-    { label: 'Bloom Box & Basket' },
-    { label: 'Standing Flower & Board' },
-    { label: 'Vase Arrangement' },
-    { label: 'Preserved Flower' },
-    { label: 'Accessories' },
-  ]),
-  Flower: tiles([
-    { label: 'Roses' },
-    { label: 'Tulips' },
-    { label: 'Peonies' },
-    { label: 'Hydrangea' },
-    { label: 'Sunflower' },
-    { label: 'Orchid' },
-    { label: 'Lily' },
-    { label: 'Carnation' },
-    { label: 'Lisianthus' },
-  ]),
-};
+const PARAM: Record<ChooseTab, string> = { Occasions: 'occasion', Category: 'cat', Flower: 'flower' };
+
+/** rakit tile per tab dari facet katalog — hanya yang ADA produknya */
+export function chooseTilesFrom(facets: Facets): Record<ChooseTab, ChooseTile[]> {
+  const make = (tab: ChooseTab, facetList: { label: string; value: string }[], offset: number): ChooseTile[] =>
+    facetList.map((f, i) => ({
+      image: img(i + offset),
+      label: f.label,
+      href: `/shop?${PARAM[tab]}=${encodeURIComponent(f.value)}`,
+    }));
+
+  return {
+    Occasions: make('Occasions', facets.occasions, 0),
+    Category: make('Category', facets.categories, 3),
+    Flower: make('Flower', facets.flowers, 6),
+  };
+}
 
 export const CHOOSE_PER_PAGE = 3;

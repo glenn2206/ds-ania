@@ -1,36 +1,31 @@
 ---
 /**
- * TEMPLATE · ChooseFlowerSection — index.html "Choose your Flower by …".
- * Tab (Occasions / Category / Flower) + 3 CategoryTile + Pager — semua DINAMIS
- * (client-side): klik tab ganti isi + subjudul + heading; pager jalan per tab.
+ * TEMPLATE · ChooseFlowerSection — landing "Choose your Flower by …".
+ * Tab (Occasions / Category / Flower) → satu deret tile DINAMIS dari katalog.
+ * Auto-geser MULUS terus-menerus (marquee via requestAnimationFrame + tile digandakan
+ * agar loop mulus), plus bisa di-drag / scroll / swipe manual + tombol panah.
  */
 import Button from '../atoms/Button.astro';
 import CategoryTile from '../organisms/CategoryTile.astro';
-import {
-  chooseTabs,
-  chooseTiles,
-  chooseSub,
-  chooseHeadingLead,
-  CHOOSE_PER_PAGE,
-} from '../../data/choose';
+import { chooseTabs, chooseTilesFrom, chooseSub, chooseHeadingLead } from '../../data/choose';
+import { getCatalog } from '../../lib/products';
+import { buildFacets } from '../../lib/facets';
 
 interface Props {
   activeTab?: (typeof chooseTabs)[number];
 }
 const { activeTab = 'Occasions' } = Astro.props;
 
-const allTiles = chooseTabs.flatMap((tab) =>
-  chooseTiles[tab].map((t) => ({ ...t, tab })),
-);
+// tile diturunkan dari isi katalog — occasion/kategori/bunga yang kosong tidak muncul
+const cat = await getCatalog();
+const chooseTiles = chooseTilesFrom(buildFacets([...cat.allProducts, ...cat.addons]));
+
+const base = chooseTabs.flatMap((tab) => chooseTiles[tab].map((t) => ({ ...t, tab })));
+// digandakan 2× → saat scrollLeft lewat 1 salinan, mundur 1 salinan (loop tak terasa)
+const doubled = [...base.map((t) => ({ ...t, dup: false })), ...base.map((t) => ({ ...t, dup: true }))];
 ---
 
-<section
-  class="choose"
-  data-choose
-  data-per-page={CHOOSE_PER_PAGE}
-  data-active-tab={activeTab}
-  data-subs={JSON.stringify(chooseSub)}
->
+<section class="choose" data-choose data-active-tab={activeTab} data-subs={JSON.stringify(chooseSub)}>
   <div class="cflow__head">
     <span class="type-h2">
       {chooseHeadingLead}<br />Choose your Flower by <span data-choose-by>{activeTab}</span>
@@ -55,103 +50,91 @@ const allTiles = chooseTabs.flatMap((tab) =>
     <div class="cflow__panel">
       <p class="cflow__sub type-p1" data-choose-sub>{chooseSub[activeTab]}</p>
 
-      <div class="cflow__row" data-choose-row>
-        {
-          allTiles.map((t) => (
-            <div class="cflow__cell" data-choose-cell data-tab={t.tab} hidden>
-              <CategoryTile image={t.image} label={t.label} olive={t.olive} />
-            </div>
-          ))
-        }
+      <div class="cflow__scroller">
+        <button class="cflow__arw cflow__arw--prev" type="button" data-choose-prev aria-label="Sebelumnya">&#8249;</button>
+        <div class="cflow__row" data-choose-row>
+          {
+            doubled.map((t) => (
+              <div class="cflow__cell" data-choose-cell data-tab={t.tab} aria-hidden={t.dup ? 'true' : undefined} hidden>
+                <CategoryTile image={t.image} label={t.label} olive={t.olive} href={t.href} />
+              </div>
+            ))
+          }
+        </div>
+        <button class="cflow__arw cflow__arw--next" type="button" data-choose-next aria-label="Berikutnya">&#8250;</button>
       </div>
 
       <div class="cflow__foot">
         <Button href="/occasions">Check Other {activeTab}</Button>
-        <span class="cmp-pager" data-choose-pager></span>
       </div>
     </div>
   </div>
 </section>
 
 <script>
-  const ARROW_L = '/assets-svg/arrow-left-black.svg';
-  const ARROW_R = '/assets-svg/arrow-right-black.svg';
-  // tujuan tombol "Check Other …" per tab
-  const CTA_LINK: Record<string, string> = {
-    Occasions: '/occasions',
-    Category: '/shop',
-    Flower: '/shop',
-  };
+  import { initHScroll } from '../../lib/hscroll';
+
+  const CTA_LINK: Record<string, string> = { Occasions: '/occasions', Category: '/shop', Flower: '/shop' };
 
   document.querySelectorAll<HTMLElement>('[data-choose]').forEach((root) => {
-    const per = parseInt(root.dataset.perPage || '3', 10);
     const subs: Record<string, string> = JSON.parse(root.dataset.subs || '{}');
     const cells = Array.from(root.querySelectorAll<HTMLElement>('[data-choose-cell]'));
     const tabBtns = Array.from(root.querySelectorAll<HTMLElement>('[data-choose-tab]'));
-    const pagerBox = root.querySelector<HTMLElement>('[data-choose-pager]')!;
+    const row = root.querySelector<HTMLElement>('[data-choose-row]')!;
     const byEl = root.querySelector<HTMLElement>('[data-choose-by]')!;
     const subEl = root.querySelector<HTMLElement>('[data-choose-sub]')!;
-    const ctaEl = root.querySelector<HTMLElement>('.cflow__foot .cmp-btn-primary');
+    const ctaEl = root.querySelector<HTMLAnchorElement>('.cflow__foot .cmp-btn-primary');
 
     let tab = root.dataset.activeTab || tabBtns[0]?.dataset.chooseTab || '';
-    let page = 1;
-
-    const tabCells = () => cells.filter((c) => c.dataset.tab === tab);
-    const pageCount = () => Math.max(1, Math.ceil(tabCells().length / per));
-
-    const renderPager = () => {
-      const pc = pageCount();
-      if (pc <= 1) { pagerBox.innerHTML = ''; return; }
-      const nums = Array.from({ length: pc }, (_, i) => {
-        const on = i === page - 1;
-        return `<span class="num ${on ? 'type-p2 type--strong on' : 'type-p2 type--faint'}" data-p="${i + 1}">${i + 1}</span>`;
-      }).join('');
-      pagerBox.innerHTML =
-        `<img class="cmp-pager__arw" data-p="prev" src="${ARROW_L}" alt="prev">` +
-        nums +
-        `<img class="cmp-pager__arw" data-p="next" src="${ARROW_R}" alt="next">`;
-      const prev = pagerBox.querySelector<HTMLElement>('[data-p="prev"]')!;
-      const next = pagerBox.querySelector<HTMLElement>('[data-p="next"]')!;
-      prev.style.opacity = page === 1 ? '0.3' : '';
-      prev.style.pointerEvents = page === 1 ? 'none' : '';
-      next.style.opacity = page === pc ? '0.3' : '';
-      next.style.pointerEvents = page === pc ? 'none' : '';
-    };
 
     const render = () => {
-      cells.forEach((c) => (c.hidden = true));
-      const tc = tabCells();
-      const start = (page - 1) * per;
-      tc.slice(start, start + per).forEach((c) => (c.hidden = false));
+      cells.forEach((c) => (c.hidden = c.dataset.tab !== tab));
       tabBtns.forEach((b) => b.classList.toggle('cflow__tab--on', b.dataset.chooseTab === tab));
       byEl.textContent = tab;
       subEl.textContent = subs[tab] || subEl.textContent;
       if (ctaEl) {
         ctaEl.textContent = `Check Other ${tab}`;
-        (ctaEl as HTMLAnchorElement).href = CTA_LINK[tab] || '/occasions';
+        ctaEl.href = CTA_LINK[tab] || '/occasions';
       }
-      renderPager();
+      row.scrollLeft = 0;
     };
+
+    const ctrl = initHScroll(row, {
+      prev: root.querySelector<HTMLElement>('[data-choose-prev]'),
+      next: root.querySelector<HTMLElement>('[data-choose-next]'),
+    });
 
     tabBtns.forEach((b) =>
       b.addEventListener('click', () => {
         tab = b.dataset.chooseTab || tab;
-        page = 1;
         render();
+        ctrl.reset();
+        ctrl.play();
       }),
     );
 
-    pagerBox.addEventListener('click', (e) => {
-      const el = (e.target as HTMLElement).closest<HTMLElement>('[data-p]');
-      if (!el) return;
-      const v = el.dataset.p!;
-      const pc = pageCount();
-      if (v === 'prev') page = Math.max(1, page - 1);
-      else if (v === 'next') page = Math.min(pc, page + 1);
-      else page = parseInt(v, 10);
-      render();
-    });
-
     render();
+    ctrl.play();
   });
 </script>
+
+<style>
+  .cflow__scroller { position: relative; }
+  .cflow__row { cursor: grab; scroll-behavior: auto; }
+  .cflow__row.is-dragging { cursor: grabbing; user-select: none; }
+  .cflow__row.is-dragging :global(a) { pointer-events: none; }
+
+  .cflow__arw {
+    position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid var(--sand); background: #fff; color: #3D3B2F;
+    font: 400 22px/1 'Open Sans', Arial, sans-serif;
+    display: grid; place-items: center; cursor: pointer;
+    box-shadow: 0 6px 16px -6px rgba(60, 50, 20, 0.4);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .cflow__arw--prev { left: -6px; }
+  .cflow__arw--next { right: -6px; }
+  .cflow__arw:hover { background: var(--olive); color: #fff; border-color: var(--olive); }
+  @media (max-width: 760px) { .cflow__arw { display: none; } }
+</style>
