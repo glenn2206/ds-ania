@@ -36,7 +36,18 @@ const searchText = (c: CatalogItem) =>
   data-active-category={activeCategory}
   data-active-filter={activeFilter ? JSON.stringify(activeFilter) : ''}
 >
+  {/* tombol buka (+) / tutup (×) sidebar — SATU ikon (+ di-rotate 45° jadi ×),
+      sejajar baris judul; posisi mengambang ikut lebar sidebar (lihat CSS) */}
+  <button type="button" class="shop__title-toggle" data-side-toggle aria-label="Toggle filters" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  </button>
   <h1 class="type-h2 shop__title" data-shop-title>{title}</h1>
+
+  {/* mobile (≤900px) — bar "FILTER" full-width, ganti tombol +/× (yang cuma
+      cocok buat rail sidebar desktop); klik → buka popup full-screen */}
+  <button type="button" class="shop__mobile-filterbtn" data-side-toggle aria-expanded="false">Filter</button>
 
   <div class="shop__layout">
     <ShopSidebar groups={groups} />
@@ -44,13 +55,15 @@ const searchText = (c: CatalogItem) =>
     <div class="shop__main">
       <div class="shop__toolbar">
         <label class="shop__sort">
-          <span class="shop__sort-label">Sort</span>
           <select data-sort>
             <option value="default">Default sorting</option>
             <option value="price-asc">Price: low to high</option>
             <option value="price-desc">Price: high to low</option>
             <option value="name">Name: A–Z</option>
           </select>
+          <svg class="shop__sort-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
         </label>
         <button class="shop__filterbtn" type="button" aria-label="Filter" data-filter-toggle>
           <Icon name="burger" size={18} alt="filter" />
@@ -239,11 +252,14 @@ const searchText = (c: CatalogItem) =>
     const expand = (grp?: string) => {
       root.classList.add('is-expanded');
       toggleBtn?.setAttribute('aria-expanded', 'true');
+      // mobile: popup full-screen → kunci scroll halaman di belakangnya
+      if (window.innerWidth <= 900) document.documentElement.style.overflow = 'hidden';
       focusGroup(grp);
     };
     const collapse = () => {
       root.classList.remove('is-expanded');
       toggleBtn?.setAttribute('aria-expanded', 'false');
+      document.documentElement.style.overflow = '';
     };
     const toggleSide = () => (root.classList.contains('is-expanded') ? collapse() : expand());
 
@@ -284,9 +300,15 @@ const searchText = (c: CatalogItem) =>
     });
     toggleBtn?.addEventListener('click', toggleSide);
 
+    // diperbesar ke desktop saat popup mobile terbuka → lepas kunci scroll (popup jadi sidebar inline biasa)
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 900) document.documentElement.style.overflow = '';
+    });
+
     highlightInitial();
-    // buka sidebar otomatis kalau halaman dibuka dengan filter spesifik dari query
-    if (filter.value && filter.group !== 'all') expand(filter.group);
+    // buka sidebar otomatis kalau halaman dibuka dengan filter spesifik dari query —
+    // HANYA desktop (di mobile popup full-screen jangan langsung nutupin halaman saat load)
+    if (filter.value && filter.group !== 'all' && window.innerWidth > 900) expand(filter.group);
     apply();
   });
 </script>

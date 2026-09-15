@@ -33,7 +33,7 @@ export interface FilterGroupData {
 }
 
 export const filters: FilterGroupData[] = [
-  { title: 'All Products', group: 'all' },
+  { title: 'All Products', group: 'all' }, // ini harusnya ukuran 24 px
   { title: 'Sale', group: 'sale' },
   {
     title: 'Category',

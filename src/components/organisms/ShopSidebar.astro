@@ -14,16 +14,25 @@ interface Props {
 }
 const { groups } = Astro.props;
 
-/* ikon per grup (stroke tipis, seragam) */
-const ICONS: Record<string, string> = {
-  all: '<circle cx="12" cy="12" r="8.5"/><path d="M8.5 10h7M8.5 14h7"/>',
-  sale: '<path d="M6 18 18 6"/><circle cx="7.75" cy="7.75" r="2"/><circle cx="16.25" cy="16.25" r="2"/>',
-  category:
-    '<rect x="3.5" y="3.5" width="7" height="7" rx="1.4"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.4"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.4"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.4"/>',
-  occasion: '<rect x="3.5" y="5" width="17" height="16" rx="2.2"/><path d="M3.5 9.5h17M8.5 3v4M15.5 3v4"/>',
-  flower:
-    '<circle cx="12" cy="12" r="2.6"/><ellipse cx="12" cy="6.6" rx="2.6" ry="3.6"/><ellipse cx="12" cy="17.4" rx="2.6" ry="3.6"/><ellipse cx="6.6" cy="12" rx="3.6" ry="2.6"/><ellipse cx="17.4" cy="12" rx="3.6" ry="2.6"/>',
-  addon: '<circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/>',
+/* ikon per grup — {viewBox, html}: tiap ikon boleh viewBox sendiri (sesuai asset asli),
+   warna ikut currentColor (biar hover jadi olive seperti ikon lain). */
+interface IconDef { viewBox: string; html: string }
+const ICONS: Record<string, IconDef> = {
+  all: { viewBox: '0 0 24 24', html: '<circle cx="12" cy="12" r="8.5"/><path d="M8.5 10h7M8.5 14h7"/>' },
+  sale: { viewBox: '0 0 24 24', html: '<path d="M6 18 18 6"/><circle cx="7.75" cy="7.75" r="2"/><circle cx="16.25" cy="16.25" r="2"/>' },
+  category: {
+    viewBox: '0 0 24 24',
+    html: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.4"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.4"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.4"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.4"/>',
+  },
+  occasion: {
+    viewBox: '0 0 14 14',
+    html: '<path d="M12.75 4.08333V9.75C12.75 11.75 11.75 13.0833 9.41667 13.0833H4.08333C1.75 13.0833 0.75 11.75 0.75 9.75V4.08333C0.75 2.08333 1.75 0.75 4.08333 0.75H9.41667C11.75 0.75 12.75 2.08333 12.75 4.08333Z" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>',
+  },
+  flower: {
+    viewBox: '0 0 17 17',
+    html: '<path d="M12.3428 0.25C13.5228 0.25 14.6312 0.725332 15.4629 1.58398C17.1785 3.35504 17.1785 6.23338 15.4629 8.00488C15.3042 8.16836 15.1134 8.33352 14.8936 8.5C15.1134 8.66643 15.3044 8.83152 15.4629 8.99512C17.1785 10.7662 17.1785 13.6445 15.4629 15.416C14.6312 16.2747 13.5228 16.75 12.3428 16.75C11.1627 16.75 10.0543 16.2747 9.22266 15.416C8.98495 15.1706 8.74418 14.8504 8.50098 14.4648C8.25777 14.8504 8.017 15.1706 7.7793 15.416C6.94763 16.2747 5.83926 16.75 4.65918 16.75C3.4791 16.75 2.37073 16.2747 1.53906 15.416C0.707635 14.5575 0.25 13.4163 0.25 12.2051C0.250033 10.9939 0.707665 9.85265 1.53906 8.99414C1.69749 8.83094 1.88804 8.6662 2.10742 8.5C1.88803 8.33387 1.69726 8.16917 1.53906 8.00586C0.707655 7.14734 0.250033 6.00562 0.25 4.79492C0.25 3.58417 0.707625 2.44253 1.53906 1.58398C2.37074 0.725314 3.47958 0.25 4.65918 0.25C5.83878 0.250001 6.94762 0.725311 7.7793 1.58398C8.01685 1.82929 8.25792 2.14895 8.50098 2.53418C8.74404 2.14895 8.9851 1.82929 9.22266 1.58398C10.0543 0.725321 11.1627 0.250009 12.3428 0.25ZM3.33301 8.95996C2.87102 9.24536 2.52385 9.51159 2.29297 9.75C1.65926 10.4045 1.30957 11.2758 1.30957 12.2051C1.30966 13.1344 1.65915 14.0057 2.29297 14.6602C2.92648 15.3143 3.76691 15.6727 4.65918 15.6729C5.55151 15.6729 6.39189 15.3145 7.02539 14.6602H7.02637C7.32268 14.3542 7.67249 13.834 8.03418 13.1445V13.1436L8.15332 12.918L7.94531 9.87695L4.65723 12.8281L4.29883 12.4814L7.1709 9.06543L3.58398 8.80469L3.33301 8.95996ZM9.83008 9.06445L12.7041 12.4805L12.3457 12.8271L9.05664 9.87695L8.84863 12.9189L8.96777 13.1445C9.3295 13.8341 9.68022 14.3541 9.97656 14.6602C10.6102 15.3143 11.45 15.6728 12.3428 15.6729C13.2355 15.6729 14.0754 15.3143 14.709 14.6602V14.6592C16.0188 13.3069 16.0198 11.1017 14.71 9.74902C14.479 9.51058 14.132 9.24443 13.6699 8.95898L13.418 8.80469L9.83008 9.06445ZM4.65918 1.32617C3.76627 1.32617 2.9266 1.68555 2.29297 2.33984C1.65929 2.9943 1.30868 3.86474 1.30859 4.79395C1.30859 5.72335 1.65913 6.59446 2.29297 7.24902L2.3125 7.26953C2.54325 7.50273 2.88305 7.76269 3.33203 8.04004L3.58203 8.19434L7.1709 7.93359L4.29785 4.51855L4.65625 4.17188L7.94434 7.12109L8.15234 4.08008L8.03418 3.85449C7.67249 3.16544 7.32211 2.64632 7.02539 2.33984C6.39176 1.68555 5.55209 1.32617 4.65918 1.32617ZM12.3428 1.32617C11.4499 1.32618 10.6102 1.68555 9.97656 2.33984C9.68027 2.64588 9.32941 3.16507 8.96777 3.85449L8.85254 4.07422L8.85156 4.07324L8.84766 4.0791L9.05566 7.12109L12.3447 4.1709L12.7031 4.51758L9.8291 7.93359L13.418 8.19336L13.6689 8.03906C14.131 7.75362 14.4781 7.48747 14.709 7.24902C16.0189 5.89684 16.0188 3.69262 14.709 2.33984C14.0753 1.68555 13.2357 1.32617 12.3428 1.32617Z" fill="currentColor" stroke="currentColor" stroke-width="0.5"/>',
+  },
+  addon: { viewBox: '0 0 24 24', html: '<circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/>' },
 };
 const iconFor = (g?: string) => ICONS[g ?? ''] ?? ICONS.all;
 
@@ -39,42 +48,35 @@ const withSale: FilterGroupData[] = groups.some((g) => g.group === 'sale')
 ---
 
 <aside class="shop__side" aria-label="Product filters">
-  {/* tombol buka — absolut di pojok atas rail */}
-  <button type="button" class="shop__side-toggle shop__railbtn--toggle" data-side-toggle aria-label="Open filters">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  </button>
-
   {/* --- collapsed: rail ikon --- */}
   <div class="shop__rail">
     {
       withSale.map((g) => (
         <button type="button" class="shop__railbtn" data-rail-btn data-rail-group={g.group} aria-label={g.title}>
           <svg
-            viewBox="0 0 24 24"
+            viewBox={iconFor(g.group).viewBox}
             fill="none"
             stroke="currentColor"
             stroke-width="1.6"
             stroke-linecap="round"
             stroke-linejoin="round"
             aria-hidden="true"
-            set:html={iconFor(g.group)}
+            set:html={iconFor(g.group).html}
           />
         </button>
       ))
     }
   </div>
 
-  {/* tombol tutup — absolut di pojok kanan-atas panel */}
-  <button type="button" class="shop__side-toggle shop__side-close" data-side-toggle aria-label="Close filters">
+  {/* tombol tutup KHUSUS popup mobile (desktop pakai tombol di baris judul) */}
+  <button type="button" class="shop__mobile-close" data-side-toggle aria-label="Close filters">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M6 6l12 12M18 6 6 18" />
     </svg>
   </button>
 
-  {/* --- expanded: panel penuh --- */}
+  {/* --- expanded: panel penuh (tombol tutup ada di baris judul — lihat ShopSection.astro) --- */}
   <div class="shop__side-panel">
-    {withSale.map((g) => <FilterGroup {...g} icon={iconFor(g.group)} />)}
+    {withSale.map((g) => <FilterGroup {...g} icon={iconFor(g.group).html} iconViewBox={iconFor(g.group).viewBox} />)}
   </div>
 </aside>

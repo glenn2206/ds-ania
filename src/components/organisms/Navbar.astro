@@ -19,24 +19,12 @@ const { promo = true } = Astro.props;
 const promoCfg = await getPromo();
 const showPromo = promo && promoCfg.enabled;
 
+// sama persis dengan link nav desktop (.nav__left + .nav__right-links) — jangan sampai beda
 const mobileMenu = [
-  { label: 'Standing Flower', href: '/shop' },
-  { label: 'Premium Wrapped', href: '/shop' },
-  { label: 'Bloom Box', href: '/shop' },
-  { label: 'Vase', href: '/shop' },
-  { label: 'Accessories', href: '/shop' },
-  { label: 'Preserved Flower', href: '/shop' },
-  { label: 'Custom Order', href: '/contact' },
-  {
-    label: 'Occasions',
-    children: [
-      { label: 'Christmas Edition', href: '/occasions' },
-      { label: 'Chinese New Year Edition', href: '/occasions' },
-      { label: 'Baby Born', href: '/occasions' },
-      { label: 'Eid Mubarak Edition', href: '/occasions' },
-    ],
-  },
+  { label: 'Shop', href: '/shop' },
+  { label: 'For Occasions', href: '/occasions' },
   { label: 'About Us', href: '/about' },
+  { label: 'Contact', href: '/contact' },
 ];
 ---
 
@@ -86,32 +74,12 @@ const mobileMenu = [
   </div>
 
   <nav class="navdrawer__list">
-    <button class="navdrawer__item" type="button" data-search-open data-drawer-link>
-      Search
-      <img class="navdrawer__chev" src="/assets-svg/05_search.svg" alt="" width="16" height="16" />
-    </button>
     {
-      mobileMenu.map((item) =>
-        'children' in item ? (
-          <div class="navdrawer__group" data-acc>
-            <button class="navdrawer__item navdrawer__acc" type="button" data-acc-toggle aria-expanded="true">
-              {item.label}
-              <img class="navdrawer__chev" src="/assets-svg/21_arrow-down.svg" alt="" width="14" height="14" />
-            </button>
-            <div class="navdrawer__sub" data-acc-panel>
-              {(item.children ?? []).map((c) => (
-                <a class="navdrawer__subitem" href={c.href} data-drawer-link>
-                  {c.label}
-                </a>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <a class="navdrawer__item" href={item.href} data-drawer-link>
-            {item.label}
-          </a>
-        ),
-      )
+      mobileMenu.map((item) => (
+        <a class="navdrawer__item" href={item.href} data-drawer-link>
+          {item.label}
+        </a>
+      ))
     }
   </nav>
 
@@ -168,16 +136,6 @@ const mobileMenu = [
     // kalau diperbesar ke desktop, pastikan drawer & scroll-lock bersih
     window.addEventListener('resize', () => {
       if (window.innerWidth > 860 && !drawer.hidden) close();
-    });
-
-    // accordion "Occasions"
-    drawer.querySelectorAll<HTMLElement>('[data-acc-toggle]').forEach((btn) => {
-      const panel = btn.parentElement!.querySelector<HTMLElement>('[data-acc-panel]')!;
-      btn.addEventListener('click', () => {
-        const expanded = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-        panel.hidden = expanded;
-      });
     });
   }
 </script>
@@ -264,16 +222,17 @@ const mobileMenu = [
   }
   @media (max-width: 860px) {
     .nav__bar {
-      grid-template-columns: auto 1fr auto;
+      /* 1fr di kiri-kanan (bukan auto) → dua kolom itu SELALU sama lebar walau isinya
+         beda banyak (burger 1 ikon vs search+cart 2 ikon) → logo di tengah beneran center */
+      grid-template-columns: 1fr auto 1fr;
       gap: 16px;
       padding: 16px 20px;
     }
+    .nav__right { justify-content: flex-end; }
     .nav__burger { display: inline-flex; }
     .nav__left,
     .nav__right-links,
-    .nav__util > .cmp-lang,
-    .nav__util > .ico,
-    .nav__search {
+    .nav__util > :global(.cmp-lang) {
       display: none;
     }
   }
@@ -283,7 +242,7 @@ const mobileMenu = [
     position: fixed;
     inset: 0;
     z-index: 100;
-    background: var(--soft);
+    background: #FDF6F1;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
@@ -383,9 +342,19 @@ const mobileMenu = [
     margin-top: auto;
     display: flex;
     justify-content: center;
-    gap: 44px;
+    gap: 24px;
     padding: 24px;
     border-top: 1px solid var(--hair);
   }
-  .navdrawer__social a { display: inline-flex; opacity: 0.5; }
+  .navdrawer__social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(61, 59, 47, 0.06);
+    color: #3D3B2F;
+    opacity: 0.55;
+  }
 </style>

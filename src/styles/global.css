@@ -175,7 +175,7 @@
   .cmp-badge--soldout{background:#fff;color:var(--dim);box-shadow:inset 0 0 0 1px var(--hair)}
   .cmp-pill{display:inline-flex;padding:10px 16px;border-radius:100px;outline:1px solid var(--grey);outline-offset:-1px;
     background:#fff;color:#000;font:400 12px/1 'Open Sans'}
-  .cmp-pill--sand{outline-color:var(--sand)}
+  .cmp-pill--sand{outline-color:#EAE8E8}   /* Figma something.html: outline pill kategori kartu produk #EAE8E8 */
   .cmp-navlink{display:inline-flex;align-items:center;gap:8px;color:var(--ink);font:400 12px/1 'Open Sans';
     text-transform:uppercase;letter-spacing:2px;}
   .cmp-navlink::after{content:"";width:6px;height:6px;border-right:1.5px solid var(--panel);
@@ -305,7 +305,7 @@
   .pgrid__row .pcard__media{height:auto;aspect-ratio:320/406}
   .pgrid__foot{display:flex;justify-content:center;margin:32px 0 0}          /* index: tombol top:786, ~32px setelah grid */
   @media (max-width:1080px){ .pgrid__row{grid-template-columns:repeat(2,minmax(0,1fr));max-width:700px;gap:28px 22px} }
-  @media (max-width:560px){ .pgrid__row{grid-template-columns:1fr;max-width:360px} }
+  /* @media (max-width:560px){ .pgrid__row{grid-template-columns:1fr;max-width:360px} } */
   /* choose-your-flower section — Figma something.html: heading + tab teks polos + 3 tile besar */
   .choose{padding:var(--sec-y) var(--gutter)}
   .choose__head{max-width:760px;margin:0 auto;text-align:center;
@@ -569,9 +569,9 @@
 .cmp-pagenav__prev a,
 .cmp-pagenav__next a {
   display: flex; align-items: center; justify-content: center;
-  min-width: 52px; padding: 11px 10px 15px;
-  font: 400 12px/1 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
-  color: rgba(109, 109, 109, 0.55);
+  min-width: 60px; padding: 11px 10px 15px;    /* Figma something.html: kolom nomor 60px */
+  font: 400 10px/1 'Open Sans', 'Helvetica Neue', Arial, sans-serif;  /* Figma: nomor 10px */
+  color: rgba(109, 109, 109, 0.5);
   text-decoration: none;
   border-radius: 8px 8px 0 0;
   transition: background 0.15s ease, color 0.15s ease;
@@ -589,14 +589,14 @@
   font-weight: 600;
 }
 .cmp-pagenav__item.is-current::after {
-  content: ""; position: absolute; left: 4px; right: 4px; bottom: -1px; height: 2px;
-  background: #3D3B2F; border-radius: 2px;
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+  background: #3D3B2F;
 }
 .cmp-pagenav__gap {
   display: flex; align-items: center; justify-content: center;
-  min-width: 34px; padding: 11px 4px 15px;
-  font: 400 12px/1 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
-  color: rgba(109, 109, 109, 0.4);
+  min-width: 60px; padding: 11px 4px 15px;
+  font: 400 10px/1 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
+  color: rgba(109, 109, 109, 0.5);
   pointer-events: none;
 }
 .cmp-pagenav__prev, .cmp-pagenav__next { display: flex; }
@@ -608,6 +608,7 @@
 .shop { position: relative; width: 100%; padding: var(--sec-y) var(--gutter); }
 .shop__title {
   display: block; text-align: center; margin: 0 0 40px;
+  color: #1E2934;   /* Figma something.html: judul kategori shop #1E2934 */
 }
 /* sidebar in-flow nempel tepi kiri viewport (grid + margin negatif tembus gutter).
    collapsed → kolom 56px · expanded → kolom 264px — animasi grid-template-columns. */
@@ -617,41 +618,36 @@
   margin-left: calc(-1 * var(--gutter));
   transition: grid-template-columns 0.34s cubic-bezier(0.33, 1, 0.68, 1);
 }
-.shop.is-expanded .shop__layout { grid-template-columns: 264px minmax(0, 1fr); }
+.shop.is-expanded .shop__layout { grid-template-columns: 360px minmax(0, 1fr); }
 .shop__main {
-  grid-column: 2;                        /* .shop__side kini position:fixed (keluar dari grid) → main HARUS di kolom 2 */
+  grid-column: 2;
   min-width: 0;
   padding-left: 40px;
-  border-left: 1px solid transparent;   /* garis pemisah vertikal, muncul saat expanded */
-  transition: border-color 0.3s ease;
 }
-.shop.is-expanded .shop__main { border-left-color: var(--sand); }
 
 /* toolbar (sorting + filter) — max-width sama dengan .shop__grid supaya sort
    selalu segaris dengan tepi kanan grid produk, bukan tepi viewport. */
 .shop__toolbar {
   display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin: 0 0 20px;
-  max-width: 1440px;
 }
+/* Figma something.html: pill bulat tanpa label "Sort" — padding 16/10, outline #EAE8E8, chevron 12x12 */
 .shop__sort {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 6px 12px; border-radius: 100px; outline: 1px solid var(--grey); outline-offset: -1px;
-}
-.shop__sort-label {
-  font: 400 11px/1 'Open Sans', Arial, sans-serif; text-transform: uppercase;
-  letter-spacing: 1.5px; color: var(--dim);
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 10px 16px; border-radius: 100px; outline: 1px solid #EAE8E8; outline-offset: -1px;
+  background: #fff; cursor: pointer;
 }
 .shop__sort select {
+  appearance: none; -webkit-appearance: none;
   border: 0; background: transparent; cursor: pointer; color: #000;
   font: 400 12px/1 'Open Sans', Arial, sans-serif; padding-right: 2px;
 }
 .shop__sort select:focus { outline: none; }
+.shop__sort-chevron { flex: none; display: flex; color: #3D3B2F; }
 .shop__filterbtn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 34px; height: 34px; border: 0; background: transparent; cursor: pointer; color: #3D3B2F;
 }
 .filtergrp__title--link { text-decoration: none; cursor: pointer; }
-.filtergrp__item a:hover, .filtergrp__title--link:hover { color: #3D3B2F; }
 .shop__empty {
   margin: 8px 0 0; font: 400 14px/1.6 'Open Sans', Arial, sans-serif; color: var(--dim);
 }
@@ -662,53 +658,57 @@
 .shop__grid {
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 44px 20px;
-  max-width: 1440px;   /* .shoppage full-width → jaga grid tetap wajar di layar lebar */
+  /* max-width: 1440px;   .shoppage full-width → jaga grid tetap wajar di layar lebar */
 }
 .shop.is-expanded .shop__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .shop__grid .pcard { width: 100%; }
 .shop__grid .pcard__media { height: 406px; aspect-ratio: auto; }
 .shop__pager { margin: 40px 0 0; }
 
-/* --- Sidebar filter — FIXED ke tepi kiri viewport. Mulai di bawah bar promo
-   (tidak menembusnya), tapi lewat DI BELAKANG baris navbar (z-index < navbar).
-   Setinggi layar; tetap di tempat saat scroll. --- */
+/* --- Sidebar filter — STICKY, terikat ke .shop__layout (bukan viewport).
+   Mulai persis di bawah navbar (promo + nav, tidak menembus keduanya) dan
+   otomatis berhenti begitu .shop__layout habis → tidak pernah menembus footer,
+   karena sticky terkurung di kotak parent-nya, beda dari fixed yang lepas dari flow. --- */
 .shop__side {
   align-self: start;
-  position: fixed;
-  left: 0;
-  top: var(--promo-h, 0px);
-  height: calc(100svh - var(--promo-h, 0px));
+  position: sticky;
+  top: calc(var(--promo-h, 0px) + var(--nav-h, 0px));
+  height: calc(100svh - var(--promo-h, 0px) - var(--nav-h, 0px));
   width: 56px;
-  z-index: 60;                 /* Figma: rail tembus DI ATAS baris navbar (navbar z-index 50), berhenti di bawah bar promo */
+  z-index: 5;
   min-width: 0;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.5);
   box-shadow: 7px 4px 40px 5px rgba(0, 0, 0, 0.05);
   transition: width 0.34s cubic-bezier(0.33, 1, 0.68, 1), background 0.3s ease, box-shadow 0.3s ease;
 }
-.shop.is-expanded .shop__side { width: 264px; background: #fff; box-shadow: none; }
+.shop.is-expanded .shop__side { width: 280px; height: auto; background: #fff; box-shadow: none; overflow: visible; }
 
-/* tombol buka (+) / tutup (×) — absolut di pojok, TIDAK mendorong konten
-   supaya isi rail & panel mulai di baris yang sama (sejajar saat toggle) */
-.shop__side-toggle {
+/* tombol buka (+) / tutup (×) — SATU ikon (+ di-rotate 45° jadi ×), sejajar baris
+   judul. Collapsed: di tengah rail (56px, tepi kiri viewport). Expanded: geser
+   mengambang ke tepi kanan panel (264px), lebar & posisi ikut animasi sidebar. */
+.shop__title-toggle {
   position: absolute; z-index: 2;
-  display: grid; place-items: center;
+  left: 0; top: var(--sec-y);
+  width: 56px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
   border: 0; background: transparent; cursor: pointer; color: #6D6D6D;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, width 0.34s cubic-bezier(0.33, 1, 0.68, 1);
 }
-.shop__side-toggle:hover { color: var(--olive); }
-.shop__side-toggle svg { display: block; }
-.shop__railbtn--toggle { top: 12px; left: 50%; transform: translateX(-50%); width: 30px; height: 30px; }
-.shop__railbtn--toggle svg { width: 22px; height: 22px; }
-.shop.is-expanded .shop__railbtn--toggle { display: none; }
-.shop__side-close { top: 16px; right: 16px; width: 28px; height: 28px; display: none; }
-.shop__side-close svg { width: 18px; height: 18px; }
-.shop.is-expanded .shop__side-close { display: grid; }
+.shop__title-toggle svg {
+  display: block; width: 24px; height: 24px;
+  transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1);
+}
+.shop__title-toggle:hover { color: var(--olive); }
+.shop.is-expanded .shop__title-toggle {
+  width: 360px; justify-content: flex-end; padding-right: 20px;
+}
+.shop.is-expanded .shop__title-toggle svg { transform: rotate(45deg); }
 
-/* collapsed: rail ikon (mulai di bawah tombol +) */
+/* collapsed: rail ikon — tombol + sudah pindah ke baris judul, jadi rail mulai lebih atas */
 .shop__rail {
   display: flex; flex-direction: column; align-items: center; gap: 26px;
-  width: 56px; padding: 58px 0 24px;
+  width: 56px; padding: 32px 0 24px;
 }
 .shop.is-expanded .shop__rail { display: none; }
 .shop__railbtn {
@@ -717,23 +717,17 @@
   border: 0; background: transparent; cursor: pointer; color: #3D3B2F;
   transition: color 0.15s ease;
 }
-.shop__railbtn svg { width: 22px; height: 22px; display: block; }
+.shop__railbtn svg { width: 16px; height: 16px; display: block; }
 .shop__railbtn:hover { color: var(--olive); }
 
-/* expanded: panel penuh — isi mulai di Y yang sama dgn rail (58px) → sejajar.
-   sidebar tinggi tetap (100vh) → daftar filter panjang di-scroll DI DALAM panel;
-   tombol × tetap nempel (absolut ke .shop__side yang tidak ikut scroll). */
+/* expanded: panel penuh — TANPA scroll internal, tinggi ikut konten (halaman yang
+   scroll, bukan panel-nya); tombol ×/+ tetap sejajar judul (lihat .shop__title-toggle). */
 .shop__side-panel { display: none; }
 .shop.is-expanded .shop__side-panel {
   display: flex; flex-direction: column; gap: 26px;
-  width: 264px; padding: 58px 24px 30px;
-  height: 100%; overflow-y: auto; overflow-x: hidden;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
+  width: 360px; padding: 32px 24px 30px;
   animation: shopPanelIn 0.3s ease both;
 }
-.shop__side-panel::-webkit-scrollbar { width: 6px; }
-.shop__side-panel::-webkit-scrollbar-thumb { background: var(--sand); border-radius: 6px; }
 @keyframes shopPanelIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -747,7 +741,7 @@
 .filtergrp__head {
   display: flex; align-items: center; gap: 10px;
 }
-.filtergrp__ico { width: 20px; height: 20px; flex: none; color: #3D3B2F; }
+.filtergrp__ico { width: 16px; height: 16px; flex: none; color: #3D3B2F; }
 .filtergrp__title {
   flex: 1;
   font: 700 18px/1.2 'Open Sans', 'Helvetica Neue', Arial, sans-serif; color: #6D6D6D;
@@ -762,7 +756,7 @@
   display: grid; grid-template-rows: 0fr; margin-top: 0; opacity: 0;
   transition: grid-template-rows 0.3s ease, margin-top 0.3s ease, opacity 0.22s ease;
 }
-.filtergrp:not(.is-collapsed) .filtergrp__listwrap { grid-template-rows: 1fr; margin-top: 14px; opacity: 1; }
+.filtergrp:not(.is-collapsed) .filtergrp__listwrap { grid-template-rows: 1fr; margin-top: 8px; opacity: 1; }
 .filtergrp__listwrap > .filtergrp__list { overflow: hidden; min-height: 0; }
 .filtergrp__list {
   list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px;
@@ -770,14 +764,13 @@
 .filtergrp__item {
   display: flex; align-items: baseline; gap: 8px;
   font: 400 16px/1.3 'Open Sans', 'Helvetica Neue', Arial, sans-serif; color: #6D6D6D;
-  padding: 5px 10px; margin: 0 -10px; border-radius: 6px;
+  padding: 5px 10px; border-radius: 6px;
   transition: background 0.15s ease, color 0.15s ease;
 }
 .filtergrp__item a { color: inherit; text-decoration: none; flex: 1; }
 .filtergrp__item:hover { background: rgba(246, 235, 227, 0.55); }
-.filtergrp__dot { color: #7E4C4C; font-family: var(--font-sans); }
 /* filter terpilih: background #F6EBE3 */
-.filtergrp__item.is-active { color: #525252; background: var(--field); }
+.filtergrp__item.is-active { color: #fff; background: #BBCCBF; }
 .filtergrp__item.is-active a { font-weight: 600; }
 
 /* grup collapsible (Category / Occasions / Flowers / Add On) */
@@ -792,8 +785,13 @@
   .shop__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .shop.is-expanded .shop__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+/* tombol "FILTER" & tombol tutup popup mobile — disembunyikan di desktop,
+   ditampilkan lewat @media di bawah supaya nggak nambah elemen kosong di layout desktop */
+.shop__mobile-filterbtn, .shop__mobile-close { display: none; }
+
 @media (max-width: 900px) {
-  /* sidebar pindah ke atas grid — rail jadi baris ikon, panel full-width */
+  /* sidebar TIDAK lagi inline mendorong konten — jadi popup full-screen
+     (lihat .shop.is-expanded .shop__side di bawah), dipicu bar "FILTER". */
   .shop__layout, .shop.is-expanded .shop__layout {
     display: block; grid-template-columns: none; margin-left: 0;
   }
@@ -801,25 +799,36 @@
   .shop__grid, .shop.is-expanded .shop__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .shop__grid .pcard__media { height: auto; aspect-ratio: 320 / 406; }
   .shop__toolbar { justify-content: space-between; }
-  .shop__side, .shop.is-expanded .shop__side {
-    position: static; top: auto; height: auto;
-    align-self: auto; overflow: visible;
-    margin: 0 0 20px;
-    background: transparent; box-shadow: none;
+
+  .shop__title-toggle { display: none; }               /* diganti bar "FILTER" di bawah judul */
+  .shop__mobile-filterbtn {
+    display: block; width: 100%; margin: 16px 0; padding: 16px 0;
+    border: 0; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair);
+    background: none; cursor: pointer;
+    font: 600 13px/1 'Open Sans', Arial, sans-serif; letter-spacing: 3px; text-transform: uppercase;
+    color: #3D3B2F; text-align: center;
   }
-  .shop.is-expanded .shop__side-panel { height: auto; overflow: visible; }
-  .shop__railbtn--toggle, .shop.is-expanded .shop__railbtn--toggle { display: none; }
-  .shop__rail, .shop.is-expanded .shop__rail {
-    display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center;
-    width: auto; gap: 10px 14px; padding: 12px 10px;
-    border: 1px solid var(--sand); border-radius: 12px;
+
+  .shop__rail { display: none; }                        /* tidak ada rail ikon di mobile */
+  .shop__side { display: none; }
+  .shop.is-expanded .shop__side {
+    display: block;
+    position: fixed; inset: 0; z-index: 200;
+    width: 100%; height: 100svh;
+    margin: 0; background: #fff; box-shadow: none;
+    overflow-y: auto; overscroll-behavior: contain;
   }
-  .shop.is-expanded .shop__rail { display: none; }
   .shop.is-expanded .shop__side-panel {
-    width: auto; padding: 18px 16px;
-    border: 1px solid var(--sand); border-radius: 12px;
+    display: block; width: 100%;
+    padding: 24px 24px 40px;
     animation: none;
   }
+  .shop__mobile-close {
+    display: flex; align-items: center; justify-content: center;
+    position: sticky; top: 0; z-index: 2; margin: 0 0 0 auto;
+    width: 44px; height: 44px; border: 0; background: #fff; color: #3D3B2F; cursor: pointer;
+  }
+  .shop__mobile-close svg { width: 20px; height: 20px; }
 }
 @media (max-width: 620px) {
   .shop__title { font-size: 26px; margin-bottom: 26px; }
@@ -1029,7 +1038,7 @@
 .buybox__addrwrap { position: relative; }
 .buybox input[type="text"], .buybox input[type="tel"], .buybox input[type="email"], .buybox input[type="date"] {
   width: 100%; height: 44px; padding: 0 14px; border-radius: 4px;
-  outline: 1px solid #D1D1D1; outline-offset: -1px; border: 0; background: var(--field);
+  outline: 1px solid #D1D1D1; outline-offset: -1px; border: 0;
   font: 400 13px/1 'Open Sans', Arial, sans-serif; color: #3D3B2F;
 }
 .buybox input:focus { outline-color: var(--olive); }
@@ -1090,7 +1099,7 @@
 
 @media (max-width: 1024px) {
   .pdetail__top {
-    display: flex; flex-direction: column; gap: 28px;
+    display: flex; flex-direction: column; align-items: stretch; gap: 28px;
   }
   .pdetail__gallery { order: 1; }
   .pdetail__top > .buybox { order: 2; }

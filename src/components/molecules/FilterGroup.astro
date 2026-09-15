@@ -15,10 +15,12 @@ interface Props {
   items?: (string | FilterItem)[];
   collapsible?: boolean;
   active?: string;
-  /** markup <path>/<rect>… untuk ikon heading (viewBox 0 0 24 24) */
+  /** markup <path>/<rect>… untuk ikon heading */
   icon?: string;
+  /** viewBox ikon — beda ikon boleh beda viewBox asli (default 24x24) */
+  iconViewBox?: string;
 }
-const { title, group = '', items = [], collapsible = false, active, icon } = Astro.props;
+const { title, group = '', items = [], collapsible = false, active, icon, iconViewBox = '0 0 24 24' } = Astro.props;
 
 // nilai filter untuk tiap label (category dipetakan ke slug; sisanya = label apa adanya)
 const CATEGORY_SLUG: Record<string, string> = {
@@ -46,7 +48,7 @@ const rows: FilterItem[] = items.map((it) =>
       icon && (
         <svg
           class="filtergrp__ico"
-          viewBox="0 0 24 24"
+          viewBox={iconViewBox}
           fill="none"
           stroke="currentColor"
           stroke-width="1.6"
