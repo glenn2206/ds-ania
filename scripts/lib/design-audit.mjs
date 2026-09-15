@@ -68,7 +68,10 @@ export function ourColors(root) {
     let m;
     while ((m = re.exec(text))) {
       const hex = m[0].toUpperCase();
-      if (!map.has(hex)) map.set(hex, { hex, count: 0 });
+      if (!map.has(hex)) map.set(hex, { hex, count: 0, locs: [] });
+      const upTo = text.slice(0, m.index);
+      const lineNo = upTo.split('\n').length;
+      map.get(hex).locs.push(`${f.replace(root, '').replace(/\\/g, '/')}:${lineNo}`);
       map.get(hex).count++;
     }
   }

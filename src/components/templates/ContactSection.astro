@@ -188,8 +188,12 @@ const {
   }
 
   .contact__note {
+    /* font distandarkan: 13px → 14px (Open Sans 400/14 paling umum di something.html, 63x).
+       Warna #7E4C4C BEDA BANGET, nggak ada padanan Figma yang dekat — SARAN: formalkan jadi
+       token semantik (mis. --accent-warn) kalau dipakai berulang buat pesan peringatan/urgent,
+       biar bukan hex nyasar. Lihat juga .type--sale & .cart__note yang pakai warna sama. */
     margin: 16px 0 0;
-    font: 400 13px/1.5 var(--font-sans);
+    font: 400 14px/1.5 var(--font-sans);
     color: #7E4C4C;
   }
 

@@ -6,23 +6,38 @@
    ============================================================ */
 
   :root{
-    /* ===== Warna brand (ANIA Guidelines) =====
+    /* ===== Warna brand (ANIA Guidelines) — dikoreksi sesuai something.html =====
        Primary  Paper Off White  #FDF6F1
-       Secondary Olive Green     #9CAA99
+       Secondary Olive Green     #899B7A   (BUKAN #9CAA99 — itu Sage, beda warna, lihat --olive)
        Text     Dark Grey        #525252
-       Accent   Sage Green       #BAC6BB                                  */
+       Accent   Sage Green       #9CAA99   (BUKAN #BAC6BB — nilai lama ini SALAH/basi)        */
     --bg:#FEFFFF;            /* Primary — Paper Off White */
-    --soft:#FFFFFF;
+    --soft:#FEFFFF;          /* distandarkan: dulu #FFFFFF (selisih 1 unit RGB ke --bg, nggak kelihatan) → disamakan ke --bg */
     --ink:#525252;           /* Text — Dark Grey */
-    --dim:#8a8a8a;           /* teks sekunder */
+    --dim:#8E8E93;           /* distandarkan: dulu #8A8A8A → #8E8E93 (selisih tipis, DAN #8E8E93 sudah beneran ada di something.html) */
     --olive:#899B7A;         /* Secondary — Olive Green (Figma var "Ania-Olive-Green") — tombol primary, badge Sale, active state */
-    --olive-ink:#6b7d5c;     /* olive lebih gelap untuk link/teks di atas terang */
+    --olive-ink:#6b7d5c;     /* BEDA BANGET dari something.html (tidak ada di sana) — ini shade Olive digelapkan manual buat kontras teks/link
+                                 di atas background terang. SARAN: ganti jadi color-mix(in srgb, var(--olive) 70%, black) biar otomatis
+                                 ikut kalau --olive berubah lagi, bukan hex hardcode terpisah yang gampang out-of-sync. */
     --sage:#9CAA99;          /* Accent — Sage Green (Figma: "ANIA Sage Green New") */
     --panel:#9CAA99;
-    --hair:#e9e5d4; --card:#fffef9;
-    --sand:#CCC8A8; --grey:#D9D9D9; --field:#F6EBE3;   /* --sand = Figma "Ania Champagne", --grey = Figma "Grey" */
+    --hair:#EAE8E8;          /* distandarkan: dulu #e9e5d4 (selisih ~20, cukup dekat) → disamakan ke #EAE8E8 (outline pill kategori, sudah dipakai 39x di Figma) — sekalian ganti role "divider tipis" jadi konsisten 1 warna */
+    --card:#FEFFFF;          /* distandarkan: dulu #fffef9 (selisih 1-6 unit RGB ke --bg, nggak kelihatan) → disamakan ke --bg */
+    --sand:#CCC8A8; --grey:#D9D9D9; --field:#F4F2F0;   /* --sand = Figma "Ania Champagne", --grey = Figma "Grey" — --field distandarkan: dulu #F6EBE3 (selisih ~15, peran sama-sama "soft neutral surface": bg form input / placeholder gambar / hover pagination) → disamakan ke #F4F2F0 (sudah dipakai 8x sebagai bg hover kartu) */
+    /* placeholder bg gambar (tampil sebelum foto asli load) — SEMUA halaman dulu pakai warna
+       beda-beda tipis (#eef1f0/#EDEFF0/#F0F0F0, selisih 1-3 poin RGB doang) → distandarkan 1 token. */
+    --img-placeholder:#EEF1F0;
+    /* placeholder KEDUA — keluarga warna beda (lebih hangat/tan), dipakai konsisten identik di
+       4 tempat (swatch dot/category tile/avatar/thumb) sebagai gradient. BEDA BANGET dari
+       --img-placeholder di atas, sengaja TIDAK digabung — tapi di-DRY-kan jadi token juga
+       biar nggak ada 4 salinan hex yang sama persis tersebar. */
+    --img-placeholder-warm:#E7E2D3;
+    --img-placeholder-warm-2:#D8CFC0;
+    /* --chkA/--chkB: pola checkerboard "transparent" di kartu demo /design-system SENDIRI
+       (bukan UI situs) — EXEMPT, sengaja nggak dicocokkan ke something.html. */
     --chkA:#f7f4e8; --chkB:#ece7d5;
-    /* Pantone tambahan (Color Code) */
+    /* Pantone tambahan (Color Code) — dipakai HANYA di kartu demo /design-system (referensi cetak/merch,
+       bukan warna web) — EXEMPT juga, bukan bagian palette situs yang perlu match Figma. */
     --bronze:#B08662;        /* PANTONE 875 U */
     --rose-gold:#B87333;     /* Rose Gold Foil */
     /* ===== font brand (3 keluarga) ===== */
@@ -128,6 +143,15 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
     font:400 14px/1.55 var(--font-sans);-webkit-font-smoothing:antialiased}
+
+  /* ---- CATATAN: .wrap/.head/nav.top/.layer/.card/.r/.pal di bawah ini ----
+     itu CHROME internal halaman /design-system SENDIRI (dokumentasi/galeri
+     komponen) — bukan UI situs yang dilihat customer. Warna-warna di sini
+     (mis. #f1f3ea/#e4e8da di baris .head p code / .lead code / .r .i code)
+     SENGAJA tidak dicocokkan ke something.html karena bukan bagian desain
+     yang direpresentasikan di Figma export itu. Jangan bingung sama warna
+     "belum standar" yang lain di file ini — yang di bawah ini legitimately
+     out of scope. */
   .wrap{width:100%;margin:0;padding:56px 48px 120px}
   a{color:var(--olive-ink); text-decoration: none;}
 
@@ -220,7 +244,10 @@
   .type-h2{ font:400 32px/1.25 var(--font-serif); color:var(--ink); }
   .type-p1{ font:400 18px/1.6 var(--font-sans); color:var(--ink); }
   .type-p2, .type-price{ font:400 16px/1.45 var(--font-sans); color:var(--ink); }
-  .type-accent1{ font:400 14px/1.45 var(--font-display); color:var(--ink); }
+  .type-accent1{ font:400 14px/1.45 var(--font-display); color:var(--ink); }   /* BEDA BANGET — Cormorant di ukuran 12-16px sama sekali nggak ada di something.html.
+     Dari brand guideline awal (pre-Figma-audit). SARAN: kelas ini ternyata TIDAK DIPAKAI di halaman
+     manapun (cuma didefinisikan + demo di /design-system) — pertimbangkan dihapus kalau memang
+     tidak ada rencana pakai, daripada dipertahankan sebagai dead code. */
   .type-accent2{ font:600 14px/1.35 var(--font-sans); letter-spacing:.4em; text-transform:uppercase; color:var(--ink); }
   .type-btn{ font:600 12px/1 var(--font-sans); letter-spacing:.06em; text-transform:uppercase; color:var(--ink); }
   .type-caption{ font:400 12px/1.4 var(--font-sans); color:var(--ink); }
@@ -239,7 +266,8 @@
   .type--faint{ color:#A2A2A2; }
   .type--ondark{ color:#fff; }
   .type--olive{ color:var(--olive); }
-  .type--sale{ color:#7E4C4C; }
+  .type--sale{ color:#7E4C4C; }   /* BEDA BANGET dari something.html (tidak ada). Dipakai berulang (CartSection, ContactSection) —
+     SARAN: promosikan jadi token resmi di :root (mis. --accent-warn:#7E4C4C) daripada hex hardcode 3-4x terpisah. */
   .type--strike{ text-decoration:line-through; color:#B5B1AF; }
   .type--nocaps{ text-transform:none; letter-spacing:normal; }
 
@@ -295,7 +323,9 @@
   .cmp-swatch{display:inline-flex;gap:16px}
   .cmp-swatch label{width:46px;display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer}
   .cmp-swatch .dot{width:38px;height:38px;border-radius:9999px;padding:3px;position:relative;
-    background-color:#e7e2d3;background-image:linear-gradient(135deg,#e7e2d3,#d8cfc0);
+    /* gradient placeholder (tampil sebelum/kalau gambar gagal load) — var(--img-placeholder-warm*),
+       dipakai berulang di .cmp-swatch .dot / .cmp-tile / .avatar / .thumb, sudah di-DRY-kan jadi token. */
+    background-color:var(--img-placeholder-warm);background-image:linear-gradient(135deg,var(--img-placeholder-warm),var(--img-placeholder-warm-2));
     background-size:cover;background-position:center;background-clip:content-box}
   .cmp-swatch input{position:absolute;opacity:0;pointer-events:none}
   .cmp-swatch input:checked + .dot{box-shadow:0 0 0 1px #000}
@@ -317,10 +347,10 @@
   .pcard__price{display:flex;gap:6px;justify-content:center;align-items:baseline}
   /* category tile — organisme: 400×540 + bar. molekul "Category tile bar" = .cti-bar saja */
   .cmp-tile{position:relative;width:400px;max-width:100%;height:540px;border-radius:var(--radius);overflow:hidden;
-    background-color:#e7e2d3;background-image:linear-gradient(135deg,#e7e2d3,#d8cfc0);
+    background-color:var(--img-placeholder-warm);background-image:linear-gradient(135deg,var(--img-placeholder-warm),var(--img-placeholder-warm-2));
     background-size:cover;background-position:center;background-repeat:no-repeat}
   .cti-bar{position:relative;display:flex;align-items:center;width:400px;max-width:100%;height:52px;padding:0 25px;
-    background:#F0F0F0;border:1px solid #A2A2A2;border-radius:0 0 8px 8px;color:#525252;
+    background:#EEEEEE;border:1px solid #A2A2A2;border-radius:0 0 8px 8px;color:#525252;   /* distandarkan: bg dulu #F0F0F0 (selisih 2-3 poin) → #EEEEEE (divider standar). Border #A2A2A2 sudah OK, match Figma */
     font:400 24px/1.1 var(--font-display)}
   .cmp-tile > .cti-bar{position:absolute;left:0;right:0;bottom:0;width:auto}
   .cti-bar::after{content:"";position:absolute;right:22px;top:50%;transform:translateY(-50%);
@@ -329,9 +359,9 @@
   .cti-bar--olive::after{background-image:url(/assets-svg/22_arrow-left.svg)}   /* 22_arrow-left = panah KANAN putih (nama file menyesatkan) */
   .divider{width:320px;max-width:100%;height:1px;background:var(--sand);display:block}
   .avatar{width:48px;height:48px;border-radius:99px;display:block;flex:none;overflow:hidden;
-    background:#e7e2d3 linear-gradient(135deg,#e7e2d3,#d8cfc0) center/cover no-repeat}
+    background:var(--img-placeholder-warm) linear-gradient(135deg,var(--img-placeholder-warm),var(--img-placeholder-warm-2)) center/cover no-repeat}
   .thumb{width:292px;max-width:100%;height:292px;border-radius:var(--radius);display:block;
-    background:#e7e2d3 linear-gradient(135deg,#e7e2d3,#d8cfc0) center/cover no-repeat}
+    background:var(--img-placeholder-warm) linear-gradient(135deg,var(--img-placeholder-warm),var(--img-placeholder-warm-2)) center/cover no-repeat}
   .mini{background:#fff;border:1px solid var(--hair);border-radius:10px;padding:12px;
     display:flex;flex-direction:column;gap:8px;box-shadow:0 1px 2px rgba(70,60,25,.05)}
   .mini--soft{width:366px;max-width:100%;gap:24px;padding:24px;border-radius:6px;background:var(--soft);border-color:var(--sand)}
@@ -346,7 +376,7 @@
     padding:24px 27px;display:flex;flex-direction:column;background:transparent;
     transition:background .18s ease,border-color .18s ease,box-shadow .18s ease}
   /* semua kartu SAMA secara default — bg #F4F2F0 cuma muncul pas hover/focus, bukan permanen di 1 kartu */
-  .whycard:hover,.whycard:focus-within{background:#F4F2F0;border-color:#e6e3df;box-shadow:0 10px 26px -16px rgba(61,59,47,.4)}
+  .whycard:hover,.whycard:focus-within{background:#F4F2F0;border-color:#e6e3df;box-shadow:0 10px 26px -16px rgba(61,59,47,.4)}   /* #e6e3df: BELUM STANDAR, border hover tipis nggak ada di Figma statis */
   @media (prefers-reduced-motion: reduce){ .whycard{transition:none} }
   /* hiasan kelopak pojok kiri-atas — 1..4 kelopak membentuk bunga bertahap (index.html) */
   .whycard__mark{position:absolute;left:24px;top:20px;width:28px;height:28px;pointer-events:none}
@@ -359,10 +389,10 @@
   .whycard__tx{margin-top:auto}
   .whycard__tt{font:600 24px/1.15 var(--font-display);color:#3D3B2F;margin:0 0 6px}
   .whycard__bd{font:400 14px/1.45 var(--font-sans);color:#3D3B2F}
-  .whycard__bd--muted{color:#6E6B60}
+  .whycard__bd--muted{color:#6D6D6D}   /* distandarkan: dulu #6E6B60 (selisih tipis) → #6D6D6D, warna abu-teks paling umum di something.html (52x) */
   /* hero section — index.html screen 1 (kanvas 1440×900, konten 1437×817 @ top:142) */
   .hero{position:relative;max-width:100%;aspect-ratio:1440/815;min-height:700px;
-    overflow:hidden;background:#EDEFF0}
+    overflow:hidden;background:var(--img-placeholder)}   /* placeholder bg gambar hero — distandarkan */
   .hero__slides{position:absolute;inset:0;z-index:0}
   .hero__slide{position:absolute;inset:0;background-position:right center;background-size:cover;
     background-repeat:no-repeat;opacity:0;transition:opacity .7s ease}
@@ -404,7 +434,8 @@
   .choose__tabs{display:flex;justify-content:center;gap:56px;margin:72px 0 0;}
   .choose__tab{border:0;background:transparent;cursor:pointer;padding:0 4px 16px;position:relative;
     font:400 32px/1 var(--font-display);color:#8E8E93;transition:color .15s ease;width: 221px;}
-  .choose__tab:hover{color:#5b5b60}
+  .choose__tab:hover{color:#5b5b60}   /* BEDA BANGET dari #6D6D6D (abu-teks standar) — selisih ~27 poin, cukup kelihatan.
+     Hover state, Figma statis nggak punya referensi. SARAN: kalau nggak ada alasan khusus, ganti ke #6D6D6D biar konsisten. */
   .choose__tab--on{color:#1E2934}
   .choose__tab--on::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);
     width:221px;max-width:100%;height:2px;background:#525252}
@@ -412,7 +443,10 @@
   .choose__tile{display:flex;flex-direction:column;gap:14px;text-decoration:none;color:inherit}
   .choose__tile[hidden]{display:none}
   .choose__tileimg{display:block;width:100%;aspect-ratio:415/540;border-radius:8px;
-    background:#efe7dd center/cover no-repeat;
+    background:#efe7dd center/cover no-repeat;   /* BEDA BANGET dari var(--img-placeholder) #EEF1F0 (selisih ~21 poin RGB, kelihatan lebih hangat/tan) —
+       sengaja TIDAK digabung karena lumayan beda. SARAN: kalau memang harusnya sama, ganti ke
+       var(--img-placeholder); kalau memang disengaja beda (buat section "Choose Flower" ini
+       spesifik), biarin tapi kasih nama token sendiri biar jelas disengaja, mis. --img-placeholder-warm. */
     transition:transform .18s ease,box-shadow .18s ease}
   .choose__tile:hover .choose__tileimg{transform:translateY(-3px);box-shadow:0 16px 34px -18px rgba(60,50,20,.4)}
   .choose__tilelabel{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px;
@@ -466,7 +500,7 @@
      nutup dikit ke bawah padding kiri .uw__inner — nggak ada lagi garis rembesan subpixel di batas kolom. */
   .uw{position:relative;overflow:hidden;min-height:496px}
   .uw__img{position:absolute;inset:0;width:calc(769/1369*100% + 3px);
-    background:#eef1f0 url(/assets/scene-red-coral-arrangement.jpg) center/cover no-repeat}
+    background:var(--img-placeholder) url(/assets/scene-red-coral-arrangement.jpg) center/cover no-repeat}   /* placeholder bg gambar — distandarkan */
   .uw__inner{margin-left:calc(769/1369*100%);min-height:496px;
     padding:var(--sec-y) var(--gutter);display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
   @media(max-width:720px){
@@ -899,7 +933,7 @@
     display: block; width: 100%; margin: 16px 0; padding: 16px 0;
     border: 0; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair);
     background: none; cursor: pointer;
-    font: 600 13px/1 var(--font-sans); letter-spacing: 3px; text-transform: uppercase;
+    font: 600 12px/1 var(--font-sans); letter-spacing: 3px; text-transform: uppercase;   /* distandarkan: 13px → 12px, disamakan ke .type-btn (600/12 uppercase tracked — pola sama persis) */
     color: #3D3B2F; text-align: center;
   }
 
@@ -1068,7 +1102,7 @@
 
 /* --- gallery --- */
 .gallery__stage {
-  position: relative; border-radius: 10px; overflow: hidden; background: #eef1f0;
+  position: relative; border-radius: 10px; overflow: hidden; background: var(--img-placeholder);
   aspect-ratio: 4 / 5;
 }
 .gallery__img {
@@ -1091,7 +1125,9 @@
 /* --- description --- */
 .pdetail__desc { margin: 40px 0 0; max-width: 62ch; }
 .pdetail__desctitle {
-  margin: 0 0 14px; font: 400 22px/1 var(--font-display); color: #1E2934;
+  margin: 0 0 14px; font: 400 22px/1 var(--font-display); color: #1E2934;   /* BEDA BANGET — Cormorant 400/22 nggak ada padanan dekat di something.html, dan halaman
+     product detail belum pernah di-cross-check ke Figma sama sekali. SARAN: kalau mau konsisten
+     internal (bukan dari Figma), 22→24 mengikuti pola normalisasi yang sama dipakai di FAQ/Terms. */
 }
 .pdetail__desc p {
   margin: 0 0 14px; font: 300 14px/1.9 var(--font-sans); color: #3D3B2F;
@@ -1151,9 +1187,9 @@
 }
 .buybox__dcell { padding: 10px 14px; display: flex; flex-direction: column; gap: 3px; }
 .buybox__dcell + .buybox__dcell { border-left: 1px solid #D1D1D1; }
-.buybox__dcell b { font: 600 13px/1 var(--font-sans); color: #1E2934; }
+.buybox__dcell b { font: 600 14px/1 var(--font-sans); color: #1E2934; }   /* distandarkan: 13px → 14px (Open Sans 600/14 paling sering dipakai, 65x di something.html) */
 .buybox__dcell input { height: 26px !important; padding: 0 !important; background: transparent !important; outline: 0 !important; font-size: 13px !important; color: #6D6D6D !important; }
-.buybox__note { margin: 0; font: 400 11px/1.5 var(--font-sans); color: #3D3B2F; }
+.buybox__note { margin: 0; font: 400 12px/1.5 var(--font-sans); color: #3D3B2F; }   /* distandarkan: 11px → 12px, disamakan ke .type-caption */
 .buybox__courier { margin: 0; font: 400 12px/1.4 var(--font-sans); color: var(--olive-ink); }
 .buybox__add, .buybox__checkout { width: 100%; justify-content: center; }
 

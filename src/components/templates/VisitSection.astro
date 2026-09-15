@@ -37,7 +37,7 @@ const { title = 'We’d Love to See You' } = Astro.props;
     align-self: stretch;                 /* selalu setinggi kolom teks */
     height: 100%;
     min-height: 383px;
-    background: #eef1f0 center/cover no-repeat;
+    background: var(--img-placeholder) center/cover no-repeat;   /* placeholder bg gambar — distandarkan ke var(--img-placeholder) */
     border-right: 1px solid var(--rule); /* garis vertikal antara gambar & teks */
   }
   .visit__inner {

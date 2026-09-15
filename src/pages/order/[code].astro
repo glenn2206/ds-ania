@@ -8,6 +8,11 @@ const order = await one('SELECT * FROM orders WHERE code = ?', [code]);
 const items = order ? await q('SELECT * FROM order_items WHERE order_id = ? ORDER BY id', [order.id]) : [];
 const rp = (n: unknown) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
 
+// BEDA BANGET dari something.html (halaman status pesanan ini functional/backend, sama sekali
+// tidak ada di Figma export). Warna semantik (kuning=pending, hijau=lunas, merah=gagal) dipilih
+// manual. SARAN: kalau mau tetap konsisten sama brand, --olive (#899B7A) bisa dipakai buat
+// "paid"/"fulfilled" (asosiasi hijau alami) daripada #4c5c2f custom; "pending"/"expired"/"failed"
+// tetap butuh warna semantik sendiri (kuning/merah) karena brand ANIA tidak punya token itu.
 const STATUS: Record<string, { label: string; tone: string }> = {
   pending: { label: 'Menunggu pembayaran', tone: '#8a6d2f' },
   paid: { label: 'Lunas — pesanan diproses', tone: '#4c5c2f' },

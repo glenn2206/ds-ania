@@ -350,7 +350,7 @@ const WA_NUMBER = '6281211091885';
   }
   .cart__thumb {
     width: 59px; height: 59px; border-radius: 2px;
-    background: #e7e2d3 center/cover no-repeat;
+    background: var(--img-placeholder-warm) center/cover no-repeat;   /* placeholder thumbnail — token sama kayak .cmp-swatch .dot di global.css */
   }
   .cart__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .cart__name { font: 600 14px/1.3 var(--font-sans); color: #6D6D6D; }
@@ -394,8 +394,9 @@ const WA_NUMBER = '6281211091885';
   .cart__addrlist li:hover { background: var(--soft); }
   .cart__pin { opacity: 0.5; flex: none; }
   .cart__estnote {
+    /* bg distandarkan ke var(--field). #7E4C4C BEDA BANGET (lihat saran di .type--sale, global.css) */
     font: 400 12px/1 var(--font-sans); text-transform: uppercase; letter-spacing: 1px;
-    color: #7E4C4C; background: #F6EBE3; border-radius: 99px; padding: 3px 8px; flex: none;
+    color: #7E4C4C; background: var(--field); border-radius: 99px; padding: 3px 8px; flex: none;
   }
   .cart__dcell--courier .cart__dinput { cursor: pointer; }
 
@@ -440,7 +441,7 @@ const WA_NUMBER = '6281211091885';
     background: var(--panel); color: #F8F8F8; cursor: pointer;
     font: 700 12px/12px var(--font-sans); letter-spacing: 2px; text-transform: uppercase;
   }
-  .cart__note { margin: 10px 0 0; font-size: 12px; color: #7E4C4C; }
+  .cart__note { margin: 10px 0 0; font-size: 12px; color: #7E4C4C; }   /* #7E4C4C BEDA BANGET, lihat saran di .type--sale (global.css) */
 
   @media (max-width: 960px) {
     .cart__grid { grid-template-columns: 1fr; }
