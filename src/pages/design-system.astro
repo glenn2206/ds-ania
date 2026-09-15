@@ -86,7 +86,7 @@ const svgIcons = [
           ['Primary','Paper Off White','#FDF6F1','--bg'],
           ['Secondary','Olive Green','#899B7A','--olive'],
           ['Text','Dark Grey','#525252','--ink'],
-          ['Accent','Sage Green','#BAC6BB','--sage'],
+          ['Accent','Sage Green','#9CAA99','--sage'],
         ].map(([role,name,hex,v]) => (
           <div style="text-align:center;font-size:12px">
             <div style={`width:56px;height:56px;border-radius:var(--radius);background:${hex};box-shadow:inset 0 0 0 1px var(--hair);margin:0 auto 6px`}></div>
@@ -121,13 +121,26 @@ const svgIcons = [
         <div class="i" style="margin:0 0 18px">Open Sans · Semibold · 14 · tracking 40% · UPPERCASE — <code>.type-accent2</code></div>
 
         <p class="type-btn">Button Text</p>
-        <div class="i" style="margin:0 0 6px">Open Sans · Semibold · 12 · UPPERCASE — <code>.type-btn</code></div>
+        <div class="i" style="margin:0 0 18px">Open Sans · Semibold · 12 · UPPERCASE — <code>.type-btn</code></div>
+
+        <p class="type-caption">Caption</p>
+        <div class="i" style="margin:0 0 18px">Open Sans · Regular · 12 — <code>.type-caption</code></div>
+
+        <p class="type-h1--section">Heading 1B</p>
+        <div class="i" style="margin:0 0 18px">Cormorant Garamond · Semibold · <b>52 / 40</b> — <code>.type-h1--section</code> · judul carousel occasion (OccasionRow)</div>
+
+        <p class="type-h2--alt">Heading 2B</p>
+        <div class="i" style="margin:0 0 18px">Cormorant Garamond · Medium · <b>32 / 26</b> — <code>.type-h2--alt</code> · "Make It Personal" / "Add On Cute Extras"</div>
+
+        <p class="type-h3">Heading 3</p>
+        <div class="i" style="margin:0 6px">Cormorant Garamond · Semibold · 30 — <code>.type-h3</code> · judul kartu SendTo / Behind The Flower</div>
       </div></div>
 
       <div class="r"><div class="d" style="display:block">
         <b style="display:block;margin:0 0 8px">Catatan penyesuaian</b>
         <ul style="margin:0;padding-left:18px;line-height:1.7;color:var(--dim);font-size:13px">
-          <li>Skala lama <code>.ts-01</code>…<code>.ts-64</code> <b>dihapus total</b>. Semua komponen (92 titik di 31 file) dipetakan ke 8 kelas di atas + modifier — pilih yang paling mirip berdasarkan font, ukuran, warna.</li>
+          <li>Skala lama <code>.ts-01</code>…<code>.ts-64</code> <b>dihapus total</b>. Semua komponen (92 titik di 31 file) dipetakan ke 8 kelas dasar + modifier — pilih yang paling mirip berdasarkan font, ukuran, warna.</li>
+          <li>Audit vs <code>something.html</code> (Sep 2026) menemukan 3 kombinasi Cormorant Garamond yang berulang di banyak section tapi belum punya token → ditambah sebagai <code>.type-h1--section</code> (52/600), <code>.type-h2--alt</code> (32/500), <code>.type-h3</code> (30/600). Hardcode yang identik di komponen sudah diarahkan ke kelas ini.</li>
           <li>Berat hanya dua: <b>Regular 400</b> (heading &amp; paragraf) dan <b>Semibold 600</b> (Accent Text 2, Button, modifier <code>--strong</code>). Berat 300/500/700 lama dibuang.</li>
           <li><b>Inter</b>, <b>Mulish</b>, <b>Lexend</b> dibuang — bukan font brand. Semua non-serif → Open Sans.</li>
           <li>Warna teks utama (<code>#3D3B2F</code>, <code>#1E2934</code>) → <b>Text <code>#525252</code></b>. Abu &amp; aksen jadi modifier: <code>--muted --faint --ondark --olive --sale</code>.</li>

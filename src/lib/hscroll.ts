@@ -135,6 +135,29 @@ export function initHScroll(row: HTMLElement, opts: HScrollOpts = {}): HScrollCo
   row.addEventListener('lostpointercapture', () => endDrag());
   row.addEventListener('dragstart', (e) => e.preventDefault());
 
+  // --- HP (touch): swipe pakai scroll NATIVE. Selama jari menyentuh, HENTIKAN marquee
+  //     supaya momentum Android/iOS tidak "diadu" dengan penulisan scrollLeft tiap frame
+  //     — itu yang bikin geseran terasa patah-patah. Lanjut mulus setelah diam. ---
+  let touching = false;
+  row.addEventListener(
+    'touchstart',
+    () => {
+      touching = true;
+      pause();
+      window.clearTimeout(idle);
+    },
+    { passive: true },
+  );
+  const endTouch = () => {
+    if (!touching) return;
+    touching = false;
+    bump(); // lanjut auto-geser setelah idleMs, mulus dari posisi terakhir
+  };
+  row.addEventListener('touchend', endTouch, { passive: true });
+  row.addEventListener('touchcancel', endTouch, { passive: true });
+  // jaga akumulator float tetap sinkron dg posisi scroll native → tak "lompat" saat marquee lanjut
+  row.addEventListener('scroll', () => { if (!playing) pos = row.scrollLeft; }, { passive: true });
+
   // --- panah (loop tanpa ujung → tak pernah disabled) ---
   opts.prev?.addEventListener('click', () => {
     row.scrollBy({ left: -step(), behavior: 'smooth' });

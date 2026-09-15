@@ -8,19 +8,19 @@
   :root{
     /* ===== Warna brand (ANIA Guidelines) =====
        Primary  Paper Off White  #FDF6F1
-       Secondary Olive Green     #899B7A
+       Secondary Olive Green     #9CAA99
        Text     Dark Grey        #525252
        Accent   Sage Green       #BAC6BB                                  */
-    --bg:#FDF6F1;            /* Primary — Paper Off White */
-    --soft:#FDF6F1;
+    --bg:#FEFFFF;            /* Primary — Paper Off White */
+    --soft:#FFFFFF;
     --ink:#525252;           /* Text — Dark Grey */
     --dim:#8a8a8a;           /* teks sekunder */
-    --olive:#899B7A;         /* Secondary — Olive Green */
+    --olive:#9CAA99;         /* Secondary — Olive Green (Figma: "Ania Olive Green") */
     --olive-ink:#6b7d5c;     /* olive lebih gelap untuk link/teks di atas terang */
-    --sage:#BAC6BB;          /* Accent — Sage Green */
-    --panel:#BAC6BB;
+    --sage:#9CAA99;          /* Accent — Sage Green (Figma: "ANIA Sage Green New") */
+    --panel:#9CAA99;
     --hair:#e9e5d4; --card:#fffef9;
-    --sand:#CCC8A8; --grey:#EAE8E8; --field:#F6EBE3;
+    --sand:#CCC8A8; --grey:#D9D9D9; --field:#F6EBE3;   /* --sand = Figma "Ania Champagne", --grey = Figma "Grey" */
     --chkA:#f7f4e8; --chkB:#ece7d5;
     /* Pantone tambahan (Color Code) */
     --bronze:#B08662;        /* PANTONE 875 U */
@@ -134,6 +134,14 @@
   .type-btn{ font:600 12px/1 var(--font-sans); letter-spacing:.06em; text-transform:uppercase; color:var(--ink); }
   .type-caption{ font:400 12px/1.4 var(--font-sans); color:var(--ink); }
 
+  /* Ditambahkan setelah audit vs something.html — 3 kombinasi Cormorant Garamond
+     yang berulang di Figma tapi belum punya token resmi (dulu di-hardcode manual
+     per komponen). Tetap 1 font (Cormorant Garamond = --font-display), cuma
+     beda size/weight dari .type-h1 / .type-h2. */
+  .type-h1--section{ font:600 52px/1.05 var(--font-display); color:var(--ink); } /* judul carousel occasion (OccasionRow) */
+  .type-h2--alt{ font:500 32px/1.15 var(--font-display); color:var(--ink); }     /* judul section "Add On Cute Extras", dst */
+  .type-h3{ font:600 30px/1.15 var(--font-display); color:var(--ink); }         /* judul kartu SendTo / BehindTheFlower */
+
   .type--strong{ font-weight:600; }
   .type--italic{ font-style:italic; }
   .type--muted{ color:#6D6D6D; }
@@ -151,6 +159,8 @@
     .type-p2, .type-price{ font-size:14px; }
     .type-accent1{ font-size:12px; }
     .type-accent2{ font-size:12px; }
+    .type-h1--section{ font-size:40px; }
+    .type-h2--alt{ font-size:26px; }
   }
 
   /* ===== component tokens ===== */
@@ -182,7 +192,7 @@
     color:var(--dim);box-shadow:inset 0 0 0 1px var(--panel)}
   .cmp-stepper b.v{background:#fff;color:var(--ink)}
   .cmp-progress{display:flex;gap:8px;width:420px;max-width:100%}
-  .cmp-progress i{flex:1;height:2px;background:rgba(137,155,122,.3)}
+  .cmp-progress i{flex:1;height:2px;background:rgba(137,155,122,.25)}
   .cmp-progress i.on{background:var(--olive)}
   /* pagination / paging routing — index.html katalog: chevron + angka aktif(garis bawah)/non-aktif */
   .cmp-pager{display:inline-flex;align-items:center;gap:20px}
@@ -205,7 +215,7 @@
   .pcase{margin:0;display:flex;flex-direction:column;gap:10px}
   .pcase figcaption{font:700 10px/1 'Open Sans';letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-align:center;order:-1}
   .pcard{width:320px;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
-  .pcard__media{position:relative;align-self:stretch;height:406px;background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:inset 0 0 0 1px var(--hair)}
+  .pcard__media{position:relative;align-self:stretch;height:406px;background:var(--field);border-radius:var(--radius);overflow:hidden;box-shadow:inset 0 0 0 1px var(--hair)}
   .pcard__media .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
   .pcard__media > .cmp-badge{position:absolute;left:20px;top:20px}
   .pcard__dim{position:absolute;inset:0;background:rgba(253,246,241,.75)}
@@ -234,17 +244,18 @@
   .mini{background:#fff;border:1px solid var(--hair);border-radius:10px;padding:12px;
     display:flex;flex-direction:column;gap:8px;box-shadow:0 1px 2px rgba(70,60,25,.05)}
   .mini--soft{width:366px;max-width:100%;gap:24px;padding:24px;border-radius:6px;background:var(--soft);border-color:var(--sand)}
-  .mini--occ{width:321px;max-width:100%;gap:6px;padding:15px;border-radius:var(--radius);border-color:var(--sand)}
+  .mini--occ{width:321px;max-width:100%;gap:7px;padding:14px 15px 20px;border-radius:var(--radius);border-color:transparent;
+    transition:background .18s ease}
+  .mini--occ .type-h2{font:400 20px/1.15 'Crimson Text',Georgia,serif}   /* Figma: judul kartu mini 20px, dipakai di landing/occasions/detail */
+  .mini--occ:hover,.mini--occ:focus-within{background:#F4F2F0}
   .mini--panel{width:472px;max-width:100%;gap:24px;padding:24px;border-radius:var(--radius);border-color:#BBCCBF}
   .mini--order{width:473px;max-width:100%;gap:12px;padding:24px;border-radius:var(--radius);border-color:#BBCCBF;align-items:center;text-align:center}
   /* why-ania card — organisme: 330×260, 2 varian bg (transparan / #F6EBE3) */
   .whycard{position:relative;width:330px;max-width:100%;height:260px;border-radius:6px;border:1px solid var(--sand);
     padding:24px 27px;display:flex;flex-direction:column;background:transparent;
     transition:background .18s ease,border-color .18s ease,box-shadow .18s ease}
-  .whycard--soft{background:var(--field)}
-  /* hover: semua kartu jadi seperti kartu ke-2 (bg --field) + sedikit terangkat */
-  .whycard:hover{background:var(--field);border-color:#e0d3c2;box-shadow:0 10px 26px -16px rgba(61,59,47,.4)}
-  .whycard--soft:hover{background:#EFE1D4}
+  /* semua kartu SAMA secara default — bg #F4F2F0 cuma muncul pas hover/focus, bukan permanen di 1 kartu */
+  .whycard:hover,.whycard:focus-within{background:#F4F2F0;border-color:#e6e3df;box-shadow:0 10px 26px -16px rgba(61,59,47,.4)}
   @media (prefers-reduced-motion: reduce){ .whycard{transition:none} }
   /* hiasan kelopak pojok kiri-atas — 1..4 kelopak membentuk bunga bertahap (index.html) */
   .whycard__mark{position:absolute;left:24px;top:20px;width:28px;height:28px;pointer-events:none}
@@ -275,7 +286,7 @@
   .hero__title{margin:0;line-height:66px}      /* index: judul-box 30px di bawah eyebrow */
   .hero__list{margin:20px 0 0;padding:0;list-style:none;line-height:24px}   /* index: y248, 20px setelah judul */
   .hero__list li{display:flex;gap:8px}
-  .hero__cta{margin:20px 0 0;display:flex;gap:14px;flex-wrap:wrap}          /* index: y364, tombol ke-2 @ left:143 */
+  .hero__cta{margin:20px 0 0;display:flex;gap:16px;flex-wrap:wrap}          /* Figma: tombol ke-2 @ left:143, gap 16 */
   .hero__progress{position:absolute;left:64px;right:64px;bottom:66px;z-index:1}  /* index: left:64 top:749/817 */
   .hero__progress .cmp-progress{width:100%;max-width:none}
   .hero__progress .cmp-progress i{transition:background .25s}
@@ -283,10 +294,10 @@
     background:#fff;box-shadow:0 6px 22px rgba(60,50,20,.18);display:flex;align-items:center;justify-content:center}
   .hero__wa img{width:30px;height:30px}
   /* product-grid section — index.html "Flowers They'll Never Forget" (screen full-bleed, bg #FDF6F1) */
-  .pgrid{background:#FDF6F1;padding:var(--sec-y) var(--gutter)}               /* index @1440: judul top:50, grid left:51 */
+  .pgrid{padding:var(--sec-y) var(--gutter)}               /* index @1440: judul top:50, grid left:51 */
   .pgrid__head{text-align:center;margin:0 0 30px}                            /* index: grid top:156, subjudul top:102 */
   .pgrid__head .type-h2{display:block}
-  .pgrid__head .type-p1{display:block;margin:10px auto 0;max-width:52ch}       /* index: subjudul 20px di bawah judul */
+  .pgrid__head .type-p1{display:block;margin:10px auto 0;}       /* index: subjudul 20px di bawah judul */
   /* grid 4 → 2 → 1 (jangan 3 — biar tidak ada kartu yatim) */
   .pgrid__row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 20px;
     max-width:1200px;margin:0 auto;align-items:start}
@@ -295,36 +306,47 @@
   .pgrid__foot{display:flex;justify-content:center;margin:32px 0 0}          /* index: tombol top:786, ~32px setelah grid */
   @media (max-width:1080px){ .pgrid__row{grid-template-columns:repeat(2,minmax(0,1fr));max-width:700px;gap:28px 22px} }
   @media (max-width:560px){ .pgrid__row{grid-template-columns:1fr;max-width:360px} }
-  /* choose-your-flower section — index.html "Choose your Flower by ..." (heading di ATAS, panel #F6EBE3 + tab folder) */
+  /* choose-your-flower section — Figma something.html: heading + tab teks polos + 3 tile besar */
   .choose{padding:var(--sec-y) var(--gutter)}
-  .cflow__head{text-align:center;line-height:1.2;margin:0 0 8px;padding-top:24px}   /* jarak lebih lega dari section/navbar di atasnya */
-  .cflow{position:relative;margin-top:92px}
-  .cflow__tabs{position:absolute;left:0;top:-70px;display:flex;align-items:flex-end}
-  .cflow__tab{font:400 24px/1 'Crimson Text',Georgia,'Times New Roman',serif;color:#1E2934;padding:23px 34px;position:relative;
-    border:0;background:transparent;cursor:pointer}
-  .cflow__tab--on{background:var(--field);border-radius:12px 12px 0 0}
-  .cflow__tab--on::after{content:"";position:absolute;left:34px;right:34px; bottom: 18px;;height:2px;background:#525252} /* index: underline 118×2 #525252 @ top:2000 */
-  .cflow__panel{background:var(--field);border-radius:0 8px 8px 8px;padding:35px}
-  .cflow__sub{margin:0 0 22px}                                             /* index: subjudul .type-p1 @ top:2046 */
-  /* carousel: auto-geser mulus (marquee) + bisa di-drag/scroll manual — tanpa mask */
-  .cflow__row{display:flex;gap:20px;overflow-x:auto;overscroll-behavior-x:contain;
-    padding-bottom:6px;scrollbar-width:none}
-  .cflow__row::-webkit-scrollbar{display:none}
-  .cflow__cell{flex:0 0 clamp(230px,30%,340px);min-width:0;display:flex}
-  .cflow__cell[hidden]{display:none}
-  .cflow__row .cmp-tile{display:block;width:100%;height:auto;aspect-ratio:400/540}
-  .cflow__row .cti-bar{width:100%}
-  .cflow__foot{position:relative;display:flex;justify-content:center;align-items:center;margin:20px 0 0}
-  .cflow__foot .cmp-pager{position:absolute;right:0}                       /* index: pager @ top:2668 left:1267 · tombol @ top:2709 */
-  .cflow__foot .cmp-pager:empty{display:none}
-  /* add-on section — index.html "Make It Personal" (teks kiri + 3 kartu add-on kanan) */
+  .choose__head{max-width:760px;margin:0 auto;text-align:center;
+    font:500 32px/1.25 'Cormorant Garamond',Georgia,serif;color:#1E2934}
+  .choose__tabs{display:flex;justify-content:center;gap:56px;margin:72px 0 0;}
+  .choose__tab{border:0;background:transparent;cursor:pointer;padding:0 4px 16px;position:relative;
+    font:400 32px/1 'Cormorant Garamond',Georgia,serif;color:#8E8E93;transition:color .15s ease;width: 221px;}
+  .choose__tab:hover{color:#5b5b60}
+  .choose__tab--on{color:#1E2934}
+  .choose__tab--on::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+    width:221px;max-width:100%;height:2px;background:#525252}
+  .choose__row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:37px;margin:40px 0 0}
+  .choose__tile{display:flex;flex-direction:column;gap:14px;text-decoration:none;color:inherit}
+  .choose__tile[hidden]{display:none}
+  .choose__tileimg{display:block;width:100%;aspect-ratio:415/540;border-radius:8px;
+    background:#efe7dd center/cover no-repeat;
+    transition:transform .18s ease,box-shadow .18s ease}
+  .choose__tile:hover .choose__tileimg{transform:translateY(-3px);box-shadow:0 16px 34px -18px rgba(60,50,20,.4)}
+  .choose__tilelabel{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px;
+    font:400 24px/1.1 'Crimson Text',Georgia,serif;color:#525252}
+  .choose__tilechev{width:8px;height:15px;flex:none;color:#525252}
+  .choose__foot{display:flex;justify-content:center;margin:44px 0 0}
+  .choose__foot .cmp-btn-primary{font-size:14px}
+
+  /* Figma something.html — warna heading section & judul kartu landing */
+  .pgrid__head .type-h2{color:#3D3B2F}
+  .pgrid__head .type-p1{color:#525252;line-height:24px}
+  .pgrid .pcard .type-h2{font-size:24px;color:#1E2934}
+  .whyania > .type-h2{color:#1E2934}
+  .tsec__head .type-h2, .tsec__head .type-h1{color:#1E2934}
+  .pgrid__foot .cmp-btn-primary,
+  .addon__text .cmp-btn-primary{font-size:14px}
+  /* add-on section — Figma something.html "Make It Personal" (teks kiri + 3 kartu kanan) */
   .addon{display:grid;grid-template-columns:261px minmax(0,1fr);gap:48px;align-items:start;padding:var(--sec-y) var(--gutter)}
-  .addon__text{min-width:0}                                                /* index: kolom teks width 261 @ left:81 */
-  .addon__text .type-h2{display:block}
-  .addon__text .type-p1{display:block;margin:24px 0 30px}                    /* index: subjudul top:160 → tombol top:286 */
-  .addon__cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}   /* index: gap kartu 18 */
+  .addon__text{min-width:0}                                                /* Figma: kolom teks width 261 */
+  .addon__text .type-h2--alt{display:block;color:#1E2934}
+  .addon__text .type-p1{display:block;margin:24px 0 30px;font-size:18px;line-height:24px;color:#525252}
+  .addon__cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}   /* Figma: gap kartu 18 */
   .addon__cards .mini--occ{width:100%}
   .addon__cards .mini--occ .thumb{width:100%;height:auto;aspect-ratio:1/1}
+  /* judul kartu 20px + hover #F4F2F0 → sekarang di base .mini--occ (dipakai jg di occasions & product detail) */
   @media (max-width:1024px){ .addon{grid-template-columns:1fr;gap:28px} }
   /* 3 kartu → langsung 1 kolom (hindari 2+1 yatim), tetap rapi & tidak kekecilan */
   @media (max-width:640px){
@@ -337,24 +359,36 @@
   .tsec__head{text-align:center;margin:0 0 26px}                           /* index: heading top:980, Crimson 32 */
   /* kartu di marquee: border 1px flicker/hilang saat elemen di-transform (animasi).
      pakai box-shadow inset (tahan transform) + bg sedikit beda dari halaman. */
+  /* Figma something.html: kartu #F4F2F0 radius 6, tanpa border, kutipan 14px */
   .tsec__track .mini--soft{
     flex:none;
-    background:var(--card);
+    background:#F4F2F0;
     border-color:transparent;
-    box-shadow:inset 0 0 0 1px var(--sand);
+    box-shadow:none;
   }
-  .tsec__track .type-p2{line-height:1.45}
-  .tcard__by{display:flex;gap:12px;align-items:center}                     /* avatar 48 + nama .type-p2 + kota .type-caption */
-  /* unspoken-words section — index.html "Let your Flowers Speak First" (gambar kiri + teks kanan) */
-  .uw{display:grid;grid-template-columns:minmax(0,769fr) minmax(0,600fr);overflow:hidden} /* index: gambar 769 kiri (full-bleed), teks @ left:837 */
-  .uw__img{min-height:496px;background:#eef1f0 url(/assets/scene-red-coral-arrangement.jpg) center/cover no-repeat}
-  .uw__inner{padding:var(--sec-y) var(--gutter);display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
-  @media(max-width:720px){.uw{grid-template-columns:1fr}.uw__img{min-height:320px}}
-  .uw__title{margin:11px 0 0;line-height:66px}                             /* index: eyebrow→judul 11px */
-  .uw__body{margin:20px 0 0;max-width:469px}                               /* index: judul→paragraf 20px */
-  .uw__cta{margin:20px 0 0}                                                /* index: paragraf→tombol 20px */
+  .tsec__track > .mini--soft > .type-p2{font-size:14px;line-height:1.5;color:#3D3B2F}
+  .tcard__by{display:flex;gap:12px;align-items:center}                     /* avatar 48 + nama + kota */
+  .tcard__by .type-p2{font-size:14px;color:#3D3B2F}                        /* Figma: nama 14/600 */
+  .tcard__by .type--faint{color:rgba(61,59,47,.5)}                         /* Figma: kota 12px rgba(61,59,47,.5) */
+  /* unspoken-words section — index.html "Let your Flowers Speak First" (gambar kiri + teks kanan).
+     .uw__img dibikin ABSOLUTE (bukan kolom grid) selebar 769/1369 + buffer 3px, supaya dia SELALU
+     nutup dikit ke bawah padding kiri .uw__inner — nggak ada lagi garis rembesan subpixel di batas kolom. */
+  .uw{position:relative;overflow:hidden;min-height:496px}
+  .uw__img{position:absolute;inset:0;width:calc(769/1369*100% + 3px);
+    background:#eef1f0 url(/assets/scene-red-coral-arrangement.jpg) center/cover no-repeat}
+  .uw__inner{margin-left:calc(769/1369*100%);min-height:496px;
+    padding:var(--sec-y) var(--gutter);display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+  @media(max-width:720px){
+    .uw{display:block;min-height:0}
+    .uw__img{position:static;width:100%;min-height:320px}
+    .uw__inner{margin-left:0;min-height:0}
+  }
+  .uw__title{margin:11px 0 0;line-height:66px;color:#525252}               /* Figma: eyebrow→judul 11px, Cormorant 60/66 #525252 */
+  .uw__body{margin:20px 0 0;max-width:469px;font-size:14px;line-height:24px;color:#525252}   /* Figma: body 14/24 #525252 */
+  .uw__cta{margin:20px 0 0}                                                /* Figma: paragraf→tombol 20px */
+  .uw__cta .cmp-btn-primary{font-size:14px}
   /* footer — index.html: CTA bar + kolom link + copyright (nilai Figma ×0.924 → dibulatkan) */
-  .ftr{background:#FDF6F1;overflow:hidden}
+  .ftr{overflow:hidden;background:#F4F2F0}   /* Figma: bg footer #F4F2F0 */
   .ftr__cta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;
     padding:40px var(--gutter);border-top:1px solid var(--sand);border-bottom:1px solid var(--sand)}  /* index: rule atas+bawah #CCC8A8 */
   .ftr__cta h2{margin:0;font:400 37px/1 'Cormorant Garamond',Georgia,serif;color:#3D3B2F}     /* index 36.97/36.97 */
@@ -364,14 +398,14 @@
   .ftr__brand .logo{width:132px;height:auto;display:block}
   .ftr__brand .tag{font:600 10px/1.5 'Open Sans','Helvetica Neue',Arial,sans-serif;letter-spacing:3.9px;text-transform:uppercase;color:#3D3B2F; text-align: center;} /* .type-btn */
   .ftr__social{display:flex;flex-direction:column;gap:10px}                                  /* index: gap 9.24 */
-  .ftr__social a{display:flex;align-items:center;gap:12px;font:400 16px/1 'Open Sans','Helvetica Neue',Arial,sans-serif;color:#3D3B2F;text-decoration:none}
+  .ftr__social a{display:flex;align-items:center;gap:12px;font:400 15px/1 'Open Sans','Helvetica Neue',Arial,sans-serif;color:#3D3B2F;text-decoration:none}
   .ftr__social img{width:16px;height:16px}
   .ftr__cols{display:flex;flex-wrap:nowrap;gap:28px;flex:2 1 340px;min-width:0}                 /* index: gap kolom 33.27, Shop/Resources/Help sebaris */
   .ftr__col{display:flex;flex-direction:column;gap:16px;min-width:0}                            /* index: heading→link gap 14.79 */
   .ftr__col:first-child{flex:1.5} .ftr__col:nth-child(2){flex:1.15} .ftr__col:last-child{flex:.85}  /* index: kolom 221/193/133 */
-  .ftr__col h3{margin:0;font:600 20px/1 'Crimson Text',Georgia,'Times New Roman',serif;color:#3D3B2F} /* index 18.49 */
-  .ftr__col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
-  .ftr__col li{font:400 16px/1.2 'Open Sans','Helvetica Neue',Arial,sans-serif;color:#3D3B2F} /* index 14.79 */
+  .ftr__col h3{margin:0;font:600 18px/1 'Crimson Text',Georgia,'Times New Roman',serif;color:#3D3B2F} /* Figma 18.49 */
+  .ftr__col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+  .ftr__col li{font:400 15px/1.2 'Open Sans','Helvetica Neue',Arial,sans-serif;color:#3D3B2F} /* Figma 14.79 */
   .ftr__pay{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;justify-content:flex-end;flex:1 1 220px} /* index: pojok kanan-atas */
   .ftr__pay img{height:20px;width:auto;background:#fff;border:1px solid #D9D9D9;border-radius:3px;padding:5px 7px;box-sizing:content-box}
   .ftr__copy{padding:18px var(--gutter);border-top:1px solid var(--sand);
@@ -382,10 +416,12 @@
    ============================================================ */
   .site-main{width:100%;display:block}
   /* wrapper konten tiap halaman — sejajar index.html @1440, dipusatkan */
-  .home,.shoppage,.cartpage,.contactpage,.occasionpage,.aboutpage,.faqpage,.termspage,.ppage{
+  .home,.cartpage,.contactpage,.occasionpage,.aboutpage,.faqpage,.termspage,.ppage{
     max-width:1440px;margin:0 auto;width:100%}
+  /* shop: TANPA max-width → .shop__side bisa nempel tepi kiri viewport (pojok kiri, seperti direct child <main>) */
+  .shoppage{width:100%}
   /* jarak napas sebelum footer */
-  .home > :last-child,
+  /* .home > :last-child, */
   .shoppage > :last-child,
   .contactpage > :last-child,
   .occasionpage > :last-child,
@@ -402,9 +438,9 @@
   /* pemisah antar-section landing — hairline inset gutter
      (index.html: <div> 1340×1px #CCC8A8 @ left:50) */
   .home > * + *{position:relative}
-  .home > * + *::before{
+  /* .home > * + *::before{
     content:"";position:absolute;top:0;left:var(--gutter);right:var(--gutter);
-    height:1px;background:var(--sand)}
+    height:1px;background:var(--sand)} */
 
 /* ============================================================
    RESPONSIVE — landing page. Semua section disesuaikan.
@@ -436,14 +472,12 @@
   .hero__progress { left: var(--gutter); right: var(--gutter); bottom: auto; top: 314px; }
   .hero__wa { right: 24px; bottom: auto; top: 280px; }
 
-  .cflow__tabs { position: static; margin-bottom: -1px; }
-  .cflow__panel { padding: 32px clamp(20px, 4vw, 44px) 76px; }
-  .cflow__row { gap: 18px; }
+  .choose__tabs { gap: 32px; }
+  .choose__row { gap: 24px; }
 }
 
 @media (max-width: 760px) {
-  /* tetap horizontal (swipe) di mobile — tile lebih lebar biar ada peek */
-  .cflow__cell { flex: 0 0 78%; }
+  .choose__row { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 720px) {
@@ -469,19 +503,18 @@
   .pcard__media .cmp-btn-secondary { position: static; transform: none; }
 
   /* CHOOSE FLOWER */
-  .cflow__head { line-height: 1.15; }
-  .cflow__head .type-h2 { font-size: 24px; }
-  .cflow { margin-top: 44px; }
-  .cflow__tab { font-size: 18px; padding: 8px 14px; }
-  .cflow__panel { padding: 24px 18px 28px; }
-  .cflow__sub { font-size: 14px; margin-bottom: 24px; }
-  .cflow__row { gap: 14px; }
-  .cflow__foot { flex-direction: column; gap: 16px; margin-top: 28px; }
+  .choose__head { font-size: 24px; }
+  .choose__tabs { gap: 22px; margin-top: 72px; }
+  .choose__tab { font-size: 22px; padding-bottom: 10px; }
+  .choose__tab--on::after { width: 120px; }
+  .choose__row { grid-template-columns: 1fr; gap: 22px; margin-top: 28px; }
+  .choose__tilelabel { font-size: 20px; }
+  .choose__foot { margin-top: 28px; }
 
   /* ADD-ON */
   .addon { flex-direction: column; gap: 24px; }
   .addon__text { width: 100%; }
-  .addon__text .type-h2 { font-size: 26px; }
+  .addon__text .type-h2--alt { font-size: 26px; }
   .addon__cards { gap: 16px; }
   .mini--occ { width: 100%; max-width: 340px; margin: 0 auto; }
   .mini--occ .thumb { width: 100%; height: auto; aspect-ratio: 1 / 1; }
@@ -572,19 +605,33 @@
 .cmp-pagenav__prev img, .cmp-pagenav__next img { width: 9px; height: auto; opacity: 0.55; transition: opacity 0.15s ease; }
 
 /* --- Shop layout --- */
-.shop { width: 100%; padding: var(--sec-y) var(--gutter); }
+.shop { position: relative; width: 100%; padding: var(--sec-y) var(--gutter); }
 .shop__title {
   display: block; text-align: center; margin: 0 0 40px;
 }
+/* sidebar in-flow nempel tepi kiri viewport (grid + margin negatif tembus gutter).
+   collapsed → kolom 56px · expanded → kolom 264px — animasi grid-template-columns. */
 .shop__layout {
-  display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 48px;
-  align-items: start;
+  display: grid; grid-template-columns: 56px minmax(0, 1fr);
+  align-items: stretch;
+  margin-left: calc(-1 * var(--gutter));
+  transition: grid-template-columns 0.34s cubic-bezier(0.33, 1, 0.68, 1);
 }
-.shop__main { min-width: 0; }
+.shop.is-expanded .shop__layout { grid-template-columns: 264px minmax(0, 1fr); }
+.shop__main {
+  grid-column: 2;                        /* .shop__side kini position:fixed (keluar dari grid) → main HARUS di kolom 2 */
+  min-width: 0;
+  padding-left: 40px;
+  border-left: 1px solid transparent;   /* garis pemisah vertikal, muncul saat expanded */
+  transition: border-color 0.3s ease;
+}
+.shop.is-expanded .shop__main { border-left-color: var(--sand); }
 
-/* toolbar (sorting + filter) */
+/* toolbar (sorting + filter) — max-width sama dengan .shop__grid supaya sort
+   selalu segaris dengan tepi kanan grid produk, bukan tepi viewport. */
 .shop__toolbar {
   display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin: 0 0 20px;
+  max-width: 1440px;
 }
 .shop__sort {
   display: inline-flex; align-items: center; gap: 8px;
@@ -609,28 +656,117 @@
   margin: 8px 0 0; font: 400 14px/1.6 'Open Sans', Arial, sans-serif; color: var(--dim);
 }
 
-/* grid produk — 3 kolom, kartu ikut lebar kolom */
+/* grid produk — 4 kolom (collapsed) / 3 kolom (expanded).
+   TINGGI media dipatok tetap → jumlah baris sama (9 item = 3 baris di 4 & 3 kolom)
+   → buka/tutup sidebar tidak menggeser konten naik-turun. */
 .shop__grid {
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 44px 28px;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 44px 20px;
+  max-width: 1440px;   /* .shoppage full-width → jaga grid tetap wajar di layar lebar */
 }
+.shop.is-expanded .shop__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .shop__grid .pcard { width: 100%; }
-.shop__grid .pcard__media { height: auto; aspect-ratio: 320 / 406; }
+.shop__grid .pcard__media { height: 406px; aspect-ratio: auto; }
 .shop__pager { margin: 40px 0 0; }
 
-/* --- FilterGroup (sidebar) --- */
-.shop__side { display: flex; flex-direction: column; gap: 22px; }
-.filtergrp__head {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+/* --- Sidebar filter — FIXED ke tepi kiri viewport. Mulai di bawah bar promo
+   (tidak menembusnya), tapi lewat DI BELAKANG baris navbar (z-index < navbar).
+   Setinggi layar; tetap di tempat saat scroll. --- */
+.shop__side {
+  align-self: start;
+  position: fixed;
+  left: 0;
+  top: var(--promo-h, 0px);
+  height: calc(100svh - var(--promo-h, 0px));
+  width: 56px;
+  z-index: 60;                 /* Figma: rail tembus DI ATAS baris navbar (navbar z-index 50), berhenti di bawah bar promo */
+  min-width: 0;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 7px 4px 40px 5px rgba(0, 0, 0, 0.05);
+  transition: width 0.34s cubic-bezier(0.33, 1, 0.68, 1), background 0.3s ease, box-shadow 0.3s ease;
 }
+.shop.is-expanded .shop__side { width: 264px; background: #fff; box-shadow: none; }
+
+/* tombol buka (+) / tutup (×) — absolut di pojok, TIDAK mendorong konten
+   supaya isi rail & panel mulai di baris yang sama (sejajar saat toggle) */
+.shop__side-toggle {
+  position: absolute; z-index: 2;
+  display: grid; place-items: center;
+  border: 0; background: transparent; cursor: pointer; color: #6D6D6D;
+  transition: color 0.15s ease;
+}
+.shop__side-toggle:hover { color: var(--olive); }
+.shop__side-toggle svg { display: block; }
+.shop__railbtn--toggle { top: 12px; left: 50%; transform: translateX(-50%); width: 30px; height: 30px; }
+.shop__railbtn--toggle svg { width: 22px; height: 22px; }
+.shop.is-expanded .shop__railbtn--toggle { display: none; }
+.shop__side-close { top: 16px; right: 16px; width: 28px; height: 28px; display: none; }
+.shop__side-close svg { width: 18px; height: 18px; }
+.shop.is-expanded .shop__side-close { display: grid; }
+
+/* collapsed: rail ikon (mulai di bawah tombol +) */
+.shop__rail {
+  display: flex; flex-direction: column; align-items: center; gap: 26px;
+  width: 56px; padding: 58px 0 24px;
+}
+.shop.is-expanded .shop__rail { display: none; }
+.shop__railbtn {
+  display: grid; justify-content: center;
+  width: 34px; height: 34px; padding: 0;
+  border: 0; background: transparent; cursor: pointer; color: #3D3B2F;
+  transition: color 0.15s ease;
+}
+.shop__railbtn svg { width: 22px; height: 22px; display: block; }
+.shop__railbtn:hover { color: var(--olive); }
+
+/* expanded: panel penuh — isi mulai di Y yang sama dgn rail (58px) → sejajar.
+   sidebar tinggi tetap (100vh) → daftar filter panjang di-scroll DI DALAM panel;
+   tombol × tetap nempel (absolut ke .shop__side yang tidak ikut scroll). */
+.shop__side-panel { display: none; }
+.shop.is-expanded .shop__side-panel {
+  display: flex; flex-direction: column; gap: 26px;
+  width: 264px; padding: 58px 24px 30px;
+  height: 100%; overflow-y: auto; overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  animation: shopPanelIn 0.3s ease both;
+}
+.shop__side-panel::-webkit-scrollbar { width: 6px; }
+.shop__side-panel::-webkit-scrollbar-thumb { background: var(--sand); border-radius: 6px; }
+@keyframes shopPanelIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop__layout, .shop__side, .shop__main { transition: none; }
+  .shop.is-expanded .shop__side-panel { animation: none; }
+}
+
+.filtergrp__head {
+  display: flex; align-items: center; gap: 10px;
+}
+.filtergrp__ico { width: 20px; height: 20px; flex: none; color: #3D3B2F; }
 .filtergrp__title {
+  flex: 1;
   font: 700 18px/1.2 'Open Sans', 'Helvetica Neue', Arial, sans-serif; color: #6D6D6D;
 }
-.filtergrp__head .ico { opacity: 0.5; }
+.filtergrp__head .ico { opacity: 0.5; flex: none; }
 .filtergrp__rule {
   display: block; height: 1px; background: var(--sand); margin: 12px 0 0;
 }
-.filtergrp__list { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+/* wrap grid 0fr↔1fr → animasi tinggi PERSIS sepanjang konten aslinya (bukan cap sembarang
+   kayak max-height), jadi buka & tutup keduanya berhenti di tinggi yang sama, simetris. */
+.filtergrp__listwrap {
+  display: grid; grid-template-rows: 0fr; margin-top: 0; opacity: 0;
+  transition: grid-template-rows 0.3s ease, margin-top 0.3s ease, opacity 0.22s ease;
+}
+.filtergrp:not(.is-collapsed) .filtergrp__listwrap { grid-template-rows: 1fr; margin-top: 14px; opacity: 1; }
+.filtergrp__listwrap > .filtergrp__list { overflow: hidden; min-height: 0; }
+.filtergrp__list {
+  list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px;
+}
 .filtergrp__item {
   display: flex; align-items: baseline; gap: 8px;
   font: 400 16px/1.3 'Open Sans', 'Helvetica Neue', Arial, sans-serif; color: #6D6D6D;
@@ -648,25 +784,46 @@
 .filtergrp[data-collapsible] .filtergrp__head { cursor: pointer; user-select: none; }
 .filtergrp[data-collapsible] .filtergrp__head .ico { transition: transform 0.2s ease; }
 .filtergrp.is-collapsed .filtergrp__head .ico { transform: rotate(-90deg); }
-.filtergrp.is-collapsed .filtergrp__list { display: none; }
+.filtergrp.is-collapsed .filtergrp__list { max-height: 0; margin-top: 0; opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .filtergrp__list { transition: none; } }
 
 /* --- Shop responsive --- */
-@media (max-width: 1100px) {
-  .shop__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 1280px) {
+  .shop__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .shop.is-expanded .shop__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (max-width: 960px) {
-  .shop__layout { grid-template-columns: 1fr; gap: 0; }
-  .shop__toolbar { justify-content: space-between; }
-  /* sidebar disembunyikan; tombol filter (.shop__filterbtn) buka .is-open */
-  .shop__side {
-    display: none; order: -1; margin: 0 0 24px; padding: 20px;
-    border: 1px solid var(--hair); border-radius: 12px; background: var(--card);
+@media (max-width: 900px) {
+  /* sidebar pindah ke atas grid — rail jadi baris ikon, panel full-width */
+  .shop__layout, .shop.is-expanded .shop__layout {
+    display: block; grid-template-columns: none; margin-left: 0;
   }
-  .shop__side.is-open { display: flex; }
+  .shop__main, .shop.is-expanded .shop__main { padding-left: 0; border-left: 0; }
+  .shop__grid, .shop.is-expanded .shop__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .shop__grid .pcard__media { height: auto; aspect-ratio: 320 / 406; }
+  .shop__toolbar { justify-content: space-between; }
+  .shop__side, .shop.is-expanded .shop__side {
+    position: static; top: auto; height: auto;
+    align-self: auto; overflow: visible;
+    margin: 0 0 20px;
+    background: transparent; box-shadow: none;
+  }
+  .shop.is-expanded .shop__side-panel { height: auto; overflow: visible; }
+  .shop__railbtn--toggle, .shop.is-expanded .shop__railbtn--toggle { display: none; }
+  .shop__rail, .shop.is-expanded .shop__rail {
+    display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center;
+    width: auto; gap: 10px 14px; padding: 12px 10px;
+    border: 1px solid var(--sand); border-radius: 12px;
+  }
+  .shop.is-expanded .shop__rail { display: none; }
+  .shop.is-expanded .shop__side-panel {
+    width: auto; padding: 18px 16px;
+    border: 1px solid var(--sand); border-radius: 12px;
+    animation: none;
+  }
 }
 @media (max-width: 620px) {
   .shop__title { font-size: 26px; margin-bottom: 26px; }
-  .shop__grid { grid-template-columns: 1fr; gap: 28px; }
+  .shop__grid, .shop.is-expanded .shop__grid { grid-template-columns: 1fr; gap: 28px; }
   .shop__grid .pcard { max-width: 340px; margin: 0 auto; }
   .cmp-pagenav__item a, .cmp-pagenav__item span, .cmp-pagenav__next a { min-width: 40px; padding-left: 6px; padding-right: 6px; }
   .cmp-pagenav__gap { min-width: 26px; }

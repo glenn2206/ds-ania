@@ -16,7 +16,7 @@ import { behindTheFlower as b } from '../../data/about';
       b.steps.map((s) => (
         <article class="abt-behind__step">
           <Icon name={s.icon} size={40} alt="" class="abt-behind__ico" />
-          <h3 class="abt-behind__steptitle">{s.title}</h3>
+          <h3 class="type-h3 abt-behind__steptitle">{s.title}</h3>
           <p class="abt-behind__stepbody">{s.body}</p>
         </article>
       ))
@@ -53,11 +53,7 @@ import { behindTheFlower as b } from '../../data/about';
   }
   .abt-behind__step:first-child { border-left: 0; }
   .abt-behind__ico { width: 40px; height: 40px; margin: 0 0 28px; }
-  .abt-behind__steptitle {
-    margin: 0 0 8px;
-    font: 600 30px/1.15 'Cormorant Garamond', Georgia, serif;
-    color: #525252;
-  }
+  .abt-behind__steptitle { margin: 0 0 8px; }
   .abt-behind__stepbody {
     margin: 0;
     font: 400 14px/1.5 'Open Sans', Arial, sans-serif;

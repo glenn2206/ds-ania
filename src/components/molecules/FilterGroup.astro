@@ -15,8 +15,10 @@ interface Props {
   items?: (string | FilterItem)[];
   collapsible?: boolean;
   active?: string;
+  /** markup <path>/<rect>… untuk ikon heading (viewBox 0 0 24 24) */
+  icon?: string;
 }
-const { title, group = '', items = [], collapsible = false, active } = Astro.props;
+const { title, group = '', items = [], collapsible = false, active, icon } = Astro.props;
 
 // nilai filter untuk tiap label (category dipetakan ke slug; sisanya = label apa adanya)
 const CATEGORY_SLUG: Record<string, string> = {
@@ -41,6 +43,21 @@ const rows: FilterItem[] = items.map((it) =>
 <div class="filtergrp" data-collapsible={collapsible && rows.length ? '' : undefined}>
   <div class="filtergrp__head" data-collapse-head={collapsible && rows.length ? '' : undefined}>
     {
+      icon && (
+        <svg
+          class="filtergrp__ico"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          set:html={icon}
+        />
+      )
+    }
+    {
       rows.length === 0 ? (
         <a class="filtergrp__title filtergrp__title--link" href="#" data-filter data-group={group} data-value="">
           {title}
@@ -54,16 +71,18 @@ const rows: FilterItem[] = items.map((it) =>
   <span class="filtergrp__rule"></span>
   {
     rows.length > 0 && (
-      <ul class="filtergrp__list">
-        {rows.map((it) => (
-          <li class:list={['filtergrp__item', it.label === active && 'is-active']}>
-            <span class="filtergrp__dot" aria-hidden="true">&bull;</span>
-            <a href="#" data-filter data-group={group} data-value={it.value}>
-              {it.label}
-            </a>
-          </li>
-        ))}
-      </ul>
+      <div class="filtergrp__listwrap">
+        <ul class="filtergrp__list">
+          {rows.map((it) => (
+            <li class:list={['filtergrp__item', it.label === active && 'is-active']}>
+              <span class="filtergrp__dot" aria-hidden="true">&bull;</span>
+              <a href="#" data-filter data-group={group} data-value={it.value}>
+                {it.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     )
   }
 </div>

@@ -1,8 +1,9 @@
 ---
 /**
  * TEMPLATE · OccasionRow — satu pita occasion di "What Do You Want to Say?".
- * Rel kiri (eyebrow + judul serif + panah) + carousel ProductCard di kanan —
- * pola sliding SAMA dengan "Choose your Flower" di landing (marquee mulus + drag).
+ * Figma something.html: eyebrow + judul serif RATA TENGAH DI ATAS (bukan rail kiri),
+ * lalu carousel ProductCard full-width di bawahnya — geser/klik pakai swipe/drag native
+ * (initHScroll), tanpa tombol panah.
  */
 import ProductCard from '../organisms/ProductCard.astro';
 import type { OccasionRow } from '../../data/occasions';
@@ -15,13 +16,9 @@ const loop = [...products, ...products];
 ---
 
 <div class="orow" data-occ-row>
-  <div class="orow__rail">
+  <div class="orow__head">
     <span class="orow__eyebrow">{eyebrow}</span>
-    <h3 class="orow__title">{title}</h3>
-    <div class="orow__nav">
-      <button class="orow__arw" type="button" data-occ-prev aria-label="Sebelumnya">&#8249;</button>
-      <button class="orow__arw" type="button" data-occ-next aria-label="Berikutnya">&#8250;</button>
-    </div>
+    <h3 class="type-h1--section orow__title">{title}</h3>
   </div>
 
   <div class="orow__cards" data-occ-cards>
@@ -37,40 +34,24 @@ const loop = [...products, ...products];
 
 <style>
   .orow {
-    display: grid;
-    grid-template-columns: 240px minmax(0, 1fr);
-    gap: 40px;
-    align-items: start;
     padding: 40px 0;
-    border-top: 1px solid var(--hair);
+    /* border-top: 1px solid var(--hair); */
   }
-  .orow__rail {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    padding-top: 6px;
+  .orow__head {
+    text-align: center;
+    margin: 0 0 32px;
   }
   .orow__eyebrow {
+    display: block;
     font: 600 14px/1 'Open Sans', Arial, sans-serif;
     text-transform: uppercase;
     letter-spacing: 5.6px;
     color: #525252;
   }
   .orow__title {
-    margin: 0;
-    font: 600 52px/1.05 'Cormorant Garamond', Georgia, serif;
+    margin: 6px 0 0;
     color: #3d3b2f;
   }
-  .orow__nav { display: flex; gap: 10px; margin-top: 4px; }
-  .orow__arw {
-    width: 38px; height: 38px; border-radius: 50%;
-    border: 1px solid var(--sand); background: #fff; color: #3d3b2f;
-    font: 400 20px/1 'Open Sans', Arial, sans-serif;
-    display: grid; place-items: center; cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  }
-  .orow__arw:hover { background: var(--olive); color: #fff; border-color: var(--olive); }
 
   .orow__cards {
     display: flex;
@@ -84,17 +65,16 @@ const loop = [...products, ...products];
   .orow__cards::-webkit-scrollbar { display: none; }
   .orow__cards.is-dragging { cursor: grabbing; user-select: none; }
   .orow__cards.is-dragging :global(a) { pointer-events: none; }
-  .orow__cell { flex: 0 0 clamp(240px, 32%, 320px); min-width: 0; }
+  .orow__cell { flex: 0 0 clamp(240px, 24%, 307px); min-width: 0; }
   .orow__cards :global(.pcard) { width: 100%; }
-  .orow__cards :global(.pcard__media) { height: auto; aspect-ratio: 320 / 406; }
+  .orow__cards :global(.pcard__media) { height: auto; aspect-ratio: 1 / 1; }  /* Figma: foto kartu occasion 307×307, persegi */
+  .orow__cards :global(.pcard) .type-h2 { font-size: 20px; color: #1E2934; }  /* Figma: judul kartu 20px */
+  .orow__cards :global(.pcard__price) .type-p2 { font-size: 12px; }          /* Figma: harga kartu 12px */
+  .orow__cards :global(.cmp-pill--sand) { outline-color: #EAE8E8; }          /* Figma: outline pill kategori #EAE8E8 */
 
-  @media (max-width: 1180px) {
-    .orow { grid-template-columns: 1fr; gap: 20px; }
-  }
   @media (max-width: 640px) {
     .orow__title { font-size: 40px; }
     .orow__cell { flex: 0 0 78%; }
-    .orow__nav { display: none; }
   }
 </style>
 
@@ -104,9 +84,6 @@ const loop = [...products, ...products];
   document.querySelectorAll<HTMLElement>('[data-occ-row]').forEach((rowEl) => {
     const cards = rowEl.querySelector<HTMLElement>('[data-occ-cards]');
     if (!cards) return;
-    initHScroll(cards, {
-      prev: rowEl.querySelector<HTMLElement>('[data-occ-prev]'),
-      next: rowEl.querySelector<HTMLElement>('[data-occ-next]'),
-    });
+    initHScroll(cards);
   });
 </script>

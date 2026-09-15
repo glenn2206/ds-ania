@@ -241,11 +241,16 @@ const WA_NUMBER = '6281211091885';
     // --- checkout → buat order + invoice Xendit ---
     const waFallback = (code: string) => {
       const cart = getCart();
-      const lines = cart.map((l) => {
-        const p = findProduct(l.slug)!;
-        const price = typeof p.price === 'number' ? rupiah(unitPrice(l.slug) * l.qty) : 'By request';
-        return `• ${p.name} (${p.pill}) ×${l.qty} — ${price}`;
-      });
+      // produk yang slug-nya sudah tidak ada di snapshot katalog (mis. dihapus/diganti di admin
+      // sejak snapshot terakhir) → jangan crash, lewati saja barisnya di ringkasan WhatsApp.
+      const lines = cart
+        .map((l) => {
+          const p = findProduct(l.slug);
+          if (!p) return null;
+          const price = typeof p.price === 'number' ? rupiah(unitPrice(l.slug) * l.qty) : 'By request';
+          return `• ${p.name} (${p.pill}) ×${l.qty} — ${price}`;
+        })
+        .filter((line): line is string => line !== null);
       const ship = deliveryCost();
       const total = subtotal() + (ship ?? 0);
       const msg = [
@@ -331,44 +336,45 @@ const WA_NUMBER = '6281211091885';
   .cart__left { padding-right: 56px; border-right: 1px solid var(--sand); }
   .cart__right { padding-left: 56px; }
 
-  /* ---- items ---- */
+  /* ---- items — Figma something.html: garis #BBCCBF (bukan --sand), teks 14px #6D6D6D ---- */
   .cart__items { list-style: none; margin: 0; padding: 0; }
   .cart__item {
     display: grid;
-    grid-template-columns: 28px 64px minmax(0, 1fr) auto auto;
+    grid-template-columns: 28px 59px minmax(0, 1fr) auto auto;
     align-items: center; gap: 20px;
-    padding: 22px 0; border-bottom: 1px solid var(--sand);
+    padding: 22px 0; border-bottom: 1px solid #BBCCBF;
   }
   .cart__remove {
-    width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--sand);
+    width: 26px; height: 26px; border-radius: 50%; border: 1px solid #BBCCBF;
     background: #fff; color: var(--dim); cursor: pointer; font-size: 15px; line-height: 1;
   }
   .cart__thumb {
-    width: 64px; height: 64px; border-radius: 6px;
+    width: 59px; height: 59px; border-radius: 2px;
     background: #e7e2d3 center/cover no-repeat;
   }
   .cart__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .cart__name { font: 600 15px/1.3 'Open Sans', Arial, sans-serif; color: #1E2934; }
-  .cart__variant { font: 400 13px/1 'Open Sans', Arial, sans-serif; color: var(--dim); }
-  .cart__stepper b { width: 33px; height: 33px; font-size: 14px; }
+  .cart__name { font: 600 14px/1.3 'Open Sans', Arial, sans-serif; color: #6D6D6D; }
+  .cart__variant { font: 400 14px/1.3 'Open Sans', Arial, sans-serif; color: #6D6D6D; }
+  .cart__stepper b { width: 33px; height: 33px; font-size: 14px; box-shadow: inset 0 0 0 1px #BBCCBF; }
   .cart__price {
-    font: 400 15px/1 'Open Sans', Arial, sans-serif; color: #1E2934; white-space: nowrap; text-align: right;
+    font: 400 14px/1 'Open Sans', Arial, sans-serif; color: #6D6D6D; white-space: nowrap; text-align: right;
   }
-  .cart__empty { font: 400 15px/1.6 'Open Sans', Arial, sans-serif; color: var(--dim); }
+  .cart__empty { font: 400 16px/1.6 'Open Sans', Arial, sans-serif; color: var(--dim); }
 
-  /* ---- delivery box ---- */
+  /* ---- delivery box — Figma: "Receive on" | "Send to" sebaris (2 kolom), garis #BBCCBF ---- */
   .cart__deliverybox {
-    margin: 28px 0 0; border: 1px solid var(--panel); border-radius: 6px; overflow: hidden;
-    display: grid;
+    margin: 28px 0 0; border: 1px solid #BBCCBF; border-radius: 6px; overflow: hidden;
+    display: grid; grid-template-columns: 1fr 1fr;
   }
   .cart__dcell {
     display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-    border-bottom: 1px solid var(--panel);
   }
-  .cart__dcell:last-child { border-bottom: 0; }
-  .cart__dcell--addr { position: relative; }
+  .cart__dcell[hidden] { display: none; }
+  .cart__dcell--addr { position: relative; border-left: 1px solid #BBCCBF; }
+  /* baris kurir muncul setelah alamat dipilih — lebar penuh di bawah */
+  .cart__dcell--courier { grid-column: 1 / -1; border-top: 1px solid #BBCCBF; }
   .cart__dlabel {
-    font: 600 13px/1 'Open Sans', Arial, sans-serif; color: #1E2934; flex: none;
+    font: 600 14px/1 'Open Sans', Arial, sans-serif; color: #1E2934; flex: none;
   }
   .cart__dinput {
     flex: 1; border: 0; background: transparent; font: 400 14px/1.4 'Open Sans', Arial, sans-serif;
@@ -383,55 +389,56 @@ const WA_NUMBER = '6281211091885';
   }
   .cart__addrlist li {
     padding: 8px 10px; border-radius: 6px; cursor: pointer;
-    font: 400 13px/1.4 'Open Sans', Arial, sans-serif; color: #3D3B2F;
+    font: 400 14px/1.4 'Open Sans', Arial, sans-serif; color: #3D3B2F;
   }
   .cart__addrlist li:hover { background: var(--soft); }
   .cart__pin { opacity: 0.5; flex: none; }
   .cart__estnote {
-    font: 400 11px/1 'Open Sans', Arial, sans-serif; text-transform: uppercase; letter-spacing: 1px;
+    font: 400 12px/1 'Open Sans', Arial, sans-serif; text-transform: uppercase; letter-spacing: 1px;
     color: #7E4C4C; background: #F6EBE3; border-radius: 99px; padding: 3px 8px; flex: none;
   }
   .cart__dcell--courier .cart__dinput { cursor: pointer; }
 
-  /* ---- form ---- */
+  /* ---- form — Figma: input outline #D1D1D1, radius 4, tinggi 67 ---- */
   .cart__form { margin: 28px 0 0; display: flex; flex-direction: column; gap: 22px; }
   .cart__field { display: flex; flex-direction: column; gap: 10px; }
   .cart__field span {
     font: 400 12px/1 'Open Sans', Arial, sans-serif; color: #3D3B2F;
   }
   .cart__field input {
-    height: 60px; padding: 0 18px; border-radius: 6px;
-    border: 1px solid var(--panel); background: transparent;
-    font: 400 14px/1 'Open Sans', Arial, sans-serif; color: #3D3B2F;
+    height: 67px; padding: 0 16px; border-radius: 4px;
+    border: 1px solid #D1D1D1; background: transparent;
+    font: 400 14px/1 'Open Sans', Arial, sans-serif; color: #6D6D6D;
   }
-  .cart__field input::placeholder { color: rgba(109, 109, 109, 0.5); }
+  .cart__field input::placeholder { color: #6D6D6D; }
   .cart__field input:focus { outline: none; border-color: var(--olive); }
 
-  /* ---- right ---- */
+  /* ---- right — Figma: garis/outline #BBCCBF, tombol radius 4 ---- */
   .cart__continue {
-    display: block; text-align: center; text-decoration: none;
-    padding: 22px; border: 1px solid var(--sand); border-radius: 10px;
-    font: 600 12px/1 'Open Sans', Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase;
-    color: #3D3B2F;
+    display: flex; align-items: center; justify-content: center; height: 54px;
+    text-decoration: none;
+    border: 1px solid #BBCCBF; border-radius: 4px;
+    font: 600 12px/12px 'Open Sans', Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase;
+    color: #1E2934;
   }
   .cart__totals {
-    margin: 24px 0 0; padding: 26px; border: 1px solid var(--sand); border-radius: 10px;
+    margin: 24px 0 0; padding: 24px; border: 1px solid #BBCCBF; border-radius: 8px;
   }
   .cart__totalstitle {
-    margin: 0 0 18px; font: 400 22px/1 'Cormorant Garamond', Georgia, serif; color: #1E2934;
+    margin: 0 0 6px; font: 600 16px/1.3 'Open Sans', Arial, sans-serif; color: #3D3B2F;
   }
   .cart__row {
     display: flex; justify-content: space-between; align-items: baseline;
-    padding: 14px 0; border-bottom: 1px solid var(--sand);
-    font: 400 14px/1 'Open Sans', Arial, sans-serif; color: #6D6D6D;
+    padding: 14px 0; border-bottom: 1px solid #EEEEEE;
+    font: 400 16px/1 'Open Sans', Arial, sans-serif; color: #6D6D6D;
   }
-  .cart__row b { color: #1E2934; font-weight: 400; }
-  .cart__row--total { border-bottom: 0; font-size: 16px; }
-  .cart__row--total b { font-weight: 600; }
+  .cart__row b { color: #6D6D6D; font-weight: 400; }
+  .cart__row--total { border-bottom: 0; }
+  .cart__row--total b { font-weight: 600; color: #3D3B2F; }
   .cart__checkout {
-    width: 100%; margin: 18px 0 0; padding: 16px; border: 0; border-radius: 8px;
-    background: var(--olive); color: #fff; cursor: pointer;
-    font: 600 13px/1.3 'Open Sans', Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase;
+    width: 100%; height: 54px; margin: 18px 0 0; padding: 0 12px; border: 0; border-radius: 4px;
+    background: var(--panel); color: #F8F8F8; cursor: pointer;
+    font: 700 12px/12px 'Open Sans', Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase;
   }
   .cart__note { margin: 10px 0 0; font-size: 12px; color: #7E4C4C; }
 
@@ -452,5 +459,6 @@ const WA_NUMBER = '6281211091885';
     .cart__stepper { grid-area: step; }
     .cart__price { grid-area: price; text-align: left; align-self: center; }
     .cart__deliverybox { grid-template-columns: 1fr; }
+    .cart__dcell--addr { border-left: 0; border-top: 1px solid #BBCCBF; }
   }
 </style>

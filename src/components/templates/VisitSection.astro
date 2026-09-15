@@ -14,7 +14,7 @@ const { title = 'We’d Love to See You' } = Astro.props;
 <section class="visit">
   <div class="visit__img" style={`background-image:url(${office.image})`}></div>
   <div class="visit__inner">
-    <h2 class="visit__title">{title}</h2>
+    <h2 class="type-h1 visit__title">{title}</h2>
     <p class="visit__label">{office.label}</p>
     <address class="visit__addr">
       {office.address.map((line) => <>{line}<br /></>)}
@@ -47,11 +47,7 @@ const { title = 'We’d Love to See You' } = Astro.props;
     align-items: flex-start;
     justify-content: center;
   }
-  .visit__title {
-    margin: 0;
-    font: 400 60px/1.1 'Cormorant Garamond', Georgia, serif;
-    color: #525252;
-  }
+  .visit__title { margin: 0; }
   .visit__label {
     margin: 20px 0 0;
     font: 600 14px/1 'Open Sans', Arial, sans-serif;

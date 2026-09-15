@@ -20,7 +20,7 @@ const { title = 'Who Are You Sending Flowers To?' } = Astro.props;
 
     <article class="sendto__card sendto__card--unspoken">
       <span class="sendto__eyebrow">{unspoken.eyebrow}</span>
-      <h3 class="sendto__tt sendto__tt--lg">{unspoken.title}</h3>
+      <h3 class="type-h3 sendto__tt sendto__tt--lg">{unspoken.title}</h3>
       <p class="sendto__bd">{unspoken.body}</p>
       <Button href={unspoken.cta.href}>{unspoken.cta.label}</Button>
     </article>
@@ -36,6 +36,7 @@ const { title = 'Who Are You Sending Flowers To?' } = Astro.props;
     display: block;
     text-align: center;
     margin: 0 0 40px;
+    color: #3D3B2F;                     /* Figma: judul section ini #3D3B2F */
   }
   .sendto__grid {
     display: grid;
@@ -67,12 +68,8 @@ const { title = 'Who Are You Sending Flowers To?' } = Astro.props;
   }
   /* card contents live in child components (SendToCard) → :global to reach them */
   .sendto__grid :global(.sendto__ico) { opacity: 0.85; margin-bottom: 12px; }
-  .sendto__grid :global(.sendto__tt) {
-    margin: 0;
-    font: 600 30px/1.15 'Cormorant Garamond', Georgia, serif;
-    color: #525252;
-  }
-  .sendto__grid :global(.sendto__tt--lg) { font-size: 44px; font-weight: 400; line-height: 1.1; }
+  .sendto__grid :global(.sendto__tt) { margin: 0; }
+  .sendto__grid :global(.sendto__tt--lg) { font-size: 48px; font-weight: 400; line-height: 1.1; }
   .sendto__grid :global(.sendto__bd) {
     margin: 0;
     font: 400 14px/1.5 'Open Sans', Arial, sans-serif;

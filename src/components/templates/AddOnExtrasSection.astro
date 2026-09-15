@@ -17,7 +17,7 @@ const { title = 'Add On Cute Extras to Your Bouquet!', cta = 'View All Add-on', 
 ---
 
 <section class="addonx">
-  <h2 class="type-h2 addonx__title">{title}</h2>
+  <h2 class="type-h2--alt addonx__title">{title}</h2>
   <div class="addonx__row">
     {addOnExtras.map((a) => <OccasionCard image={a.image} title={a.title} price={a.price} action="plus" slug={a.slug} />)}
   </div>
@@ -25,5 +25,8 @@ const { title = 'Add On Cute Extras to Your Bouquet!', cta = 'View All Add-on', 
 </section>
 
 <style>
+  .addonx__title {
+    color: #1E2934;   /* Figma: bukan var(--ink) — font/size sudah dari .type-h2--alt */
+  }
   .addonx__foot { display: flex; justify-content: center; margin: 8px 0 0; }
 </style>

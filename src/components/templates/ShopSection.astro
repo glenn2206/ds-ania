@@ -225,7 +225,29 @@ const searchText = (c: CatalogItem) =>
       else if (filter.group === 'all') titleEl.textContent = 'All Products';
     };
 
-    // sidebar filter
+    // ---- sidebar: rail (collapsed) ↔ panel penuh (expanded, dorong grid 4→3 kolom) ----
+    const toggleBtn = root.querySelector<HTMLElement>('[data-filter-toggle]');
+
+    const focusGroup = (grp?: string) => {
+      if (!grp) return;
+      root.querySelectorAll('.filtergrp[data-collapsible]').forEach((g) => g.classList.add('is-collapsed'));
+      root
+        .querySelector(`[data-filter][data-group="${grp}"]`)
+        ?.closest('.filtergrp')
+        ?.classList.remove('is-collapsed');
+    };
+    const expand = (grp?: string) => {
+      root.classList.add('is-expanded');
+      toggleBtn?.setAttribute('aria-expanded', 'true');
+      focusGroup(grp);
+    };
+    const collapse = () => {
+      root.classList.remove('is-expanded');
+      toggleBtn?.setAttribute('aria-expanded', 'false');
+    };
+    const toggleSide = () => (root.classList.contains('is-expanded') ? collapse() : expand());
+
+    // sidebar filter (link di panel) — sidebar tetap terbuka, user bebas ganti-ganti filter
     root.querySelectorAll<HTMLAnchorElement>('[data-filter]').forEach((a) => {
       a.addEventListener('click', (e) => {
         e.preventDefault();
@@ -251,12 +273,20 @@ const searchText = (c: CatalogItem) =>
       scrollToGrid();
     });
 
-    // mobile: tombol filter buka/tutup sidebar
-    root.querySelector('[data-filter-toggle]')?.addEventListener('click', () => {
-      root.querySelector('.shop__side')?.classList.toggle('is-open');
+    // rail (collapsed): klik ikon grup → buka sidebar penuh + fokus ke grup itu
+    root.querySelectorAll<HTMLElement>('[data-rail-btn]').forEach((b) => {
+      b.addEventListener('click', () => expand(b.dataset.railGroup || ''));
     });
 
+    // tombol + (rail) / × (panel) / ikon filter toolbar → buka-tutup sidebar
+    root.querySelectorAll<HTMLElement>('[data-side-toggle]').forEach((b) => {
+      b.addEventListener('click', toggleSide);
+    });
+    toggleBtn?.addEventListener('click', toggleSide);
+
     highlightInitial();
+    // buka sidebar otomatis kalau halaman dibuka dengan filter spesifik dari query
+    if (filter.value && filter.group !== 'all') expand(filter.group);
     apply();
   });
 </script>

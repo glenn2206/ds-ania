@@ -1,13 +1,12 @@
 ---
 /**
  * TEMPLATE · ChooseFlowerSection — landing "Choose your Flower by …".
- * Tab (Occasions / Category / Flower) → satu deret tile DINAMIS dari katalog.
- * Auto-geser MULUS terus-menerus (marquee via requestAnimationFrame + tile digandakan
- * agar loop mulus), plus bisa di-drag / scroll / swipe manual + tombol panah.
+ * Figma: heading Cormorant 32/500 + 3 tab teks polos (garis bawah) + 3 tile
+ * gambar besar (label + chevron DI BAWAH gambar) + tombol "View All".
+ * Tile diturunkan dinamis dari katalog per tab (Occasions / Category / Flower).
  */
 import Button from '../atoms/Button.astro';
-import CategoryTile from '../organisms/CategoryTile.astro';
-import { chooseTabs, chooseTilesFrom, chooseSub, chooseHeadingLead } from '../../data/choose';
+import { chooseTabs, chooseTilesFrom, chooseHeadingLead } from '../../data/choose';
 import { getCatalog } from '../../lib/products';
 import { buildFacets } from '../../lib/facets';
 
@@ -16,125 +15,87 @@ interface Props {
 }
 const { activeTab = 'Occasions' } = Astro.props;
 
-// tile diturunkan dari isi katalog — occasion/kategori/bunga yang kosong tidak muncul
 const cat = await getCatalog();
 const chooseTiles = chooseTilesFrom(buildFacets([...cat.allProducts, ...cat.addons]));
-
-const base = chooseTabs.flatMap((tab) => chooseTiles[tab].map((t) => ({ ...t, tab })));
-// digandakan 2× → saat scrollLeft lewat 1 salinan, mundur 1 salinan (loop tak terasa)
-const doubled = [...base.map((t) => ({ ...t, dup: false })), ...base.map((t) => ({ ...t, dup: true }))];
+// Figma: 3 tile per tab
+const base = chooseTabs.flatMap((tab) => chooseTiles[tab].slice(0, 3).map((t) => ({ ...t, tab })));
 ---
 
-<section class="choose" data-choose data-active-tab={activeTab} data-subs={JSON.stringify(chooseSub)}>
-  <div class="cflow__head">
-    <span class="type-h2">
-      {chooseHeadingLead}<br />Choose your Flower by <span data-choose-by>{activeTab}</span>
-    </span>
+<section class="choose" data-choose data-active-tab={activeTab}>
+  <h2 class="choose__head">
+    {chooseHeadingLead}<br />Choose your Flower by ...
+  </h2>
+
+  <div class="choose__tabs" role="tablist" aria-label="Choose your flower by">
+    {
+      chooseTabs.map((t) => (
+        <button
+          type="button"
+          class:list={['choose__tab', t === activeTab && 'choose__tab--on']}
+          data-choose-tab={t}
+          role="tab"
+          aria-selected={t === activeTab ? 'true' : 'false'}
+        >
+          {t}
+        </button>
+      ))
+    }
   </div>
 
-  <div class="cflow">
-    <div class="cflow__tabs">
-      {
-        chooseTabs.map((t) => (
-          <button
-            type="button"
-            class:list={['cflow__tab', t === activeTab && 'cflow__tab--on']}
-            data-choose-tab={t}
-          >
-            {t}
-          </button>
-        ))
-      }
-    </div>
+  <div class="choose__row" data-choose-row>
+    {
+      base.map((t) => (
+        <a class="choose__tile" href={t.href} data-tab={t.tab} aria-label={t.label} hidden>
+          <span class="choose__tileimg" style={`background-image:url(${t.image})`} />
+          <span class="choose__tilelabel">
+            <span>{t.label}</span>
+            <svg class="choose__tilechev" viewBox="0 0 8 15" fill="none" aria-hidden="true">
+              <path d="M1 1l6 6.5L1 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+        </a>
+      ))
+    }
+  </div>
 
-    <div class="cflow__panel">
-      <p class="cflow__sub type-p1" data-choose-sub>{chooseSub[activeTab]}</p>
-
-      <div class="cflow__scroller">
-        <button class="cflow__arw cflow__arw--prev" type="button" data-choose-prev aria-label="Sebelumnya">&#8249;</button>
-        <div class="cflow__row" data-choose-row>
-          {
-            doubled.map((t) => (
-              <div class="cflow__cell" data-choose-cell data-tab={t.tab} aria-hidden={t.dup ? 'true' : undefined} hidden>
-                <CategoryTile image={t.image} label={t.label} olive={t.olive} href={t.href} />
-              </div>
-            ))
-          }
-        </div>
-        <button class="cflow__arw cflow__arw--next" type="button" data-choose-next aria-label="Berikutnya">&#8250;</button>
-      </div>
-
-      <div class="cflow__foot">
-        <Button href="/occasions">Check Other {activeTab}</Button>
-      </div>
-    </div>
+  <div class="choose__foot">
+    <Button href="/occasions">View All {activeTab}</Button>
   </div>
 </section>
 
 <script>
-  import { initHScroll } from '../../lib/hscroll';
-
   const CTA_LINK: Record<string, string> = { Occasions: '/occasions', Category: '/shop', Flower: '/shop' };
 
   document.querySelectorAll<HTMLElement>('[data-choose]').forEach((root) => {
-    const subs: Record<string, string> = JSON.parse(root.dataset.subs || '{}');
-    const cells = Array.from(root.querySelectorAll<HTMLElement>('[data-choose-cell]'));
+    const tiles = Array.from(root.querySelectorAll<HTMLElement>('[data-tab]'));
     const tabBtns = Array.from(root.querySelectorAll<HTMLElement>('[data-choose-tab]'));
-    const row = root.querySelector<HTMLElement>('[data-choose-row]')!;
-    const byEl = root.querySelector<HTMLElement>('[data-choose-by]')!;
-    const subEl = root.querySelector<HTMLElement>('[data-choose-sub]')!;
-    const ctaEl = root.querySelector<HTMLAnchorElement>('.cflow__foot .cmp-btn-primary');
-
-    let tab = root.dataset.activeTab || tabBtns[0]?.dataset.chooseTab || '';
+    const byEl = root.querySelector<HTMLElement>('[data-choose-by]');
+    const cta = root.querySelector<HTMLAnchorElement>('.choose__foot a');
+    const rowEl = root.querySelector<HTMLElement>('[data-choose-row]');
+    let tab = root.dataset.activeTab || 'Occasions';
 
     const render = () => {
-      cells.forEach((c) => (c.hidden = c.dataset.tab !== tab));
-      tabBtns.forEach((b) => b.classList.toggle('cflow__tab--on', b.dataset.chooseTab === tab));
-      byEl.textContent = tab;
-      subEl.textContent = subs[tab] || subEl.textContent;
-      if (ctaEl) {
-        ctaEl.textContent = `Check Other ${tab}`;
-        ctaEl.href = CTA_LINK[tab] || '/occasions';
+      tiles.forEach((c) => (c.hidden = c.dataset.tab !== tab));
+      tabBtns.forEach((b) => {
+        const on = b.dataset.chooseTab === tab;
+        b.classList.toggle('choose__tab--on', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      if (byEl) byEl.textContent = tab;
+      if (cta) {
+        cta.textContent = `View All ${tab}`;
+        cta.href = CTA_LINK[tab] || '/occasions';
       }
-      row.scrollLeft = 0;
+      if (rowEl) rowEl.scrollLeft = 0;
     };
-
-    const ctrl = initHScroll(row, {
-      prev: root.querySelector<HTMLElement>('[data-choose-prev]'),
-      next: root.querySelector<HTMLElement>('[data-choose-next]'),
-    });
 
     tabBtns.forEach((b) =>
       b.addEventListener('click', () => {
         tab = b.dataset.chooseTab || tab;
         render();
-        ctrl.reset();
-        ctrl.play();
       }),
     );
 
     render();
-    ctrl.play();
   });
 </script>
-
-<style>
-  .cflow__scroller { position: relative; }
-  .cflow__row { cursor: grab; scroll-behavior: auto; }
-  .cflow__row.is-dragging { cursor: grabbing; user-select: none; }
-  .cflow__row.is-dragging :global(a) { pointer-events: none; }
-
-  .cflow__arw {
-    position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
-    width: 40px; height: 40px; border-radius: 50%;
-    border: 1px solid var(--sand); background: #fff; color: #3D3B2F;
-    font: 400 22px/1 'Open Sans', Arial, sans-serif;
-    display: grid; place-items: center; cursor: pointer;
-    box-shadow: 0 6px 16px -6px rgba(60, 50, 20, 0.4);
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-  .cflow__arw--prev { left: -6px; }
-  .cflow__arw--next { right: -6px; }
-  .cflow__arw:hover { background: var(--olive); color: #fff; border-color: var(--olive); }
-  @media (max-width: 760px) { .cflow__arw { display: none; } }
-</style>

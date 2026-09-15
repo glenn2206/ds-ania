@@ -29,7 +29,8 @@ const {
     <span class="type-p1">{subtitle}</span>
   </div>
   <div class="pgrid__row">
-    {products.map((p) => <ProductCard {...p} />)}
+    {/* Figma landing "Flowers They'll Never Forget": kartu tanpa pill kategori — foto → judul → harga */}
+    {products.map((p) => <ProductCard {...p} pill={undefined} />)}
   </div>
   <div class="pgrid__foot"><Button href={href}>{cta}</Button></div>
 </section>

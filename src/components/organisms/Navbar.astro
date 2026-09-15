@@ -135,11 +135,14 @@ const mobileMenu = [
   window.addEventListener('cart:change', sync);
   window.addEventListener('storage', (e) => e.key === CART_KEY && sync());
 
-  // tinggi navbar → --nav-h (dipakai hero landing agar "navbar + hero = 1 layar")
+  // tinggi navbar → --nav-h (hero landing) · tinggi bar promo → --promo-h (shop sidebar fixed)
   const header = document.querySelector<HTMLElement>('.nav');
   if (header) {
-    const setNavH = () =>
+    const promo = header.querySelector<HTMLElement>('.promo');
+    const setNavH = () => {
       document.documentElement.style.setProperty('--nav-h', `${header.offsetHeight}px`);
+      document.documentElement.style.setProperty('--promo-h', `${promo?.offsetHeight ?? 0}px`);
+    };
     setNavH();
     window.addEventListener('resize', setNavH);
     window.addEventListener('load', setNavH);

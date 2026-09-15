@@ -11,7 +11,7 @@ import { intro } from '../../data/occasions';
   <div class="ointro__media" style={`background-image:url(${intro.image})`}></div>
   <div class="ointro__body">
     <span class="ointro__eyebrow">{intro.eyebrow}</span>
-    <h1 class="ointro__title">{intro.title}</h1>
+    <h1 class="type-h1 ointro__title">{intro.title}</h1>
     <div class="ointro__cta">
       <Button href={intro.primary.href}>{intro.primary.label}</Button>
       <Button variant="secondary" href={intro.secondary.href}>{intro.secondary.label}</Button>
@@ -38,7 +38,7 @@ import { intro } from '../../data/occasions';
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 24px;
+    gap: 20px;                          /* Figma: gap 20 antar blok teks & CTA */
   }
   .ointro__eyebrow {
     font: 600 14px/1 'Open Sans', Arial, sans-serif;
@@ -46,15 +46,15 @@ import { intro } from '../../data/occasions';
     letter-spacing: 5.6px;
     color: #525252;
   }
-  .ointro__title {
-    margin: 0;
-    font: 400 60px/1.1 'Cormorant Garamond', Georgia, serif;
-    color: #525252;
-  }
+  .ointro__title { margin: 0; }
   .ointro__cta {
     display: flex;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 16px;
+  }
+  .ointro__cta :global(.cmp-btn-primary),
+  .ointro__cta :global(.cmp-btn-secondary) {
+    font-size: 14px;                    /* Figma: tombol section ini 14px (bukan 12px default) */
   }
 
   @media (max-width: 900px) {
