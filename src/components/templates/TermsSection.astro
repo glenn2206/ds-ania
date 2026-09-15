@@ -28,7 +28,7 @@ import { termsTitle, termsSections } from '../../data/terms';
   .terms__title {
     margin: 0 0 40px;
     text-align: center;
-    font: 400 clamp(30px, 3.4vw, 40px) / 1.1 'Cormorant Garamond', Georgia, serif;
+    font: 400 clamp(30px, 3.4vw, 40px) / 1.1 var(--font-display);
     color: #3D3B2F;
   }
   .terms__body {
@@ -39,12 +39,12 @@ import { termsTitle, termsSections } from '../../data/terms';
   .terms__block:last-child { margin-bottom: 0; }
   .terms__heading {
     margin: 0 0 14px;
-    font: 400 24px/1.35 'Cormorant Garamond', Georgia, serif;
+    font: 400 24px/1.35 var(--font-display);
     color: #525252;
   }
   .terms__block p {
     margin: 0 0 16px;
-    font: 400 16px/1.7 'Open Sans', Arial, sans-serif;
+    font: 400 16px/1.7 var(--font-sans);
     color: #525252;
     text-align: justify;
   }

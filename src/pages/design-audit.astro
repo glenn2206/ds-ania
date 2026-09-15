@@ -1,0 +1,149 @@
+---
+/**
+ * PAGE · /design-audit — debug tool DEV-ONLY: audit font & warna kode kita vs
+ * something.html (Figma export, git-untracked). Live tiap request (SSR),
+ * jadi selalu reflect state kode SEKARANG — refresh browser buat re-check
+ * setelah edit CSS/komponen.
+ *
+ * Tidak perlu dihapus sebelum deploy: kalau something.html tidak ada di server
+ * production, halaman ini otomatis kasih tau "belum ada file" dan tidak error.
+ */
+export const prerender = false;
+import Base from '../layouts/Base.astro';
+import {
+  ourFonts,
+  ourColors,
+  ourTokens,
+  figmaFonts,
+  figmaColors,
+  figmaNamedVars,
+} from '../../scripts/lib/design-audit.mjs';
+import { join } from 'node:path';
+import { existsSync } from 'node:fs';
+
+const root = process.cwd();
+const figmaPath = join(root, 'something.html');
+const figmaReady = existsSync(figmaPath);
+
+const oFonts = ourFonts(root);
+const oColors = ourColors(root);
+const oTokens = ourTokens(root); // hex(UPPER) -> --nama
+const fFonts = figmaReady ? figmaFonts(figmaPath) : new Map();
+const fColors = figmaReady ? figmaColors(figmaPath) : new Map();
+const fNamed = figmaReady ? figmaNamedVars(figmaPath) : new Map();
+
+const pad = (s: string | number, n: number) => String(s).padEnd(n, ' ');
+const padS = (s: string | number, n: number) => String(s).padStart(n, ' ');
+
+// ---------- 1. FONT ----------
+const fontRows = [...oFonts.values()].sort((a, b) => b.count - a.count);
+let fontMatch = 0;
+let fontMismatch = 0;
+const fontLines = fontRows.map((r) => {
+  const k = `${r.family}|${r.weight}|${r.size}`;
+  const fig = fFonts.get(k);
+  const status = fig ? `[OK match Figma, muncul ${fig.count}x]` : `[X TIDAK ADA di something.html]`;
+  if (fig) fontMatch++; else fontMismatch++;
+  const label = `${pad(r.family, 20)} ${pad(r.weight, 3)} ${padS(r.size + 'px', 5)}`;
+  return `  ${label}  -> dipakai ${padS(r.count + 'x', 4)}  ${status}`;
+});
+
+const ourFontKeys = new Set(fontRows.map((r) => `${r.family}|${r.weight}|${r.size}`));
+const figmaOnlyFonts = [...fFonts.values()]
+  .filter((r) => !ourFontKeys.has(`${r.family}|${r.weight}|${r.size}`))
+  .sort((a, b) => b.count - a.count)
+  .slice(0, 15);
+
+// ---------- 2. WARNA ----------
+const colorRows = [...oColors.values()].sort((a, b) => b.count - a.count);
+let colorMatch = 0;
+let colorMismatch = 0;
+const colorLines = colorRows.map((r) => {
+  const inFigma = fColors.has(r.hex);
+  const tokenName = oTokens.get(r.hex) || fNamed.get(r.hex) || '';
+  const tokenLabel = tokenName ? ` (${tokenName})` : '';
+  const status = inFigma ? `[OK muncul ${fColors.get(r.hex).count}x di Figma]` : `[X TIDAK ADA di something.html]`;
+  if (inFigma) colorMatch++; else colorMismatch++;
+  return `  ${pad(r.hex + tokenLabel, 26)} -> dipakai ${padS(r.count + 'x', 4)}  ${status}`;
+});
+
+const ourColorHexes = new Set(colorRows.map((r) => r.hex));
+const figmaOnlyColors = [...fColors.values()]
+  .filter((r) => !ourColorHexes.has(r.hex))
+  .sort((a, b) => b.count - a.count)
+  .slice(0, 15);
+
+// ---------- 3. TOKEN RESMI (4 warna bernama Figma) ----------
+const namedCheck = [...fNamed.entries()].map(([hex, name]) => {
+  const ourName = oTokens.get(hex);
+  const status = ourName ? `[OK token kita: ${ourName}]` : `[X belum ada token yang pakai warna ini di kode kita]`;
+  return `  ${pad(name, 24)} ${pad(hex, 9)} ${status}`;
+});
+
+const report = figmaReady
+  ? `================================================================
+ ANIA DESIGN AUDIT — Font & Warna  (kode kita vs something.html)
+ Generated: ${new Date().toLocaleString('id-ID')}
+================================================================
+
+--- 1. TYPOGRAPHY DI KODE KITA (src/**/*.astro + global.css) ---
+(Family | Weight | Size -> berapa kali dipakai -> ada di Figma?)
+
+${fontLines.join('\n')}
+
+Ringkasan font:
+  Total kombinasi unik di kode kita     : ${fontRows.length}
+  Total kombinasi unik di something.html: ${fFonts.size}
+  Match dengan Figma                    : ${fontMatch}
+  TIDAK ada di Figma (perlu dicek)      : ${fontMismatch}
+
+--- Kombinasi font di Figma yang BELUM dipakai di kode kita (top 15) ---
+${figmaOnlyFonts.length ? figmaOnlyFonts.map((r) => `  ${pad(r.family, 20)} ${pad(r.weight, 3)} ${padS(r.size + 'px', 5)}  (muncul ${r.count}x di Figma)`).join('\n') : '  (tidak ada — semua kombinasi Figma sudah terpakai)'}
+
+
+--- 2. WARNA (HEX LITERAL) DI KODE KITA ---
+(Hex (nama token kalau ada) -> berapa kali dipakai -> ada di Figma?)
+
+${colorLines.join('\n')}
+
+Ringkasan warna:
+  Total hex unik di kode kita     : ${colorRows.length}
+  Total hex unik di something.html: ${fColors.size}
+  Match dengan Figma               : ${colorMatch}
+  TIDAK ada di Figma (perlu dicek) : ${colorMismatch}
+
+--- Warna di Figma yang BELUM dipakai literal di kode kita (top 15) ---
+(Catatan: banyak yang WAJAR karena kita pakai var(--token) bukan hex langsung
+ — ini cuma daftar mentah buat referensi, bukan berarti semua harus ditambah.)
+${figmaOnlyColors.length ? figmaOnlyColors.map((r) => `  ${pad(r.hex, 9)}  (muncul ${r.count}x di Figma)`).join('\n') : '  (tidak ada)'}
+
+
+--- 3. CEK 4 TOKEN WARNA BERNAMA RESMI FIGMA ---
+${namedCheck.join('\n')}
+
+
+--- 4. INFO PENTING LAIN ---
+  * "Dipakai di kode kita" dihitung dari deklarasi CSS shorthand
+    font-shorthand (weight, size, nama font) di file .astro (style scoped) + global.css.
+    Font yang di-set lewat class (mis. .type-h2) TIDAK dihitung ulang di tiap
+    pemakaian class-nya — cuma dihitung SEKALI di definisi class-nya.
+  * "TIDAK ADA di Figma" bukan otomatis berarti salah — halaman About/FAQ/
+    Contact/Terms belum pernah dicocokkan ke something.html (di luar scope
+    awal), jadi wajar kalau nilainya beda.
+  * something.html HANYA berisi sebagian frame (landing, shop, cart,
+    occasions) — bukan seluruh situs, jadi kolom "Figma yang belum dipakai"
+    di atas tidak selalu relevan.
+`
+  : `something.html tidak ditemukan di root project (dev-only, git-untracked).
+Taruh file itu di root folder project lalu refresh halaman ini.`;
+---
+
+<Base title="Design Audit — ANIA" bodyClass="ds">
+  <div style="max-width:1100px;margin:0 auto;padding:24px">
+    <h1 style="font:600 20px/1.3 var(--font-sans);margin:0 0 4px">Design Audit — Font &amp; Warna</h1>
+    <p style="font:400 13px/1.5 var(--font-sans);color:#6D6D6D;margin:0 0 16px">
+      Dev-only. Refresh halaman ini kapan saja setelah edit CSS/komponen buat lihat angka terbaru.
+    </p>
+    <pre style="background:#1e1e1e;color:#d4d4d4;padding:20px;border-radius:8px;overflow-x:auto;font:12px/1.6 'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;white-space:pre">{report}</pre>
+  </div>
+</Base>

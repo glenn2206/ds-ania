@@ -17,7 +17,7 @@ const { icon, href = '#', size = 16, class: extra = '' } = Astro.props;
 <a
   class={extra}
   href={href}
-  style="display:flex;align-items:center;gap:12px;color:#3D3B2F;text-decoration:none;font:400 16px/1 'Open Sans',Arial,sans-serif"
+  style="display:flex;align-items:center;gap:12px;color:#3D3B2F;text-decoration:none;font:400 16px/1 var(--font-sans)"
 >
   <Icon name={icon} size={size} />
   <slot />
