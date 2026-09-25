@@ -2,6 +2,15 @@ import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
 import react from '@astrojs/react';
 
+const configuredSite = process.env.PUBLIC_SITE_URL?.trim() || 'http://localhost:4321';
+let site = 'http://localhost:4321';
+
+try {
+  site = new URL(configuredSite).toString();
+} catch {
+  console.warn(`[config] Ignoring invalid PUBLIC_SITE_URL: ${JSON.stringify(configuredSite)}`);
+}
+
 /**
  * Satu app: Astro SSR (adapter Node standalone) + React untuk panel admin.
  *
@@ -12,7 +21,7 @@ import react from '@astrojs/react';
  *   ikut disajikan oleh server standalone).
  */
 export default defineConfig({
-  site: process.env.PUBLIC_SITE_URL || 'http://localhost:4321',
+  site,
   output: 'server',
   adapter: node({ mode: 'standalone' }),
   integrations: [react()],
