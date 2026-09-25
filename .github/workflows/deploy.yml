@@ -1,7 +1,7 @@
-name: Deploy ke cPanel
+name: Build check
 
-# Jalan otomatis tiap push ke main, atau saat tombol "Deploy ulang" di panel admin
-# (repository_dispatch type "publish"), atau manual dari tab Actions.
+# Deployment dijalankan oleh cron cPanel karena akun hosting tidak memiliki shell/SSH.
+# Workflow ini memastikan commit di main tetap dapat dibangun sebelum cron mengambilnya.
 on:
   push:
     branches: [main]
@@ -13,11 +13,11 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-cpanel
+  group: build-main
   cancel-in-progress: false
 
 jobs:
-  build-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,42 +33,3 @@ jobs:
         run: npm run build
         env:
           PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
-
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          cat > ~/.ssh/config <<EOF
-          Host cpanel
-            HostName ${{ secrets.SSH_HOST }}
-            User ${{ secrets.SSH_USER }}
-            Port ${{ secrets.SSH_PORT || 22 }}
-            IdentityFile ~/.ssh/deploy_key
-            IdentitiesOnly yes
-            StrictHostKeyChecking accept-new
-            PubkeyAcceptedKeyTypes +ssh-rsa
-            HostKeyAlgorithms +ssh-rsa
-          EOF
-
-      - name: Rsync build output ke server
-        run: |
-          DEST="cpanel:${{ secrets.DEPLOY_PATH }}"
-          # dist/ diganti penuh (--delete); file lain disalin/di-update saja
-          rsync -az --delete -e ssh dist "$DEST/"
-          rsync -az           -e ssh \
-            app.mjs package.json package-lock.json \
-            db scripts src/data/products.generated.json \
-            "$DEST/"
-
-      - name: Install deps + restart Passenger
-        run: |
-          ssh cpanel bash -lc '
-              set -e
-              cd "${{ secrets.DEPLOY_PATH }}"
-              VENV=$(ls -d "$HOME"/nodevenv/*/[0-9]*/bin/activate 2>/dev/null | head -1)
-              [ -n "$VENV" ] && source "$VENV" || true
-              npm ci --omit=dev
-              mkdir -p tmp && touch tmp/restart.txt
-              echo "Deploy OK: $(date)  node=$(node -v)"
-            '

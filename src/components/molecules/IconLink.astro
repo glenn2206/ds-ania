@@ -10,13 +10,17 @@ interface Props {
   href?: string;
   size?: number;
   class?: string;
+  target?: string;
+  rel?: string;
 }
-const { icon, href = '#', size = 16, class: extra = '' } = Astro.props;
+const { icon, href = '#', size = 16, class: extra = '', target, rel } = Astro.props;
 ---
 
 <a
   class={extra}
   href={href}
+  target={target}
+  rel={rel}
   style="display:flex;align-items:center;gap:12px;color:#3D3B2F;text-decoration:none;font:400 16px/1 var(--font-sans)"
 >
   <Icon name={icon} size={size} />

@@ -38,7 +38,7 @@ else if (qsOcc) activeFilter = { group: 'occasion', value: qsOcc.slice(0, 40) };
 else if (qsFlw) activeFilter = { group: 'flower', value: qsFlw.slice(0, 40) };
 
 const titleCase = (s: string) => s.replace(/\b\w/g, (m) => m.toUpperCase());
-let title = 'All Products';
+let title = 'More Explore';
 if (addonMode) title = 'Add On Extras';
 else if (activeFilter.group === 'category') title = CAT_LABEL[activeFilter.value] ?? title;
 else if (activeFilter.group === 'occasion') title = `${titleCase(activeFilter.value)} Flowers`;

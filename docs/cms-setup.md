@@ -2,13 +2,14 @@
 
 Arsitektur: **satu aplikasi** Astro `output: 'server'` (adapter Node standalone) +
 panel admin React + PostgreSQL/MySQL. Tidak ada app kedua, tidak ada tombol
-"Publish/rebuild" untuk konten — perubahan produk **live dari DB**. GitHub Actions
-mem-build & deploy **kode** otomatis tiap `git push`.
+"Publish/rebuild" untuk konten — perubahan produk **live dari DB**. cPanel mengecek
+branch `main`, lalu mem-build dan men-deploy **kode** otomatis setelah `git push`.
 
 ```
 cPanel (~ = /home/CPUSER)
   public_html/                     PRODUCTION LAMA — JANGAN disentuh
-  ~/ania-app/                      aplikasi (di-deploy GitHub Actions)   →  Node.js App
+  ~/ania-app/                      aplikasi live                         →  Node.js App
+  ~/ania-repo/                     shallow clone GitHub untuk auto-deploy
   ~/ania-uploads/                  foto produk (di LUAR ~/ania-app, tahan deploy ulang)
   subdomain  dev.NAMADOMAIN   →   Node.js App di ~/ania-app
   database   CPUSER_ania_dev       PostgreSQL atau MySQL
@@ -18,7 +19,7 @@ cPanel (~ = /home/CPUSER)
 > Semua di sini **DEV**. Untuk production nanti: ulangi dengan subdomain / DB / folder
 > lain, tetap **bukan** `public_html`.
 
-Prasyarat: **Setup Node.js App** (Node 18/20), **SSH**, akses buat **PostgreSQL** atau
+Prasyarat: **Setup Node.js App** (Node 18/20), **Cron Jobs**, akses buat **PostgreSQL** atau
 **MySQL** database. Repo sudah di GitHub.
 
 ---
@@ -77,35 +78,32 @@ Di bagian **Environment variables** app ini, tambahkan:
 | `GITHUB_REPO` | `owner/nama-repo` *(opsional — tombol "Deploy ulang" di admin)* |
 | `GITHUB_DEPLOY_TOKEN` | PAT `contents:write` *(opsional)* |
 
-## 5. SSH key untuk GitHub Actions
+## 5. Auto-deploy tanpa SSH
 
-Di komputermu / Cloud Shell:
+Akun hosting saat ini tidak memiliki shell access. Karena itu deployment memakai Cron
+Jobs cPanel, bukan SSH GitHub Actions. Cron melakukan shallow clone ke `~/ania-repo`,
+mengecek commit `main`, lalu menjalankan `scripts/cpanel-deploy.sh` hanya ketika SHA
+berubah. Output disimpan di `~/tmp/ania-deploy.log`.
+
+Pilih **Once Per Five Minutes** dan gunakan command berikut:
+
 ```bash
-ssh-keygen -t ed25519 -f ania_deploy -N ""      # hasil: ania_deploy (private) + ania_deploy.pub
+/usr/bin/flock -n /home/myaniaco/tmp/ania-deploy.lock /bin/bash -lc 'set -e; R=/home/myaniaco/ania-repo; A=/home/myaniaco/ania-app; G=/usr/local/cpanel/3rdparty/bin/git; if [ ! -d "$R/.git" ]; then "$G" clone --depth=1 --branch main https://github.com/glenn2206/ds-ania.git "$R"; fi; "$G" -C "$R" fetch --depth=1 origin main; SHA=$("$G" -C "$R" rev-parse origin/main); if [ ! -f "$A/.deployed-sha" ]; then echo "$SHA" > "$A/.deployed-sha"; exit 0; fi; [ "$SHA" != "$(cat "$A/.deployed-sha")" ] || exit 0; "$G" -C "$R" checkout -B main origin/main; APP_DIR="$A" REPO_DIR="$R" PUBLIC_SITE_URL=https://conscientious-rose-beaver.180-235-151-42.cpanel.site /bin/bash "$R/scripts/cpanel-deploy.sh" "$SHA"' >> /home/myaniaco/tmp/ania-deploy.log 2>&1
 ```
-- **cPanel → SSH Access → Manage SSH Keys → Import** → tempel isi `ania_deploy.pub` →
-  **Manage → Authorize**.
-- **GitHub repo → Settings → Secrets and variables → Actions → New repository secret:**
 
-  | Secret | Nilai |
-  |---|---|
-  | `SSH_HOST` | host cPanel (mis. `server123.host.com` atau IP) |
-  | `SSH_USER` | `CPUSER` |
-  | `SSH_PORT` | port SSH (sering `22` atau custom) |
-  | `SSH_PRIVATE_KEY` | isi file `ania_deploy` (lengkap, termasuk baris BEGIN/END) |
-  | `DEPLOY_PATH` | `/home/CPUSER/ania-app` |
-  | `PUBLIC_SITE_URL` | `https://dev.NAMADOMAIN` |
+Eksekusi pertama hanya membuat shallow clone dan mencatat SHA saat ini. Ini mencegah
+kode live tertimpa commit lama sebelum perubahan lokal terbaru dipush.
 
-## 6. Deploy pertama
+GitHub Actions tetap menjalankan `npm ci` dan `npm run build` sebagai build check.
+
+## 6. Deploy berikutnya
 
 ```bash
 git push origin main
 ```
-Tab **Actions** → workflow **Deploy ke cPanel** jalan: `npm ci` → `npm run build` →
-rsync ke `~/ania-app` → `npm ci --omit=dev` di server → `touch tmp/restart.txt`.
-
-*(Kalau mau manual dulu: SSH → `cd ~ && git clone <repo> ania-app && cd ania-app &&
-source ~/nodevenv/ania-app/20/bin/activate && npm ci && npm run build`.)*
+Workflow **Build check** memvalidasi build. Dalam maksimal lima menit, cron cPanel
+mengambil commit baru, menjalankan build, mengganti `dist` secara atomik, memasang
+production dependencies, lalu me-restart Passenger lewat `tmp/restart.txt`.
 
 ## 7. Tabel + data awal (SSH, sekali)
 
@@ -132,7 +130,7 @@ Xendit Dashboard → **Settings → Webhooks**:
    tanpa deploy.
 4. `/cart` → checkout uji → invoice Xendit → bayar (mode test) → `/order/<code>` jadi
    "Lunas", stok berkurang, order muncul di `/admin/orders`.
-5. Ubah kode lalu `git push` → Actions deploy → app restart otomatis.
+5. Ubah kode lalu `git push` → build check → cron deploy → app restart otomatis.
 
 ## 10. Pagar aman production
 

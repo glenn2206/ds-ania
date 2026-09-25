@@ -1,12 +1,15 @@
 ---
 /**
  * TEMPLATE · FlowerStory — About "A Flower for every Story".
- * Teks kiri + 2 gambar kanan yang berganti otomatis (fade/swap pasangan).
- * TANPA pagination angka — cuma panah ‹ › + auto-cycle. Pause saat hover.
+ * Teks kiri + baris pasangan gambar kanan — geser/drag native (initHScroll,
+ * sama persis logic-nya kayak OccasionRow), tanpa tombol panah.
  * Tiap pasangan → link ke post IG terkait (fallback: profil IG).
  */
 import Icon from '../atoms/Icon.astro';
 import { flowerStory as s } from '../../data/about';
+
+// digandakan 2× → loop mulus (lihat lib/hscroll.ts)
+const loop = [...s.slides, ...s.slides];
 ---
 
 <section class="abt-story">
@@ -16,19 +19,18 @@ import { flowerStory as s } from '../../data/about';
       <p class="abt-story__body">{s.body}</p>
     </div>
 
-    <div class="abt-story__slides" data-story>
+    <div class="abt-story__slides" data-story-row>
       {
-        s.slides.map((pair, i) => (
+        loop.map((pair, i) => (
           <a
             class="abt-story__pair"
-            data-story-pair
-            hidden={i !== 0}
+            aria-hidden={i >= s.slides.length ? 'true' : undefined}
             href={pair[2] ?? s.instagramUrl}
             target="_blank"
             rel="noopener"
             aria-label="Lihat di Instagram"
           >
-            <img src={pair[0]} alt="" loading="lazy" decoding="async" />
+            <img src={pair[0]} alt="" loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
             <span class="abt-story__pairimg">
               <img src={pair[1]} alt="" loading="lazy" decoding="async" />
               <span class="abt-story__fade" />
@@ -36,8 +38,6 @@ import { flowerStory as s } from '../../data/about';
           </a>
         ))
       }
-      <button class="abt-story__arw abt-story__arw--prev" type="button" data-story-prev aria-label="Sebelumnya">&#8249;</button>
-      <button class="abt-story__arw abt-story__arw--next" type="button" data-story-next aria-label="Berikutnya">&#8250;</button>
     </div>
   </div>
 
@@ -78,14 +78,26 @@ import { flowerStory as s } from '../../data/about';
     color: #1e2934;
   }
 
-  .abt-story__slides { position: relative; }
+  .abt-story__slides {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    cursor: grab;
+    scroll-behavior: auto;
+  }
+  .abt-story__slides::-webkit-scrollbar { display: none; }
+  .abt-story__slides.is-dragging { cursor: grabbing; user-select: none; }
+  .abt-story__slides.is-dragging a { pointer-events: none; }
   .abt-story__pair {
+    flex: 0 0 100%;
+    min-width: 0;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     text-decoration: none;
   }
-  .abt-story__pair[hidden] { display: none; }
   .abt-story__pair img {
     width: 100%;
     aspect-ratio: 459 / 474;
@@ -102,27 +114,6 @@ import { flowerStory as s } from '../../data/about';
     pointer-events: none;
     background: linear-gradient(90deg, rgba(246, 235, 227, 0) 0%, var(--field) 100%);
   }
-
-  .abt-story__arw {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 2;
-    width: 30px;
-    height: 30px;
-    border: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.7);
-    color: #525252;
-    font: 400 18px/1 var(--font-sans);
-    display: grid;
-    place-items: center;
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
-  .abt-story__arw:hover { background: #fff; }
-  .abt-story__arw--prev { left: -6px; }
-  .abt-story__arw--next { right: -6px; }
 
   .abt-story__foot {
     display: flex;
@@ -148,37 +139,9 @@ import { flowerStory as s } from '../../data/about';
 </style>
 
 <script>
-  const AUTO_MS = 5000;
-  const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  import { initHScroll } from '../../lib/hscroll';
 
-  document.querySelectorAll<HTMLElement>('[data-story]').forEach((root) => {
-    const pairs = Array.from(root.querySelectorAll<HTMLElement>('[data-story-pair]'));
-    if (pairs.length < 2) return;
-    const total = pairs.length;
-    let page = 0;
-
-    const show = () => pairs.forEach((p, i) => (p.hidden = i !== page));
-    const go = (d: number) => { page = (page + d + total) % total; show(); };
-
-    let timer = 0;
-    const stop = () => { window.clearInterval(timer); timer = 0; };
-    const start = () => {
-      stop();
-      if (REDUCE || document.hidden) return;
-      timer = window.setInterval(() => go(1), AUTO_MS);
-    };
-    const bump = () => { stop(); window.setTimeout(start, 2000); };
-
-    root.querySelector('[data-story-prev]')?.addEventListener('click', (e) => { e.preventDefault(); go(-1); bump(); });
-    root.querySelector('[data-story-next]')?.addEventListener('click', (e) => { e.preventDefault(); go(1); bump(); });
-
-    root.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch') stop(); });
-    root.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') start(); });
-    root.addEventListener('focusin', stop);
-    root.addEventListener('focusout', start);
-    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
-
-    show();
-    start();
+  document.querySelectorAll<HTMLElement>('[data-story-row]').forEach((row) => {
+    initHScroll(row);
   });
 </script>

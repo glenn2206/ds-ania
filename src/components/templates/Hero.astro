@@ -19,10 +19,10 @@ const {
   title = 'Looking for the Perfect Flowers Today?',
   titleItalic = 'We’ve Got You.',
   checklist = [
-    'Handcrafted by Florists',
-    'Professionally arranged for 10+ years',
-    'Easy online ordering system',
     'Same-Day Flower Delivery',
+    'Individually Crafted by Professional Florists',
+    'More than 10 years Floral Design Experience',
+    'Order Flowers Online Easily',
   ],
   slides = ['/assets/hero-bouquet-on-table.jpg'],
 } = Astro.props;
@@ -46,11 +46,11 @@ const {
       {title}<br /><span class="type-h1 type--italic">{titleItalic}</span>
     </h2>
     <ul class="hero__list type-p1">
-      {checklist.map((c) => <li>&#10003; {c}</li>)}
+      {checklist.map((c) => <li><span class="hero__check" aria-hidden="true">&#10003;</span><span>{c}</span></li>)}
     </ul>
     <div class="hero__cta">
-      <Button href="/shop">shop flowers</Button>
-      <Button variant="secondary" href="/contact">let’s talk flowers</Button>
+      <Button href="/shop">Shop Now</Button>
+      <Button variant="secondary" href="/contact">Contact Us</Button>
     </div>
   </div>
 

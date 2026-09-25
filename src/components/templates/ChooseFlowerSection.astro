@@ -49,9 +49,6 @@ const base = chooseTabs.flatMap((tab) => chooseTiles[tab].slice(0, 3).map((t) =>
           <span class="choose__tileimg" style={`background-image:url(${t.image})`} />
           <span class="choose__tilelabel">
             <span>{t.label}</span>
-            <svg class="choose__tilechev" viewBox="0 0 8 15" fill="none" aria-hidden="true">
-              <path d="M1 1l6 6.5L1 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
           </span>
         </a>
       ))

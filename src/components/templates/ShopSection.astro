@@ -36,11 +36,10 @@ const searchText = (c: CatalogItem) =>
   data-active-category={activeCategory}
   data-active-filter={activeFilter ? JSON.stringify(activeFilter) : ''}
 >
-  {/* tombol buka (+) / tutup (×) sidebar — SATU ikon (+ di-rotate 45° jadi ×),
-      sejajar baris judul; posisi mengambang ikut lebar sidebar (lihat CSS) */}
+  {/* satu tombol panah untuk buka/tutup sidebar desktop */}
   <button type="button" class="shop__title-toggle" data-side-toggle aria-label="Toggle filters" aria-expanded="false">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M12 5v14M5 12h14" />
+      <path d="M9 5l6 7-6 7" />
     </svg>
   </button>
   <h1 class="type-h2 shop__title" data-shop-title>{title}</h1>
@@ -235,7 +234,7 @@ const searchText = (c: CatalogItem) =>
       animateIn(shown);
       // judul ikut kategori aktif
       if (filter.group === 'category' && filter.value) titleEl.textContent = CAT_LABEL[filter.value] || titleEl.textContent;
-      else if (filter.group === 'all') titleEl.textContent = 'All Products';
+      else if (filter.group === 'all') titleEl.textContent = 'More Explore';
     };
 
     // ---- sidebar: rail (collapsed) ↔ panel penuh (expanded, dorong grid 4→3 kolom) ----
@@ -243,7 +242,6 @@ const searchText = (c: CatalogItem) =>
 
     const focusGroup = (grp?: string) => {
       if (!grp) return;
-      root.querySelectorAll('.filtergrp[data-collapsible]').forEach((g) => g.classList.add('is-collapsed'));
       root
         .querySelector(`[data-filter][data-group="${grp}"]`)
         ?.closest('.filtergrp')
@@ -251,14 +249,18 @@ const searchText = (c: CatalogItem) =>
     };
     const expand = (grp?: string) => {
       root.classList.add('is-expanded');
-      toggleBtn?.setAttribute('aria-expanded', 'true');
+      root.querySelectorAll<HTMLElement>('[data-side-toggle], [data-filter-toggle]').forEach((button) =>
+        button.setAttribute('aria-expanded', 'true'),
+      );
       // mobile: popup full-screen → kunci scroll halaman di belakangnya
       if (window.innerWidth <= 900) document.documentElement.style.overflow = 'hidden';
       focusGroup(grp);
     };
     const collapse = () => {
       root.classList.remove('is-expanded');
-      toggleBtn?.setAttribute('aria-expanded', 'false');
+      root.querySelectorAll<HTMLElement>('[data-side-toggle], [data-filter-toggle]').forEach((button) =>
+        button.setAttribute('aria-expanded', 'false'),
+      );
       document.documentElement.style.overflow = '';
     };
     const toggleSide = () => (root.classList.contains('is-expanded') ? collapse() : expand());

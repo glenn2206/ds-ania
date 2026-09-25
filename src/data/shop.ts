@@ -33,10 +33,9 @@ export interface FilterGroupData {
 }
 
 export const filters: FilterGroupData[] = [
-  { title: 'All Products', group: 'all' }, // ini harusnya ukuran 24 px
-  { title: 'Sale', group: 'sale' },
+  { title: 'More Explore', group: 'all' },
   {
-    title: 'Category',
+    title: 'By Category',
     group: 'category',
     collapsible: true,
     active: 'Premium Wrapped Bloom',
@@ -50,7 +49,7 @@ export const filters: FilterGroupData[] = [
     ],
   },
   {
-    title: 'For Occassions',
+    title: 'By Occasion',
     group: 'occasion',
     collapsible: true,
     items: [
@@ -69,7 +68,7 @@ export const filters: FilterGroupData[] = [
     ],
   },
   {
-    title: 'Flowers',
+    title: 'By Flowers',
     group: 'flower',
     collapsible: true,
     items: ['Rose', 'Carnation', 'Daisy', 'Hydrangea', 'Chrysanthemum', 'Sunflower', 'Orchid', 'Tulip', 'Lisianthus', 'Peony'],
@@ -80,4 +79,5 @@ export const filters: FilterGroupData[] = [
     collapsible: true,
     items: ['Cake', 'Plush Doll', 'Chocolate', 'Balloon', 'Fairy Lights', 'Special Greeting Cards'],
   },
+  { title: 'Sale', group: 'sale' },
 ];

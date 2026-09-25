@@ -6,22 +6,27 @@
 import Button from '../atoms/Button.astro';
 import Icon from '../atoms/Icon.astro';
 import IconLink from '../molecules/IconLink.astro';
+import { flowerStory } from '../../data/about';
 
+// samain persis sama filter /shop (lihat src/pages/shop.astro: ?cat=<slug> / ?filter=addon)
+// — 6 kategori + Add On, klik langsung ke shop yang sudah kefilter (bukan cuma /shop polos)
 const shop = [
   { label: 'All Products', href: '/shop' },
-  { label: 'Preserved Flower', href: '/shop' },
-  { label: 'Bloom Box & Basket', href: '/shop' },
-  { label: 'Premium Wrapped Bloom', href: '/shop' },
-  { label: 'Vase Arrangement', href: '/shop' },
-  { label: 'Standing Flower & Flower Board', href: '/shop' },
-  { label: 'Accessories', href: '/shop' },
+  { label: 'Preserved Flower', href: '/shop?cat=preserved' },
+  { label: 'Bloom Box & Basket', href: '/shop?cat=bloom-box' },
+  { label: 'Premium Wrapped Bloom', href: '/shop?cat=premium-wrapped' },
+  { label: 'Vase Arrangement', href: '/shop?cat=vase' },
+  { label: 'Standing Flower & Flower Board', href: '/shop?cat=standing' },
+  { label: 'Accessories', href: '/shop?cat=accessory' },
+  { label: 'Add On', href: '/shop?filter=addon' },
 ];
 const resources = [
   { label: 'Terms and Conditions', href: '/terms' },
   { label: 'Frequently Asked Questions', href: '/faq' },
-  { label: 'How to Order', href: '/faq' },
 ];
 const pay = ['visa', 'jcb', 'mastercard', 'googlepay', 'paypal'];
+// sumber sama dengan /about (flowerStory.socials) — satu tempat buat update link sosial media
+const social = flowerStory.socials;
 ---
 
 <footer class="ftr">
@@ -38,9 +43,11 @@ const pay = ['visa', 'jcb', 'mastercard', 'googlepay', 'paypal'];
       <Icon name="ania-logo" class="logo" alt="ANIA Flower Boutique" width={132} height={93} style="width:132px;height:auto;align-self:center;" />
       <span class="tag">Let Flowers Speak for You</span>
       <div class="ftr__social">
-        <IconLink icon="instagram">Instagram</IconLink>
-        <IconLink icon="facebook">Facebook</IconLink>
-        <IconLink icon="tiktok">TikTok</IconLink>
+        {social.map((s) => (
+          <IconLink icon={s.icon} href={s.href} target={s.href !== '#' ? '_blank' : undefined} rel={s.href !== '#' ? 'noopener noreferrer' : undefined}>
+            {s.label}
+          </IconLink>
+        ))}
       </div>
     </div>
 

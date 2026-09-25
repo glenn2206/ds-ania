@@ -1,12 +1,10 @@
 ---
 /**
- * ORGANISME · WhyAniaCard — MEMANGGIL atom Icon. 330×260, 2 varian bg.
+ * ORGANISME · WhyAniaCard — 330×220, 2 varian bg.
  * `petals` (1–4) = jumlah kelopak hiasan di pojok kiri-atas — membentuk bunga
  * bertahap (index.html: kartu 1 = 1 kelopak, kartu 4 = bunga penuh).
  * <WhyAniaCard icon="heart" title="…" body="…" petals={1} mutedBody />
  */
-import Icon from '../atoms/Icon.astro';
-
 interface Props {
   icon: string;
   title: string;
@@ -28,7 +26,6 @@ const shown = QUAD.slice(0, Math.max(1, Math.min(petals, 4)));
       <img class={`whycard__petal whycard__petal--${q}`} src="/assets-svg/30_step-by-step-lfower.svg" alt="" />
     ))}
   </span>
-  <Icon name={icon} class="whycard__ico" size={42} alt={title} />
   <div class="whycard__tx">
     <div class="whycard__tt">{title}</div>
     <div class={['whycard__bd', mutedBody && 'whycard__bd--muted'].filter(Boolean).join(' ')}>

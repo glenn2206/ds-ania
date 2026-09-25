@@ -58,7 +58,7 @@
 
    Baca gini: "Nx di something.html" = berapa kali warna/font itu
    literally muncul di file Figma export. "dipakai Nx di kode kita" /
-   "BELUM DIPAKAI" = hasil scan src/**/*.astro + global.css saat blok
+   "BELUM DIPAKAI" = hasil scan semua file .astro (src/components, src/pages) + global.css saat blok
    ini digenerate (lihat juga /design-audit untuk versi live/realtime).
 
    Warna icon brand pembayaran (Visa/Mastercard/GPay/PayPal) & WhatsApp
@@ -371,8 +371,8 @@
   .mini--occ:hover,.mini--occ:focus-within{background:#F4F2F0}
   .mini--panel{width:472px;max-width:100%;gap:24px;padding:24px;border-radius:var(--radius);border-color:#BBCCBF}
   .mini--order{width:473px;max-width:100%;gap:12px;padding:24px;border-radius:var(--radius);border-color:#BBCCBF;align-items:center;text-align:center}
-  /* why-ania card — organisme: 330×260, 2 varian bg (transparan / #F6EBE3) */
-  .whycard{position:relative;width:330px;max-width:100%;height:260px;border-radius:6px;border:1px solid var(--sand);
+  /* why-ania card — organisme: 330×220, 2 varian bg (transparan / #F6EBE3) */
+  .whycard{position:relative;width:330px;max-width:100%;height:220px;border-radius:6px;border:1px solid var(--sand);
     padding:24px 27px;display:flex;flex-direction:column;background:transparent;
     transition:background .18s ease,border-color .18s ease,box-shadow .18s ease}
   /* semua kartu SAMA secara default — bg #F4F2F0 cuma muncul pas hover/focus, bukan permanen di 1 kartu */
@@ -385,8 +385,8 @@
   .whycard__petal--tr{top:0;right:0;transform:scaleX(-1)}
   .whycard__petal--bl{left:0;bottom:0;transform:scaleY(-1)}
   .whycard__petal--br{right:0;bottom:0;transform:scale(-1,-1)}
-  .whycard__ico{width:42px;height:42px;margin-top:52px}
-  .whycard__tx{margin-top:auto}
+  .whycard__ico{display:none}
+  .whycard__tx{margin-top:68px}
   .whycard__tt{font:600 24px/1.15 var(--font-display);color:#3D3B2F;margin:0 0 6px}
   .whycard__bd{font:400 14px/1.45 var(--font-sans);color:#3D3B2F}
   .whycard__bd--muted{color:#6D6D6D}   /* distandarkan: dulu #6E6B60 (selisih tipis) → #6D6D6D, warna abu-teks paling umum di something.html (52x) */
@@ -406,7 +406,8 @@
     display:flex;flex-direction:column;align-items:flex-start}
   .hero__title{margin:0;line-height:66px}      /* index: judul-box 30px di bawah eyebrow */
   .hero__list{margin:20px 0 0;padding:0;list-style:none;line-height:24px}   /* index: y248, 20px setelah judul */
-  .hero__list li{display:flex;gap:8px}
+  .hero__list li{display:flex;gap:8px;align-items:flex-start}
+  .hero__check{font-weight:800;color:var(--olive-ink);line-height:24px}
   .hero__cta{margin:20px 0 0;display:flex;gap:16px;flex-wrap:wrap}          /* Figma: tombol ke-2 @ left:143, gap 16 */
   .hero__progress{position:absolute;left:64px;right:64px;bottom:66px;z-index:1}  /* index: left:64 top:749/817 */
   .hero__progress .cmp-progress{width:100%;max-width:none}
@@ -428,17 +429,17 @@
   @media (max-width:1080px){ .pgrid__row{grid-template-columns:repeat(2,minmax(0,1fr));max-width:700px;gap:28px 22px} }
   /* @media (max-width:560px){ .pgrid__row{grid-template-columns:1fr;max-width:360px} } */
   /* choose-your-flower section — Figma something.html: heading + tab teks polos + 3 tile besar */
-  .choose{padding:var(--sec-y) var(--gutter)}
+  .choose{padding:var(--sec-y) var(--gutter);background:linear-gradient(180deg,#F4F2F0 0%,#FEFFFF 100%)}
   .choose__head{max-width:760px;margin:0 auto;text-align:center;
     font:500 32px/1.25 var(--font-display);color:#1E2934}
-  .choose__tabs{display:flex;justify-content:center;gap:56px;margin:72px 0 0;}
+  .choose__tabs{display:flex;justify-content:center;gap:48px;margin:46px 0 0;}
   .choose__tab{border:0;background:transparent;cursor:pointer;padding:0 4px 16px;position:relative;
-    font:400 32px/1 var(--font-display);color:#8E8E93;transition:color .15s ease;width: 221px;}
+    font:400 24px/1 var(--font-display);color:#8E8E93;transition:color .15s ease;width: 180px;}
   .choose__tab:hover{color:#5b5b60}   /* BEDA BANGET dari #6D6D6D (abu-teks standar) — selisih ~27 poin, cukup kelihatan.
      Hover state, Figma statis nggak punya referensi. SARAN: kalau nggak ada alasan khusus, ganti ke #6D6D6D biar konsisten. */
   .choose__tab--on{color:#1E2934}
   .choose__tab--on::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);
-    width:221px;max-width:100%;height:2px;background:#525252}
+    width:180px;max-width:100%;height:2px;background:#525252}
   .choose__row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:37px;margin:40px 0 0}
   .choose__tile{display:flex;flex-direction:column;gap:14px;text-decoration:none;color:inherit}
   .choose__tile[hidden]{display:none}
@@ -450,8 +451,8 @@
     transition:transform .18s ease,box-shadow .18s ease}
   .choose__tile:hover .choose__tileimg{transform:translateY(-3px);box-shadow:0 16px 34px -18px rgba(60,50,20,.4)}
   .choose__tilelabel{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px;
-    font:400 24px/1.1 var(--font-serif);color:#525252}
-  .choose__tilechev{width:8px;height:15px;flex:none;color:#525252}
+    font:400 24px/1.1 var(--font-serif);color:#525252;transition:color .15s ease}
+  .choose__tile:hover .choose__tilelabel{color:var(--olive-ink)}
   .choose__foot{display:flex;justify-content:center;margin:44px 0 0}
   .choose__foot .cmp-btn-primary{font-size:14px}
 
@@ -535,7 +536,9 @@
   .ftr__col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
   .ftr__col li{font:400 15px/1.2 var(--font-sans);color:#3D3B2F} /* Figma 14.79 */
   .ftr__pay{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;justify-content:flex-end;flex:1 1 220px} /* index: pojok kanan-atas */
-  .ftr__pay img{height:20px;width:auto;background:#fff;border:1px solid #D9D9D9;border-radius:3px;padding:5px 7px;box-sizing:content-box}
+  /* SVG icon pembayaran sudah punya kotak+border sendiri di dalamnya (rect stroke #D9D9D9) —
+     jangan tambah border/padding CSS lagi di sini, nanti dobel (baru dilaporkan user). */
+  .ftr__pay img{height:28px;width:auto}
   .ftr__copy{padding:18px var(--gutter);border-top:1px solid var(--sand);
     font:400 13px/1 var(--font-serif);color:#3D3B2F}            /* index 12.94, © ANIA Boutique Flower */
 
@@ -551,7 +554,7 @@
   /* jarak napas sebelum footer */
   /* .home > :last-child, */
   .shoppage > :last-child,
-  .contactpage > :last-child,
+  /* .contactpage > :last-child, */
   .occasionpage > :last-child,
   .aboutpage > :last-child,
   .faqpage > :last-child,
@@ -633,7 +636,7 @@
   /* CHOOSE FLOWER */
   .choose__head { font-size: 24px; }
   .choose__tabs { gap: 22px; margin-top: 72px; }
-  .choose__tab { font-size: 22px; padding-bottom: 10px; }
+  .choose__tab { width: 120px; font-size: 22px; padding-bottom: 10px; }
   .choose__tab--on::after { width: 120px; }
   .choose__row { grid-template-columns: 1fr; gap: 22px; margin-top: 28px; }
   .choose__tilelabel { font-size: 20px; }
@@ -698,7 +701,7 @@
 .cmp-pagenav__next a {
   display: flex; align-items: center; justify-content: center;
   min-width: 60px; padding: 11px 10px 15px;    /* Figma something.html: kolom nomor 60px */
-  font: 400 10px/1 var(--font-sans);  /* Figma: nomor 10px */
+  font: 400 13px/1 var(--font-sans);
   color: rgba(109, 109, 109, 0.5);
   text-decoration: none;
   border-radius: 8px 8px 0 0;
@@ -723,7 +726,7 @@
 .cmp-pagenav__gap {
   display: flex; align-items: center; justify-content: center;
   min-width: 60px; padding: 11px 4px 15px;
-  font: 400 10px/1 var(--font-sans);
+  font: 400 13px/1 var(--font-sans);
   color: rgba(109, 109, 109, 0.5);
   pointer-events: none;
 }
@@ -734,6 +737,14 @@
 
 /* --- Shop layout --- */
 .shop { position: relative; width: 100%; padding: var(--sec-y) var(--gutter); }
+.shop::before {
+  content: "";
+  position: absolute; z-index: 0;
+  left: 0; top: 0; bottom: 0; width: 56px;
+  background: #F4F2F0;
+  box-shadow: 7px 4px 40px 5px rgba(0, 0, 0, 0.05);
+}
+.shop.is-expanded::before { display: none; }
 .shop__title {
   display: block; text-align: center; margin: 0 0 40px;
   color: #1E2934;   /* Figma something.html: judul kategori shop #1E2934 */
@@ -806,20 +817,17 @@
   z-index: 5;
   min-width: 0;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.5);
+  background: #F4F2F0;
   box-shadow: 7px 4px 40px 5px rgba(0, 0, 0, 0.05);
   transition: width 0.34s cubic-bezier(0.33, 1, 0.68, 1), background 0.3s ease, box-shadow 0.3s ease;
 }
 .shop.is-expanded .shop__side { width: 280px; height: auto; background: #fff; box-shadow: none; overflow: visible; }
 
-/* tombol buka (+) / tutup (×) — SATU ikon (+ di-rotate 45° jadi ×), sejajar baris
-   judul. Collapsed: di tengah rail (56px, tepi kiri viewport). Expanded: geser
-   mengambang ke tepi kanan panel (264px), lebar & posisi ikut animasi sidebar. */
 .shop__title-toggle {
   position: absolute; z-index: 2;
-  left: 0; top: var(--sec-y);
-  width: 56px; height: 40px;
-  display: flex; align-items: center; justify-content: center;
+  left: 0; top: 0;
+  width: 56px; height: calc(var(--sec-y) + 80px); padding-top: var(--sec-y);
+  display: flex; align-items: flex-start; justify-content: center;
   border: 0; background: transparent; cursor: pointer; color: #6D6D6D;
   transition: color 0.15s ease, width 0.34s cubic-bezier(0.33, 1, 0.68, 1);
 }
@@ -829,18 +837,19 @@
 }
 .shop__title-toggle:hover { color: var(--olive); }
 .shop.is-expanded .shop__title-toggle {
-  width: 360px; justify-content: flex-end; padding-right: 20px;
+  top: var(--sec-y); width: 360px; height: 40px; padding: 0 20px 0 0;
+  align-items: center; justify-content: flex-end; background: transparent;
 }
-.shop.is-expanded .shop__title-toggle svg { transform: rotate(45deg); }
+.shop.is-expanded .shop__title-toggle svg { transform: rotate(180deg); }
 
-/* collapsed: rail ikon — tombol + sudah pindah ke baris judul, jadi rail mulai lebih atas */
+/* collapsed: rail ikon dimulai setelah satu-satunya tombol panah */
 .shop__rail {
-  display: flex; flex-direction: column; align-items: center; gap: 26px;
-  width: 56px; padding: 32px 0 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 24px;
+  width: 56px; min-height: 100%; padding: 28px 0 24px;
 }
 .shop.is-expanded .shop__rail { display: none; }
 .shop__railbtn {
-  display: grid; justify-content: center;
+  display: grid; place-items: center;
   width: 34px; height: 34px; padding: 0;
   border: 0; background: transparent; cursor: pointer; color: #3D3B2F;
   transition: color 0.15s ease;
@@ -928,6 +937,7 @@
   .shop__grid .pcard__media { height: auto; aspect-ratio: 320 / 406; }
   .shop__toolbar { justify-content: space-between; }
 
+  .shop::before { display: none; }
   .shop__title-toggle { display: none; }               /* diganti bar "FILTER" di bawah judul */
   .shop__mobile-filterbtn {
     display: block; width: 100%; margin: 16px 0; padding: 16px 0;

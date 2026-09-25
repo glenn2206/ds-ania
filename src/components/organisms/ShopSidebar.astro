@@ -36,19 +36,18 @@ const ICONS: Record<string, IconDef> = {
 };
 const iconFor = (g?: string) => ICONS[g ?? ''] ?? ICONS.all;
 
-/* pastikan "Sale" ada (Figma) — sisipkan setelah "All Products" */
+/* pastikan "Sale" ada — posisinya di bawah Add On */
 const withSale: FilterGroupData[] = groups.some((g) => g.group === 'sale')
   ? groups
   : (() => {
       const out = [...groups];
-      const i = out.findIndex((g) => g.group === 'all');
-      out.splice(i >= 0 ? i + 1 : 0, 0, { title: 'Sale', group: 'sale' });
+      out.push({ title: 'Sale', group: 'sale' });
       return out;
     })();
 ---
 
 <aside class="shop__side" aria-label="Product filters">
-  {/* --- collapsed: rail ikon --- */}
+  {/* collapsed: ikon grup tetap tersedia; panah buka/tutup hanya satu di ShopSection */}
   <div class="shop__rail">
     {
       withSale.map((g) => (
@@ -77,6 +76,6 @@ const withSale: FilterGroupData[] = groups.some((g) => g.group === 'sale')
 
   {/* --- expanded: panel penuh (tombol tutup ada di baris judul — lihat ShopSection.astro) --- */}
   <div class="shop__side-panel">
-    {withSale.map((g) => <FilterGroup {...g} icon={iconFor(g.group).html} iconViewBox={iconFor(g.group).viewBox} />)}
+    {withSale.map((g) => <FilterGroup {...g} collapsible={false} icon={iconFor(g.group).html} iconViewBox={iconFor(g.group).viewBox} />)}
   </div>
 </aside>
