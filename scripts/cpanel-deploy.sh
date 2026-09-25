@@ -8,7 +8,9 @@ NODE_ENV_DIR="${NODE_ENV_DIR:-/home/myaniaco/nodevenv/ania-app/20}"
 PUBLIC_SITE_URL="${PUBLIC_SITE_URL:-https://conscientious-rose-beaver.180-235-151-42.cpanel.site}"
 DEPLOY_SHA="${1:-$(git -C "$REPO_DIR" rev-parse HEAD)}"
 
+set +u
 source "$NODE_ENV_DIR/bin/activate"
+set -u
 
 cd "$REPO_DIR"
 npm ci
