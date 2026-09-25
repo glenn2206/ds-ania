@@ -6,17 +6,12 @@ APP_DIR="${APP_DIR:-/home/myaniaco/ania-app}"
 REPO_DIR="${REPO_DIR:-/home/myaniaco/ania-repo}"
 NODE_ENV_DIR="${NODE_ENV_DIR:-/home/myaniaco/nodevenv/ania-app/20}"
 DEFAULT_SITE_URL="https://conscientious-rose-beaver.180-235-151-42.cpanel.site"
-DEPLOY_SITE_URL="${PUBLIC_SITE_URL:-$DEFAULT_SITE_URL}"
-case "$DEPLOY_SITE_URL" in
-  http://*|https://*) ;;
-  *) DEPLOY_SITE_URL="$DEFAULT_SITE_URL" ;;
-esac
 DEPLOY_SHA="${1:-$(git -C "$REPO_DIR" rev-parse HEAD)}"
 
 set +u
 source "$NODE_ENV_DIR/bin/activate"
 set -u
-export PUBLIC_SITE_URL="$DEPLOY_SITE_URL"
+export PUBLIC_SITE_URL="$DEFAULT_SITE_URL"
 
 cd "$REPO_DIR"
 npm ci
