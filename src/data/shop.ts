@@ -33,7 +33,7 @@ export interface FilterGroupData {
 }
 
 export const filters: FilterGroupData[] = [
-  { title: 'More Explore', group: 'all' },
+  { title: 'Explore', group: 'all' },
   {
     title: 'By Category',
     group: 'category',

@@ -1,7 +1,7 @@
 ---
 /**
  * ORGANISME · ShopSidebar — filter halaman Shop dengan 2 state:
- *  - collapsed → rail ikon tipis (56px) di tepi kiri
+ *  - collapsed → rail tipis dengan satu tombol panah di tepi kiri
  *  - expanded  → panel penuh (~264px): heading ikon+label + daftar item,
  *                dorong grid dari 4 → 3 kolom, ada garis pemisah vertikal.
  * <ShopSidebar groups={filters} />
@@ -46,35 +46,15 @@ const withSale: FilterGroupData[] = groups.some((g) => g.group === 'sale')
     })();
 ---
 
-<aside class="shop__side" aria-label="Product filters">
-  {/* collapsed: ikon grup tetap tersedia; panah buka/tutup hanya satu di ShopSection */}
-  <div class="shop__rail">
-    {
-      withSale.map((g) => (
-        <button type="button" class="shop__railbtn" data-rail-btn data-rail-group={g.group} aria-label={g.title}>
-          <svg
-            viewBox={iconFor(g.group).viewBox}
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-            set:html={iconFor(g.group).html}
-          />
-        </button>
-      ))
-    }
+<aside class="shop__side" aria-label="Product filters" aria-hidden="true" inert>
+  <div class="shop__side-head">
+    <h2>Refine Selection</h2>
+    <button type="button" class="shop__side-close" data-side-toggle aria-label="Close filters">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+        <path d="M6 6l12 12M18 6 6 18" />
+      </svg>
+    </button>
   </div>
-
-  {/* tombol tutup KHUSUS popup mobile (desktop pakai tombol di baris judul) */}
-  <button type="button" class="shop__mobile-close" data-side-toggle aria-label="Close filters">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M6 6l12 12M18 6 6 18" />
-    </svg>
-  </button>
-
-  {/* --- expanded: panel penuh (tombol tutup ada di baris judul — lihat ShopSection.astro) --- */}
   <div class="shop__side-panel">
     {withSale.map((g) => <FilterGroup {...g} collapsible={false} icon={iconFor(g.group).html} iconViewBox={iconFor(g.group).viewBox} />)}
   </div>

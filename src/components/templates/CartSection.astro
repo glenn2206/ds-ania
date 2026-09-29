@@ -47,18 +47,20 @@ const WA_NUMBER = '6281211091885';
       </div>
 
       <div class="cart__form" data-form hidden>
-        <label class="cart__field">
-          <span>Sender Name:</span>
-          <input type="text" name="senderName" placeholder="Full name" />
+        <label class="cart__field cart__field--floating">
+          <input id="cart-sender-name" type="text" name="senderName" placeholder="Full name" autocomplete="name" required />
+          <span>Sender Name</span>
         </label>
-        <label class="cart__field">
-          <span>Sender WhatsApp:</span>
-          <input type="tel" name="senderWa" placeholder="(+62) 81212349876" />
-        </label>
-        <label class="cart__field">
-          <span>Sender Email:</span>
-          <input type="email" name="senderEmail" placeholder="you@email.com" />
-        </label>
+        <div class="cart__formrow">
+          <label class="cart__field cart__field--floating">
+            <input id="cart-sender-wa" type="tel" name="senderWa" placeholder="(+62) 81212349876" autocomplete="tel" inputmode="tel" required />
+            <span>Sender WhatsApp</span>
+          </label>
+          <label class="cart__field cart__field--floating">
+            <input id="cart-sender-email" type="email" name="senderEmail" placeholder="you@email.com" autocomplete="email" inputmode="email" />
+            <span>Sender Email (Optional)</span>
+          </label>
+        </div>
       </div>
     </div>
 
@@ -140,6 +142,21 @@ const WA_NUMBER = '6281211091885';
     const addrInput = $<HTMLInputElement>('[data-addr]');
     const addrList = $('[data-addrlist]');
     const dateInput = $<HTMLInputElement>('[data-date]');
+    const contactInputs = Array.from(root.querySelectorAll<HTMLInputElement>('[data-form] input'));
+    const contactStorageKey = 'ania:checkout-contact';
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(contactStorageKey) || '{}');
+      contactInputs.forEach((input) => {
+        if (typeof saved[input.name] === 'string') input.value = saved[input.name];
+      });
+    } catch {}
+
+    const saveContactDraft = () => {
+      const values = Object.fromEntries(contactInputs.map((input) => [input.name, input.value.trim()]));
+      localStorage.setItem(contactStorageKey, JSON.stringify(values));
+    };
+    contactInputs.forEach((input) => input.addEventListener('input', saveContactDraft));
 
     // default tanggal = besok (waktu lokal)
     const t = new Date(); t.setDate(t.getDate() + 1);
@@ -276,7 +293,14 @@ const WA_NUMBER = '6281211091885';
       const wa = (root.querySelector('[name="senderWa"]') as HTMLInputElement).value.trim();
       const email = (root.querySelector('[name="senderEmail"]') as HTMLInputElement).value.trim();
       if (!dest.label) { note.hidden = false; note.textContent = 'Pilih alamat pengiriman dulu.'; return; }
-      if (!name || !wa) { note.hidden = false; note.textContent = 'Isi nama & WhatsApp pengirim.'; return; }
+      const invalidContact = contactInputs.find((input) => !input.checkValidity());
+      if (invalidContact || !name || !wa) {
+        note.hidden = false;
+        note.textContent = 'Lengkapi nama dan WhatsApp pengirim.';
+        invalidContact?.reportValidity();
+        invalidContact?.focus();
+        return;
+      }
       note.hidden = true;
 
       const chosen = rates[courierSel.selectedIndex >= 0 ? courierSel.selectedIndex : 0];
@@ -331,10 +355,13 @@ const WA_NUMBER = '6281211091885';
 <style>
   .cart { width: 100%; padding: var(--sec-y) var(--gutter); }
   .cart__grid {
-    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0;
+    display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(320px, 1fr); gap: 40px;
+    width: 100%; max-width: 1100px; margin: 0 auto; padding: 40px;
+    background: #fff; border: 1px solid var(--hair); border-radius: 4px;
+    box-shadow: 0 4px 20px rgba(61,59,47,.025);
   }
-  .cart__left { padding-right: 56px; border-right: 1px solid var(--sand); }
-  .cart__right { padding-left: 56px; }
+  .cart__left { min-width: 0; padding-right: 40px; border-right: 1px solid var(--hair); }
+  .cart__right { min-width: 0; }
 
   /* ---- items — Figma something.html: garis #BBCCBF (bukan --sand), teks 14px #6D6D6D ---- */
   .cart__items { list-style: none; margin: 0; padding: 0; }
@@ -401,18 +428,28 @@ const WA_NUMBER = '6281211091885';
   .cart__dcell--courier .cart__dinput { cursor: pointer; }
 
   /* ---- form — Figma: input outline #D1D1D1, radius 4, tinggi 67 ---- */
-  .cart__form { margin: 28px 0 0; display: flex; flex-direction: column; gap: 22px; }
-  .cart__field { display: flex; flex-direction: column; gap: 10px; }
-  .cart__field span {
-    font: 400 12px/1 var(--font-sans); color: #3D3B2F;
-  }
+  .cart__form { margin: 22px 0 0; display: flex; flex-direction: column; gap: 16px; }
+  .cart__formrow { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .cart__field { position: relative; display: block; min-width: 0; }
   .cart__field input {
-    height: 67px; padding: 0 16px; border-radius: 4px;
-    border: 1px solid #D1D1D1; background: transparent;
-    font: 400 14px/1 var(--font-sans); color: #6D6D6D;
+    width: 100%; height: 50px; padding: 0 15px; border-radius: 4px;
+    border: 1px solid #D1D1D1; background: #fff;
+    font: 400 14px/1 var(--font-sans); color: #3D3B2F;
+    transition: border-color .2s ease;
   }
-  .cart__field input::placeholder { color: #6D6D6D; }
+  .cart__field input::placeholder { color: #8E8E93; opacity: 0; transition: opacity .2s ease; }
+  .cart__field input:focus::placeholder { opacity: .65; }
   .cart__field input:focus { outline: none; border-color: var(--olive); }
+  .cart__field--floating span {
+    position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+    padding: 0 5px; background: #fff; pointer-events: none;
+    font: 400 13px/1 var(--font-sans); color: #8E8E93;
+    transition: top .2s ease, color .2s ease, font-size .2s ease;
+  }
+  .cart__field--floating input:focus + span,
+  .cart__field--floating input:not(:placeholder-shown) + span {
+    top: 0; color: #3D3B2F; font-size: 11px;
+  }
 
   /* ---- right — Figma: garis/outline #BBCCBF, tombol radius 4 ---- */
   .cart__continue {
@@ -449,6 +486,9 @@ const WA_NUMBER = '6281211091885';
     .cart__right { padding-left: 0; margin-top: 32px; }
   }
   @media (max-width: 560px) {
+    .cart { padding-inline: 16px; }
+    .cart__grid { padding: 24px 18px; }
+    .cart__formrow { grid-template-columns: 1fr; }
     .cart__item {
       grid-template-columns: 24px 52px minmax(0, 1fr);
       grid-template-areas: 'rm thumb meta' '. step price';

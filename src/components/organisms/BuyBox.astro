@@ -65,9 +65,11 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
       *Note: If you order D-1 after 3 PM, your order would be processed on the next day after 2 PM
     </p>
 
-    <label class="buybox__field"><span>Sender Name:</span><input type="text" name="senderName" placeholder="Name" /></label>
-    <label class="buybox__field"><span>Sender WhatsApp:</span><input type="tel" name="senderWa" placeholder="(+62)" /></label>
-    <label class="buybox__field"><span>Sender Email:</span><input type="email" name="senderEmail" placeholder="Email" /></label>
+    <div class="buybox__sender">
+      <label class="buybox__field"><span>Sender Name:</span><input type="text" name="senderName" placeholder="Name" /></label>
+      <label class="buybox__field"><span>Sender WhatsApp:</span><input type="tel" name="senderWa" placeholder="(+62)" /></label>
+      <label class="buybox__field buybox__field--wide"><span>Sender Email:</span><input type="email" name="senderEmail" placeholder="Email" /></label>
+    </div>
 
     <p class="buybox__courier" data-courier hidden></p>
   </div>

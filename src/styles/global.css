@@ -48,6 +48,7 @@
     --radius:8px;
     /* landing page — kalibrasi dari index.html @ 1440 (gutter ~50, jarak antar-section ~72). */
     --gutter:50px; --sec-y:50px;
+    --page-max:2000px;
   }
 
 /* ================================================================
@@ -405,9 +406,18 @@
   .hero__inner{position:absolute;left:70px;top:176px;width:621px;max-width:calc(100% - 110px);z-index:1;
     display:flex;flex-direction:column;align-items:flex-start}
   .hero__title{margin:0;line-height:66px}      /* index: judul-box 30px di bawah eyebrow */
-  .hero__list{margin:20px 0 0;padding:0;list-style:none;line-height:24px}   /* index: y248, 20px setelah judul */
-  .hero__list li{display:flex;gap:8px;align-items:flex-start}
-  .hero__check{font-weight:800;color:var(--olive-ink);line-height:24px}
+  .hero__body{margin:20px 0 0;max-width:540px;font:400 16px/1.65 var(--font-sans);color:#525252}
+  .hero__features{display:flex;align-items:center;gap:12px;width:100%;max-width:620px;margin:22px 0 0;color:#3D3B2F}
+  .hero__feature-icons{position:relative;display:grid;place-items:center;width:27px;height:27px;flex:0 0 27px}
+  .hero__feature-icon{position:absolute;width:27px;height:27px;opacity:0;transform:scale(.9);color:#657762;
+    stroke:currentColor;stroke-width:1.3;transition:opacity .5s ease,transform .5s ease;pointer-events:none}
+  .hero__feature-icon.is-active{opacity:1;transform:scale(1)}
+  .hero__feature-texts{position:relative;height:27px;min-width:0;flex:1;overflow:hidden}
+  .hero__feature-text{position:absolute;inset:0;display:flex;align-items:center;margin:0;opacity:0;transform:translateY(7px);
+    font:400 15px/1.35 var(--font-sans);color:#3D3B2F;transition:opacity .5s ease,transform .5s ease;pointer-events:none}
+  .hero__feature-text.is-active{opacity:1;transform:translateY(0)}
+  @keyframes hero-feature-spin{to{transform:rotate(360deg)}}
+  .hero__feature-icon.is-active .hero__feature-clock{transform-origin:center;animation:hero-feature-spin 18s linear infinite}
   .hero__cta{margin:20px 0 0;display:flex;gap:16px;flex-wrap:wrap}          /* Figma: tombol ke-2 @ left:143, gap 16 */
   .hero__progress{position:absolute;left:64px;right:64px;bottom:66px;z-index:1}  /* index: left:64 top:749/817 */
   .hero__progress .cmp-progress{width:100%;max-width:none}
@@ -515,14 +525,14 @@
   .uw__cta .cmp-btn-primary{font-size:14px}
   /* footer — index.html: CTA bar + kolom link + copyright (nilai Figma ×0.924 → dibulatkan) */
   .ftr{overflow:hidden;background:#F4F2F0}   /* Figma: bg footer #F4F2F0 */
-  .ftr__cta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;
+  .ftr__cta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;max-width:var(--page-max);margin-inline:auto;
     padding:40px var(--gutter);border-top:1px solid var(--sand);border-bottom:1px solid var(--sand)}  /* index: rule atas+bawah #CCC8A8 */
   .ftr__cta h2{margin:0;font:400 37px/1 var(--font-display);color:#3D3B2F}     /* index 36.97/36.97 */
   .ftr__cta .g{display:flex;gap:12px;flex-wrap:wrap}
   /* Figma something.html: SATU-SATUNYA tombol primary yang pakai Sage Green
      (var(--ANIA-Sage-Green-New-, #9CAA99)), bukan Olive Green seperti tombol lain */
   .ftr__cta .g .cmp-btn-primary{background:var(--sage)}
-  .ftr__main{display:flex;flex-wrap:wrap;gap:32px 28px;padding:44px var(--gutter)}
+  .ftr__main{display:flex;flex-wrap:wrap;gap:32px 28px;max-width:var(--page-max);margin-inline:auto;padding:44px var(--gutter)}
   .ftr__brand{display:flex;flex-direction:column;gap:20px;width:210px;flex:none}             /* index: left:46 top:200, width ~235 */
   .ftr__brand .logo{width:132px;height:auto;display:block}
   .ftr__brand .tag{font:600 10px/1.5 var(--font-sans);letter-spacing:3.9px;text-transform:uppercase;color:#3D3B2F; text-align: center;} /* .type-btn */
@@ -539,18 +549,17 @@
   /* SVG icon pembayaran sudah punya kotak+border sendiri di dalamnya (rect stroke #D9D9D9) —
      jangan tambah border/padding CSS lagi di sini, nanti dobel (baru dilaporkan user). */
   .ftr__pay img{height:28px;width:auto}
-  .ftr__copy{padding:18px var(--gutter);border-top:1px solid var(--sand);
+  .ftr__copy{max-width:var(--page-max);margin-inline:auto;padding:18px var(--gutter);border-top:1px solid var(--sand);
     font:400 13px/1 var(--font-serif);color:#3D3B2F}            /* index 12.94, © ANIA Boutique Flower */
 
 /* ============================================================
    LAYOUT — Site.astro (Navbar sticky + main + Footer)
    ============================================================ */
-  .site-main{width:100%;display:block}
+  .site-main{width:100%;max-width:var(--page-max);margin-inline:auto;display:block}
   /* wrapper konten tiap halaman — sejajar index.html @1440, dipusatkan */
   .home,.cartpage,.contactpage,.occasionpage,.aboutpage,.faqpage,.termspage,.ppage{
-    max-width:1440px;margin:0 auto;width:100%}
-  /* shop: TANPA max-width → .shop__side bisa nempel tepi kiri viewport (pojok kiri, seperti direct child <main>) */
-  .shoppage{width:100%}
+    max-width:var(--page-max);margin:0 auto;width:100%}
+  .home-hero,.shoppage{max-width:var(--page-max);margin-inline:auto;width:100%}
   /* jarak napas sebelum footer */
   /* .home > :last-child, */
   .shoppage > :last-child,
@@ -617,8 +626,7 @@
   /* HERO */
   .hero__slides { height: 300px; }
   .hero__title { font-size: 34px; line-height: 1.1; }
-  .hero__list { font-size: 15px; line-height: 1.7; }
-  .hero__list li { align-items: flex-start; }
+  .hero__body { font-size: 14px; line-height: 1.65; }
   .hero__cta { gap: 10px; }
   .hero__cta .cmp-btn-primary, .hero__cta .cmp-btn-secondary { flex: 1 1 auto; justify-content: center; }
   .hero__progress { top: 274px; }
@@ -676,9 +684,18 @@
 
 @media (max-width: 480px) {
   .hero__title { font-size: 30px; }
+  .hero__features { align-items: flex-start; min-height: 44px; }
+  .hero__feature-icons { margin-top: 3px; }
+  .hero__feature-texts { height: 44px; }
+  .hero__feature-text { align-items: flex-start; font-size: 14px; }
   .hero__cta { flex-direction: column; align-items: stretch; width: 100%; }
   .uw__title { font-size: 30px; }
   .ftr__col { flex: 1 1 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__feature-icon, .hero__feature-text { transition: none; }
+  .hero__feature-icon.is-active .hero__feature-clock { animation: none; }
 }
 
 /* ============================================================
@@ -736,33 +753,13 @@
 .cmp-pagenav__prev img, .cmp-pagenav__next img { width: 9px; height: auto; opacity: 0.55; transition: opacity 0.15s ease; }
 
 /* --- Shop layout --- */
-.shop { position: relative; width: 100%; padding: var(--sec-y) var(--gutter); }
-.shop::before {
-  content: "";
-  position: absolute; z-index: 0;
-  left: 0; top: 0; bottom: 0; width: 56px;
-  background: #F4F2F0;
-  box-shadow: 7px 4px 40px 5px rgba(0, 0, 0, 0.05);
-}
-.shop.is-expanded::before { display: none; }
+.shop { position: relative; width: 100%; padding: 34px var(--gutter) var(--sec-y); }
 .shop__title {
-  display: block; text-align: center; margin: 0 0 40px;
+  display: block; text-align: center; margin: 0 0 24px;
   color: #1E2934;   /* Figma something.html: judul kategori shop #1E2934 */
 }
-/* sidebar in-flow nempel tepi kiri viewport (grid + margin negatif tembus gutter).
-   collapsed → kolom 56px · expanded → kolom 264px — animasi grid-template-columns. */
-.shop__layout {
-  display: grid; grid-template-columns: 56px minmax(0, 1fr);
-  align-items: stretch;
-  margin-left: calc(-1 * var(--gutter));
-  transition: grid-template-columns 0.34s cubic-bezier(0.33, 1, 0.68, 1);
-}
-.shop.is-expanded .shop__layout { grid-template-columns: 360px minmax(0, 1fr); }
-.shop__main {
-  grid-column: 2;
-  min-width: 0;
-  padding-left: 40px;
-}
+.shop__layout { display: block; }
+.shop__main { min-width: 0; }
 
 /* toolbar (sorting + filter) — max-width sama dengan .shop__grid supaya sort
    selalu segaris dengan tepi kanan grid produk, bukan tepi viewport. */
@@ -782,10 +779,6 @@
 }
 .shop__sort select:focus { outline: none; }
 .shop__sort-chevron { flex: none; display: flex; color: #3D3B2F; }
-.shop__filterbtn {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border: 0; background: transparent; cursor: pointer; color: #3D3B2F;
-}
 .filtergrp__title--link { text-decoration: none; cursor: pointer; }
 .shop__empty {
   margin: 8px 0 0; font: 400 14px/1.6 var(--font-sans); color: var(--dim);
@@ -799,80 +792,62 @@
   gap: 44px 20px;
   /* max-width: 1440px;   .shoppage full-width → jaga grid tetap wajar di layar lebar */
 }
-.shop.is-expanded .shop__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .shop__grid .pcard { width: 100%; }
 .shop__grid .pcard__media { height: 406px; aspect-ratio: auto; }
 .shop__pager { margin: 40px 0 0; }
 
-/* --- Sidebar filter — STICKY, terikat ke .shop__layout (bukan viewport).
-   Mulai persis di bawah navbar (promo + nav, tidak menembus keduanya) dan
-   otomatis berhenti begitu .shop__layout habis → tidak pernah menembus footer,
-   karena sticky terkurung di kotak parent-nya, beda dari fixed yang lepas dari flow. --- */
+/* Drawer filter: dimulai tepat di bawah navbar dan berakhir di bawah viewport. */
 .shop__side {
-  align-self: start;
-  position: sticky;
-  top: calc(var(--promo-h, 0px) + var(--nav-h, 0px));
-  height: calc(100svh - var(--promo-h, 0px) - var(--nav-h, 0px));
-  width: 56px;
-  z-index: 5;
-  min-width: 0;
+  position: fixed;
+  top: var(--nav-h, 148px); bottom: 0; left: max(0px, calc((100vw - var(--page-max)) / 2));
+  width: 380px; max-width: 88vw;
+  z-index: 42;
+  display: flex; flex-direction: column;
   overflow: hidden;
-  background: #F4F2F0;
-  box-shadow: 7px 4px 40px 5px rgba(0, 0, 0, 0.05);
-  transition: width 0.34s cubic-bezier(0.33, 1, 0.68, 1), background 0.3s ease, box-shadow 0.3s ease;
+  background: var(--soft);
+  box-shadow: 10px 0 30px rgba(61,59,47,.08);
+  transform: translateX(-102%);
+  visibility: hidden;
+  transition: transform .42s cubic-bezier(.16,1,.3,1), visibility .42s ease;
 }
-.shop.is-expanded .shop__side { width: 280px; height: auto; background: #fff; box-shadow: none; overflow: visible; }
+.shop.is-expanded .shop__side { transform: translateX(0); visibility: visible; }
 
 .shop__title-toggle {
-  position: absolute; z-index: 2;
-  left: 0; top: 0;
-  width: 56px; height: calc(var(--sec-y) + 80px); padding-top: var(--sec-y);
-  display: flex; align-items: flex-start; justify-content: center;
-  border: 0; background: transparent; cursor: pointer; color: #6D6D6D;
-  transition: color 0.15s ease, width 0.34s cubic-bezier(0.33, 1, 0.68, 1);
+  position: fixed; z-index: 39;
+  left: max(0px, calc((100vw - var(--page-max)) / 2)); top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 11px;
+  padding: 16px 9px; border: 0; border-radius: 0 4px 4px 0;
+  background: var(--sage); color: #fff; cursor: pointer;
+  box-shadow: 3px 2px 16px rgba(61,59,47,.12);
+  transition: padding .2s ease, background .2s ease, opacity .2s ease;
 }
-.shop__title-toggle svg {
-  display: block; width: 24px; height: 24px;
-  transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1);
-}
-.shop__title-toggle:hover { color: var(--olive); }
-.shop.is-expanded .shop__title-toggle {
-  top: var(--sec-y); width: 360px; height: 40px; padding: 0 20px 0 0;
-  align-items: center; justify-content: flex-end; background: transparent;
-}
-.shop.is-expanded .shop__title-toggle svg { transform: rotate(180deg); }
+.shop__title-toggle:hover { padding-right: 12px; background: var(--olive); }
+.shop.is-expanded .shop__title-toggle { opacity: 0; pointer-events: none; }
+.shop__trigger-icon { width: 17px; height: 17px; flex: none; }
+.shop__trigger-text { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap;
+  font: 600 10px/1 var(--font-sans); letter-spacing: 2.2px; text-transform: uppercase; }
+.shop__trigger-count { display: grid; place-items: center; width: 19px; height: 19px; border-radius: 50%;
+  background: #fff; color: #3D3B2F; font: 700 10px/1 var(--font-sans); }
+.shop__trigger-count[hidden] { display: none; }
 
-/* collapsed: rail ikon dimulai setelah satu-satunya tombol panah */
-.shop__rail {
-  display: flex; flex-direction: column; align-items: center; gap: 24px;
-  width: 56px; min-height: 100%; padding: 28px 0 24px;
-}
-.shop.is-expanded .shop__rail { display: none; }
-.shop__railbtn {
-  display: grid; place-items: center;
-  width: 34px; height: 34px; padding: 0;
-  border: 0; background: transparent; cursor: pointer; color: #3D3B2F;
-  transition: color 0.15s ease;
-}
-.shop__railbtn svg { width: 16px; height: 16px; display: block; }
-.shop__railbtn:hover { color: var(--olive); }
+.shop__side-overlay { position: fixed; top: var(--nav-h, 148px); right: 0; bottom: 0; left: 0; z-index: 41;
+  padding: 0; border: 0; background: rgba(30,41,52,.22); backdrop-filter: blur(3px);
+  opacity: 0; visibility: hidden; cursor: default;
+  transition: opacity .35s cubic-bezier(.16,1,.3,1), visibility .35s ease; }
+.shop.is-expanded .shop__side-overlay { opacity: 1; visibility: visible; }
 
-/* expanded: panel penuh — TANPA scroll internal, tinggi ikut konten (halaman yang
-   scroll, bukan panel-nya); tombol ×/+ tetap sejajar judul (lihat .shop__title-toggle). */
-.shop__side-panel { display: none; }
-.shop.is-expanded .shop__side-panel {
-  display: flex; flex-direction: column; gap: 26px;
-  width: 360px; padding: 32px 24px 30px;
-  animation: shopPanelIn 0.3s ease both;
-}
-@keyframes shopPanelIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+.shop__side-head { display: flex; align-items: center; justify-content: space-between; flex: none;
+  padding: 24px 28px 18px; border-bottom: 1px solid var(--hair); }
+.shop__side-head h2 { margin: 0; font: 400 25px/1.15 var(--font-display); color: #3D3B2F; }
+.shop__side-close { display: grid; place-items: center; width: 38px; height: 38px; padding: 0;
+  border: 0; background: transparent; color: #3D3B2F; cursor: pointer; opacity: .65; }
+.shop__side-close:hover { opacity: 1; }
+.shop__side-close svg { width: 20px; height: 20px; }
+.shop__side-panel { display: flex; flex-direction: column; gap: 22px; flex: 1; overflow-y: auto;
+  width: 100%; padding: 24px 28px 36px; overscroll-behavior: contain; }
 
 @media (prefers-reduced-motion: reduce) {
-  .shop__layout, .shop__side, .shop__main { transition: none; }
-  .shop.is-expanded .shop__side-panel { animation: none; }
+  .shop__side, .shop__side-overlay, .shop__title-toggle { transition: none; }
 }
 
 .filtergrp__head {
@@ -881,7 +856,7 @@
 .filtergrp__ico { width: 16px; height: 16px; flex: none; color: #3D3B2F; }
 .filtergrp__title {
   flex: 1;
-  font: 700 18px/1.2 var(--font-sans); color: #6D6D6D;
+  font: 600 15px/1.25 var(--font-sans); color: #6D6D6D;
 }
 .filtergrp__head .ico { opacity: 0.5; flex: none; }
 .filtergrp__rule {
@@ -896,12 +871,12 @@
 .filtergrp:not(.is-collapsed) .filtergrp__listwrap { grid-template-rows: 1fr; margin-top: 8px; opacity: 1; }
 .filtergrp__listwrap > .filtergrp__list { overflow: hidden; min-height: 0; }
 .filtergrp__list {
-  list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px;
+  list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px;
 }
 .filtergrp__item {
   display: flex; align-items: baseline; gap: 8px;
-  font: 400 16px/1.3 var(--font-sans); color: #6D6D6D;
-  padding: 5px 10px; border-radius: 6px;
+  font: 400 14px/1.35 var(--font-sans); color: #6D6D6D;
+  padding: 5px 8px; border-radius: 6px;
   transition: background 0.15s ease, color 0.15s ease;
 }
 .filtergrp__item a { color: inherit; text-decoration: none; flex: 1; }
@@ -920,53 +895,13 @@
 /* --- Shop responsive --- */
 @media (max-width: 1280px) {
   .shop__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .shop.is-expanded .shop__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-/* tombol "FILTER" & tombol tutup popup mobile — disembunyikan di desktop,
-   ditampilkan lewat @media di bawah supaya nggak nambah elemen kosong di layout desktop */
-.shop__mobile-filterbtn, .shop__mobile-close { display: none; }
 
 @media (max-width: 900px) {
-  /* sidebar TIDAK lagi inline mendorong konten — jadi popup full-screen
-     (lihat .shop.is-expanded .shop__side di bawah), dipicu bar "FILTER". */
-  .shop__layout, .shop.is-expanded .shop__layout {
-    display: block; grid-template-columns: none; margin-left: 0;
-  }
-  .shop__main, .shop.is-expanded .shop__main { padding-left: 0; border-left: 0; }
-  .shop__grid, .shop.is-expanded .shop__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .shop__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .shop__grid .pcard__media { height: auto; aspect-ratio: 320 / 406; }
-  .shop__toolbar { justify-content: space-between; }
-
-  .shop::before { display: none; }
-  .shop__title-toggle { display: none; }               /* diganti bar "FILTER" di bawah judul */
-  .shop__mobile-filterbtn {
-    display: block; width: 100%; margin: 16px 0; padding: 16px 0;
-    border: 0; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair);
-    background: none; cursor: pointer;
-    font: 600 12px/1 var(--font-sans); letter-spacing: 3px; text-transform: uppercase;   /* distandarkan: 13px → 12px, disamakan ke .type-btn (600/12 uppercase tracked — pola sama persis) */
-    color: #3D3B2F; text-align: center;
-  }
-
-  .shop__rail { display: none; }                        /* tidak ada rail ikon di mobile */
-  .shop__side { display: none; }
-  .shop.is-expanded .shop__side {
-    display: block;
-    position: fixed; inset: 0; z-index: 200;
-    width: 100%; height: 100svh;
-    margin: 0; background: #fff; box-shadow: none;
-    overflow-y: auto; overscroll-behavior: contain;
-  }
-  .shop.is-expanded .shop__side-panel {
-    display: block; width: 100%;
-    padding: 24px 24px 40px;
-    animation: none;
-  }
-  .shop__mobile-close {
-    display: flex; align-items: center; justify-content: center;
-    position: sticky; top: 0; z-index: 2; margin: 0 0 0 auto;
-    width: 44px; height: 44px; border: 0; background: #fff; color: #3D3B2F; cursor: pointer;
-  }
-  .shop__mobile-close svg { width: 20px; height: 20px; }
+  .shop__toolbar { justify-content: flex-end; }
+  .shop__side { width: min(360px, 90vw); }
 }
 @media (max-width: 620px) {
   .shop__title { font-size: 26px; margin-bottom: 26px; }
@@ -1100,20 +1035,22 @@
    ============================================================ */
 .ppage { width: 100%; }
 
-.pdetail { padding: var(--sec-y) var(--gutter) 0; }
+.pdetail { padding: 32px var(--gutter) 0; }
 .pdetail__top {
-  display: grid; grid-template-columns: minmax(0, 1fr) 440px; column-gap: 48px; row-gap: 0;
+  display: grid; grid-template-columns: minmax(0, 640px) minmax(360px, 410px); column-gap: 40px; row-gap: 0;
   align-items: start;
   grid-template-areas: "gallery buy" "desc buy";
+  justify-content: center;
 }
 .pdetail__gallery { grid-area: gallery; min-width: 0; }
+.pdetail__gallery .gallery { width: 100%; }
 .pdetail__top > .buybox { grid-area: buy; }
 .pdetail__top > .pdetail__desc { grid-area: desc; }
 
 /* --- gallery --- */
 .gallery__stage {
-  position: relative; border-radius: 10px; overflow: hidden; background: var(--img-placeholder);
-  aspect-ratio: 4 / 5;
+  position: relative; width: min(100%, 430px); aspect-ratio: 4 / 5;
+  margin: 0 auto; border-radius: 10px; overflow: hidden; background: #fff;
 }
 .gallery__img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
@@ -1121,16 +1058,19 @@
 }
 .gallery__img.is-active { opacity: 1; }
 .gallery__nav {
-  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
-  width: 38px; height: 38px; border: 0; border-radius: 50%; cursor: pointer;
-  background: rgba(255,255,255,.9); display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 14px -6px rgba(0,0,0,.35);
+  position: absolute; bottom: 22px; z-index: 2;
+  width: 30px; height: 30px; border: 0; border-radius: 50%; cursor: pointer;
+  background: rgba(72,72,72,.36); display: flex; align-items: center; justify-content: center;
+  transition: background .15s ease;
 }
-.gallery__nav img { width: 9px; height: auto; }
-.gallery__nav--prev { left: 16px; }
-.gallery__nav--next { right: 16px; }
-.gallery__progress { margin: 14px 0 0; }
-.gallery__progress .cmp-progress { width: 100%; max-width: none; }
+.gallery__nav:hover { background: rgba(72,72,72,.56); }
+.gallery__nav img { width: 7px; height: auto; filter: brightness(0) invert(1); }
+.gallery__nav--prev { left: 14px; }
+.gallery__nav--next { right: 14px; }
+.gallery__progress { position: absolute; left: 52px; right: 52px; bottom: 12px; z-index: 1; }
+.gallery__progress .cmp-progress { width: 100%; max-width: none; gap: 7px; }
+.gallery__progress .cmp-progress i { height: 2px; background: rgba(255,255,255,.45); }
+.gallery__progress .cmp-progress i.on { background: #fff; }
 
 /* --- description --- */
 .pdetail__desc { margin: 40px 0 0; max-width: 62ch; }
@@ -1146,21 +1086,25 @@
 
 /* --- buy box --- */
 .buybox {
-  display: flex; flex-direction: column; gap: 16px;
-  position: sticky; top: 20px;
+  display: flex; flex-direction: column; gap: 10px;
+  position: sticky; top: 12px;
 }
 .buybox__head {
   background: #fff;
-  border: 1px solid var(--sand); border-radius: 10px; padding: 22px;
-  display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+  border: 1px solid var(--sand); border-radius: 10px; padding: 14px 18px;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name pill" "price swatch";
+  align-items: center; gap: 8px 14px; text-align: left;
 }
-.buybox__name { margin: 0; }
-.buybox__price { margin: 0; font: 400 20px/1 var(--font-sans); color: #1E2934; }
+.buybox__name { grid-area: name; margin: 0; font-size: 27px; }
+.buybox__head > .cmp-pill { grid-area: pill; justify-self: end; }
+.buybox__price { grid-area: price; margin: 0; font: 400 18px/1 var(--font-sans); color: #1E2934; }
+.buybox__head > .cmp-swatch { grid-area: swatch; justify-self: end; }
 
 .buybox__delivery {
   background: #fff;
-  border: 1px solid var(--sand); border-radius: 10px; padding: 20px;
-  display: flex; flex-direction: column; gap: 14px;
+  border: 1px solid var(--sand); border-radius: 10px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 9px;
 }
 .buybox__dtitle { font: 600 14px/1 var(--font-sans); color: #1E2934; }
 .buybox__modes { display: flex; gap: 10px; }
@@ -1171,13 +1115,15 @@
   font: 600 12px/1 var(--font-sans); text-transform: uppercase; color: rgba(109,109,109,.6);
 }
 .buybox__mode.is-active { background: #ECEBEC; color: #3D3B2F; outline: 0; }
-.buybox__row, .buybox__field { display: flex; flex-direction: column; gap: 8px; }
+.buybox__row, .buybox__field { display: flex; flex-direction: column; gap: 6px; }
+.buybox__sender { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.buybox__field--wide { grid-column: auto; }
 .buybox__row > span, .buybox__field > span, .buybox__dlabel {
   font: 400 12px/1 var(--font-sans); color: #3D3B2F;
 }
 .buybox__addrwrap { position: relative; }
 .buybox input[type="text"], .buybox input[type="tel"], .buybox input[type="email"], .buybox input[type="date"] {
-  width: 100%; height: 44px; padding: 0 14px; border-radius: 4px;
+  width: 100%; height: 38px; padding: 0 12px; border-radius: 4px;
   outline: 1px solid #D1D1D1; outline-offset: -1px; border: 0;
   font: 400 13px/1 var(--font-sans); color: #3D3B2F;
 }
@@ -1245,6 +1191,7 @@
   .pdetail__top > .buybox { order: 2; }
   .pdetail__top > .pdetail__desc { order: 3; margin-top: 0; }
   .buybox { position: static; }
+  .gallery__stage { width: min(100%, 560px); aspect-ratio: 4 / 5; }
   .care__grid { grid-template-columns: repeat(2, 1fr); column-gap: 40px; border-top: 0; border-bottom: 0; }
   .care__item { padding: 32px 0; border-right: 0; border-bottom: 1px solid var(--rule); }
   .care__grid > .care__item:nth-child(n + 4) { padding-bottom: 32px; border-bottom: 1px solid var(--rule); }
@@ -1252,5 +1199,10 @@
 @media (max-width: 620px) {
   .care__grid { grid-template-columns: 1fr; }
   .related__row .pcard { width: 100%; max-width: 320px; }
-  .gallery__stage { aspect-ratio: 1 / 1; }
+  .gallery__stage { width: 100%; aspect-ratio: 4 / 5; }
+  .buybox__sender { grid-template-columns: 1fr; }
+  .buybox__field--wide { grid-column: auto; }
+  .buybox__head {
+    display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+  }
 }

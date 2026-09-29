@@ -6,7 +6,6 @@
  */
 import ShopSidebar from '../organisms/ShopSidebar.astro';
 import ProductCard from '../organisms/ProductCard.astro';
-import Icon from '../atoms/Icon.astro';
 import { toProduct } from '../../data/shop';
 import type { FilterGroupData } from '../../data/shop';
 import type { CatalogItem } from '../../data/catalog';
@@ -36,17 +35,19 @@ const searchText = (c: CatalogItem) =>
   data-active-category={activeCategory}
   data-active-filter={activeFilter ? JSON.stringify(activeFilter) : ''}
 >
-  {/* satu tombol panah untuk buka/tutup sidebar desktop */}
-  <button type="button" class="shop__title-toggle" data-side-toggle aria-label="Toggle filters" aria-expanded="false">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M9 5l6 7-6 7" />
+  <button type="button" class="shop__title-toggle" data-side-toggle aria-label="Open filters" aria-expanded="false">
+    <svg class="shop__trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+      <path d="M4 6h16M4 12h16M4 18h16" />
+      <circle cx="8" cy="6" r="2" fill="currentColor" stroke="var(--sage)" />
+      <circle cx="16" cy="12" r="2" fill="currentColor" stroke="var(--sage)" />
+      <circle cx="12" cy="18" r="2" fill="currentColor" stroke="var(--sage)" />
     </svg>
+    <span class="shop__trigger-text">Filter</span>
+    <span class="shop__trigger-count" data-filter-count hidden>0</span>
   </button>
   <h1 class="type-h2 shop__title" data-shop-title>{title}</h1>
 
-  {/* mobile (≤900px) — bar "FILTER" full-width, ganti tombol +/× (yang cuma
-      cocok buat rail sidebar desktop); klik → buka popup full-screen */}
-  <button type="button" class="shop__mobile-filterbtn" data-side-toggle aria-expanded="false">Filter</button>
+  <button type="button" class="shop__side-overlay" data-side-overlay aria-label="Close filters"></button>
 
   <div class="shop__layout">
     <ShopSidebar groups={groups} />
@@ -64,9 +65,6 @@ const searchText = (c: CatalogItem) =>
             <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </label>
-        <button class="shop__filterbtn" type="button" aria-label="Filter" data-filter-toggle>
-          <Icon name="burger" size={18} alt="filter" />
-        </button>
       </div>
 
       <div class="shop__grid" data-grid>
@@ -111,6 +109,7 @@ const searchText = (c: CatalogItem) =>
     const emptyMsg = root.querySelector<HTMLElement>('[data-empty]')!;
     const titleEl = root.querySelector<HTMLElement>('[data-shop-title]')!;
     const sortSel = root.querySelector<HTMLSelectElement>('[data-sort]')!;
+    const filterCount = root.querySelector<HTMLElement>('[data-filter-count]');
     const perPage = parseInt(root.dataset.perPage || '9', 10);
 
     let filter: { group: string; value: string } = {
@@ -234,10 +233,15 @@ const searchText = (c: CatalogItem) =>
       animateIn(shown);
       // judul ikut kategori aktif
       if (filter.group === 'category' && filter.value) titleEl.textContent = CAT_LABEL[filter.value] || titleEl.textContent;
-      else if (filter.group === 'all') titleEl.textContent = 'More Explore';
+      else if (filter.group === 'all') titleEl.textContent = 'Explore';
+      if (filterCount) {
+        const count = filter.value && filter.group !== 'all' ? 1 : 0;
+        filterCount.textContent = String(count);
+        filterCount.hidden = count === 0;
+      }
     };
 
-    // ---- sidebar: rail (collapsed) ↔ panel penuh (expanded, dorong grid 4→3 kolom) ----
+    // ---- sidebar drawer: tab samping (collapsed) ↔ panel overlay (expanded) ----
     const toggleBtn = root.querySelector<HTMLElement>('[data-filter-toggle]');
 
     const focusGroup = (grp?: string) => {
@@ -249,15 +253,20 @@ const searchText = (c: CatalogItem) =>
     };
     const expand = (grp?: string) => {
       root.classList.add('is-expanded');
+      const side = root.querySelector<HTMLElement>('.shop__side');
+      side?.setAttribute('aria-hidden', 'false');
+      side?.removeAttribute('inert');
       root.querySelectorAll<HTMLElement>('[data-side-toggle], [data-filter-toggle]').forEach((button) =>
         button.setAttribute('aria-expanded', 'true'),
       );
-      // mobile: popup full-screen → kunci scroll halaman di belakangnya
-      if (window.innerWidth <= 900) document.documentElement.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
       focusGroup(grp);
     };
     const collapse = () => {
       root.classList.remove('is-expanded');
+      const side = root.querySelector<HTMLElement>('.shop__side');
+      side?.setAttribute('aria-hidden', 'true');
+      side?.setAttribute('inert', '');
       root.querySelectorAll<HTMLElement>('[data-side-toggle], [data-filter-toggle]').forEach((button) =>
         button.setAttribute('aria-expanded', 'false'),
       );
@@ -291,26 +300,18 @@ const searchText = (c: CatalogItem) =>
       scrollToGrid();
     });
 
-    // rail (collapsed): klik ikon grup → buka sidebar penuh + fokus ke grup itu
-    root.querySelectorAll<HTMLElement>('[data-rail-btn]').forEach((b) => {
-      b.addEventListener('click', () => expand(b.dataset.railGroup || ''));
-    });
-
-    // tombol + (rail) / × (panel) / ikon filter toolbar → buka-tutup sidebar
+    // satu panah (rail) / tombol tutup mobile / ikon filter toolbar → buka-tutup sidebar
     root.querySelectorAll<HTMLElement>('[data-side-toggle]').forEach((b) => {
       b.addEventListener('click', toggleSide);
     });
     toggleBtn?.addEventListener('click', toggleSide);
+    root.querySelector('[data-side-overlay]')?.addEventListener('click', collapse);
 
-    // diperbesar ke desktop saat popup mobile terbuka → lepas kunci scroll (popup jadi sidebar inline biasa)
-    window.addEventListener('resize', () => {
-      if (window.innerWidth > 900) document.documentElement.style.overflow = '';
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && root.classList.contains('is-expanded')) collapse();
     });
 
     highlightInitial();
-    // buka sidebar otomatis kalau halaman dibuka dengan filter spesifik dari query —
-    // HANYA desktop (di mobile popup full-screen jangan langsung nutupin halaman saat load)
-    if (filter.value && filter.group !== 'all' && window.innerWidth > 900) expand(filter.group);
     apply();
   });
 </script>

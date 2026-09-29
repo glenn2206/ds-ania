@@ -1,42 +1,43 @@
 ---
 /**
  * TEMPLATE · AboutCollage — kolase foto "di balik layar" (index.html).
- * Bento: 1 besar kiri (2 baris) + 1 atas kanan + 2 bawah kanan.
+ * Figma: 1 portrait besar kiri (2 baris) + 2 landscape bertumpuk di kanan.
  */
 import { collage as c } from '../../data/about';
 ---
 
 <section class="abt-collage">
   <div class="abt-collage__grid">
-    <figure class="abt-collage__cell abt-collage__cell--big"><img src={c.big} alt="Florist arranging a bloom box" loading="lazy" decoding="async" /></figure>
-    <figure class="abt-collage__cell abt-collage__cell--top"><img src={c.top} alt="A hand-tied bouquet" loading="lazy" decoding="async" /></figure>
-    <figure class="abt-collage__cell abt-collage__cell--bl"><img src={c.bl} alt="A bridal bouquet" loading="lazy" decoding="async" /></figure>
-    <figure class="abt-collage__cell abt-collage__cell--br"><img src={c.br} alt="An ANIA card with tulips" loading="lazy" decoding="async" /></figure>
+    <figure class="abt-collage__cell abt-collage__cell--big"><img src={c.big} alt="Florist arranging an ANIA bloom box" loading="lazy" decoding="async" /></figure>
+    <figure class="abt-collage__cell abt-collage__cell--top"><img src={c.top} alt="Florist finishing a blue and white bouquet" loading="lazy" decoding="async" /></figure>
+    <figure class="abt-collage__cell abt-collage__cell--bottom"><img src={c.bottom} alt="ANIA flower care card above orange tulips" loading="lazy" decoding="async" /></figure>
   </div>
 </section>
 
 <style>
   .abt-collage {
     background: var(--soft);
-    padding: 0 var(--gutter) var(--sec-y);
+    padding: 0 var(--gutter);
   }
   .abt-collage__grid {
     display: grid;
-    gap: 16px;
-    grid-template-columns: 1.15fr 1fr 1fr;
-    grid-template-rows: 1.05fr 1fr;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1.277fr) minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(0, 1fr));
     grid-template-areas:
-      'big top top'
-      'big bl  br';
-    height: 720px;
-    max-width: 1180px;
+      'big top'
+      'big bottom';
+    aspect-ratio: 2172 / 1430;
+    width: 100%;
+    max-width: 1340px;
     margin: 0 auto;
+    padding: 0;
   }
   .abt-collage__cell {
     position: relative;
     margin: 0;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: 10px;
     background: var(--img-placeholder);   /* placeholder bg gambar — distandarkan ke var(--img-placeholder) */
     min-height: 0;
   }
@@ -50,23 +51,21 @@ import { collage as c } from '../../data/about';
   }
   .abt-collage__cell--big { grid-area: big; }
   .abt-collage__cell--top { grid-area: top; }
-  .abt-collage__cell--bl { grid-area: bl; }
-  .abt-collage__cell--br { grid-area: br; }
+  .abt-collage__cell--bottom { grid-area: bottom; }
 
   @media (max-width: 900px) {
     .abt-collage__grid {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       grid-template-rows: none;
       grid-template-areas:
-        'big big'
-        'top top'
-        'bl  br';
-      height: auto;
+        'big'
+        'top'
+        'bottom';
+      aspect-ratio: auto;
+      gap: 12px;
+      background: transparent;
     }
     .abt-collage__cell { aspect-ratio: 4 / 3; }
-    .abt-collage__cell--big { aspect-ratio: 3 / 2; }
-  }
-  @media (max-width: 560px) {
-    .abt-collage__grid { grid-template-columns: 1fr; grid-template-areas: 'big' 'top' 'bl' 'br'; }
+    .abt-collage__cell--big { aspect-ratio: 5 / 6; }
   }
 </style>

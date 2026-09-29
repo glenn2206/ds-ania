@@ -140,7 +140,7 @@ export function buildFacets(items: CatalogItem[]): Facets {
 /** FilterGroupData[] untuk ShopSidebar — hanya grup yang ADA isinya */
 export function shopFilterGroups(items: CatalogItem[]): FilterGroupData[] {
   const f = buildFacets(items);
-  const groups: FilterGroupData[] = [{ title: 'More Explore', group: 'all' }];
+  const groups: FilterGroupData[] = [{ title: 'Explore', group: 'all' }];
   if (f.categories.length)
     groups.push({ title: 'By Category', group: 'category', collapsible: true, items: f.categories });
   if (f.occasions.length)

@@ -4,18 +4,21 @@
  * Nomor butik: 0821-1109-1885 → wa.me/6282111091885.
  */
 import Icon from '../atoms/Icon.astro';
+import { office } from '../../data/contact';
 
 interface Props {
+  url?: string;
   phone?: string;
   message?: string;
   label?: string;
 }
 const {
+  url = office.whatsappUrl,
   phone = '6282111091885',
   message = 'Halo ANIA, saya mau tanya soal bunga.',
   label = 'Chat WhatsApp',
 } = Astro.props;
-const href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+const href = url || `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 ---
 
 <a class="wa-float" href={href} target="_blank" rel="noopener" aria-label={label} title={label}>

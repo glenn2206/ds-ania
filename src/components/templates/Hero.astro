@@ -17,14 +17,13 @@ interface Props {
 const {
   eyebrow = 'ANIA Flower Boutique',
   title = 'Looking for the Perfect Flowers Today?',
-  titleItalic = 'We’ve Got You.',
+  titleItalic = 'Crafted with Care.',
   checklist = [
     'Same-Day Flower Delivery',
     'Individually Crafted by Professional Florists',
     'More than 10 years Floral Design Experience',
     'Order Flowers Online Easily',
-  ],
-  slides = ['/assets/hero-bouquet-on-table.jpg'],
+  ],  slides = ['/assets/hero-bouquet-on-table.jpg'],
 } = Astro.props;
 ---
 
@@ -45,9 +44,36 @@ const {
     <h2 class="hero__title type-h1">
       {title}<br /><span class="type-h1 type--italic">{titleItalic}</span>
     </h2>
-    <ul class="hero__list type-p1">
-      {checklist.map((c) => <li><span class="hero__check" aria-hidden="true">&#10003;</span><span>{c}</span></li>)}
-    </ul>
+    <div class="hero__features" data-hero-features aria-label="Flower service highlights">
+      <div class="hero__feature-icons" aria-hidden="true">
+        <svg class="hero__feature-icon is-active" data-feature-icon viewBox="0 0 36 36" fill="none">
+          <circle class="hero__feature-clock" cx="18" cy="18" r="14" stroke-dasharray="2 2" />
+          <path d="M18 12v6h4" stroke-linecap="round" />
+        </svg>
+        <svg class="hero__feature-icon" data-feature-icon viewBox="0 0 36 36" fill="none">
+          <path d="M18 28V10M18 21c-5-2-8-7-6-12 4 2 6 7 6 12ZM18 18c5-2 8-7 6-12-4 2-6 7-6 12Z" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <svg class="hero__feature-icon" data-feature-icon viewBox="0 0 36 36" fill="none">
+          <circle cx="18" cy="18" r="14" opacity=".35" />
+          <path d="m13 13 10 10m0-10L13 23" stroke-linecap="round" />
+        </svg>
+        <svg class="hero__feature-icon" data-feature-icon viewBox="0 0 36 36" fill="none">
+          <rect x="11" y="7" width="14" height="22" rx="2" />
+          <circle cx="18" cy="23" r="1.5" fill="currentColor" stroke="none" />
+        </svg>
+      </div>
+      <div class="hero__feature-texts">
+        {checklist.map((text, index) => (
+          <p
+            class:list={['hero__feature-text', index === 0 && 'is-active']}
+            data-feature-text
+            aria-hidden={index === 0 ? 'false' : 'true'}
+          >
+            {text}
+          </p>
+        ))}
+      </div>
+    </div>
     <div class="hero__cta">
       <Button href="/shop">Shop Now</Button>
       <Button variant="secondary" href="/contact">Contact Us</Button>
@@ -109,5 +135,25 @@ const {
     hero.addEventListener('mouseenter', stop);
     hero.addEventListener('mouseleave', start);
     start();
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-hero-features]').forEach((features) => {
+    const icons = Array.from(features.querySelectorAll<HTMLElement>('[data-feature-icon]'));
+    const texts = Array.from(features.querySelectorAll<HTMLElement>('[data-feature-text]'));
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (icons.length < 2 || icons.length !== texts.length || reduceMotion) return;
+
+    let current = 0;
+    window.setInterval(() => {
+      icons[current].classList.remove('is-active');
+      texts[current].classList.remove('is-active');
+      texts[current].setAttribute('aria-hidden', 'true');
+
+      current = (current + 1) % texts.length;
+
+      icons[current].classList.add('is-active');
+      texts[current].classList.add('is-active');
+      texts[current].setAttribute('aria-hidden', 'false');
+    }, 2400);
   });
 </script>

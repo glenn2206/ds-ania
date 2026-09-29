@@ -34,11 +34,11 @@ const slides = images.length ? images : ['/assets/hero-bouquet-on-table.jpg'];
           <button class="gallery__nav gallery__nav--next" type="button" data-next aria-label="Next">
             <img src="/assets-svg/arrow-right-black.svg" alt="" />
           </button>
+          <div class="gallery__progress"><Progress total={slides.length} active={0} /></div>
         </>
       )
     }
   </div>
-  {slides.length > 1 && <div class="gallery__progress"><Progress total={slides.length} active={0} /></div>}
 </div>
 
 <script>

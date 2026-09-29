@@ -30,5 +30,7 @@ export const office = {
   phone: '0821-1109-1885',
   /** nomor WA tujuan pesan form (E.164 tanpa +) */
   whatsapp: '6282111091885',
+  /** tautan WhatsApp bisnis untuk CTA langsung. */
+  whatsappUrl: 'https://wa.me/message/6WBHTFZZLZICF1',
   image: '/assets/scene-studio-vases.png',
 };

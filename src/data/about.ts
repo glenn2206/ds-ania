@@ -45,12 +45,11 @@ export const behindTheFlower = {
   ],
 };
 
-/** kolase foto — bento: 1 besar kiri (2 baris) + 3 kanan */
+/** Kolase About sesuai layout Figma: 1 portrait kiri + 2 landscape kanan. */
 export const collage = {
-  big: '/assets/scene-florist-arranging-box.jpg',
-  top: '/assets/bouquet-peach-garden-roses.jpg',
-  bl: '/assets/scene-bride-pastel-bouquet.jpg',
-  br: '/assets/scene-ania-card-tulips.jpg',
+  big: '/assets/about-florist-arranging.jpg',
+  top: '/assets/about-florist-finishing.jpg',
+  bottom: '/assets/about-ania-care-card.jpg',
 };
 
 export const flowerStory = {
@@ -59,7 +58,7 @@ export const flowerStory = {
   body:
     'From joyful celebrations to quiet gestures, see how our flowers become part of life’s most meaningful moments.',
   /** akun IG — fallback saat sebuah slide belum punya link post sendiri */
-  instagramUrl: 'https://www.instagram.com/ania_flowerboutique/',
+  instagramUrl: 'https://www.instagram.com/ania_flowerboutique?stkn=cWkzNWxubDUxOXVi&utm_source=qr',
   /**
    * tiap slide = sepasang gambar + (opsional) URL post IG terkait.
    * TODO: isi elemen ke-3 dengan permalink post IG masing-masing (butuh data dari klien).
@@ -71,8 +70,8 @@ export const flowerStory = {
   ] as [string, string, string?][],
   socialLabel: 'Visit Our Social Media',
   socials: [
-    { icon: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/ania_flowerboutique/' },
-    { icon: 'tiktok', label: 'TikTok', href: '#' },
-    { icon: 'facebook', label: 'Facebook', href: '#' },
+    { icon: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/ania_flowerboutique?stkn=cWkzNWxubDUxOXVi&utm_source=qr' },
+    { icon: 'tiktok', label: 'TikTok', href: 'https://www.tiktok.com/@ania_flowerboutique?_r=1&_t=ZS-9A8ATfVAEru' },
+    { icon: 'threads', label: 'Threads', href: 'https://www.threads.com/@ania_flowerboutique?igshid=NTc4MTIwNjQ2YQ==' },
   ],
 };
