@@ -18,11 +18,16 @@ const { title = 'Add On Cute Extras to Your Bouquet!', cta = 'View All Add-on', 
 
 <section class="addonx">
   <h2 class="type-h2--alt addonx__title">{title}</h2>
-  <div class="addonx__row">
+  <div class="addonx__row" data-extra-carousel>
     {addOnExtras.map((a) => <OccasionCard image={a.image} title={a.title} price={a.price} action="plus" slug={a.slug} />)}
   </div>
   <div class="addonx__foot"><Button href={href}>{cta}</Button></div>
 </section>
+
+<script>
+  import { initCardCarousel } from '../../lib/card-carousel';
+  document.querySelectorAll<HTMLElement>('[data-extra-carousel]').forEach((row) => initCardCarousel(row));
+</script>
 
 <style>
   .addonx__title {

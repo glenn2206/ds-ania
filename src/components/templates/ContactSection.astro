@@ -20,7 +20,7 @@ const {
   <h1 class="contact__title type-h2">{title}</h1>
   <p class="contact__intro">{intro}</p>
 
-  <form class="contact__form" data-contact-form data-wa={office.whatsapp} novalidate>
+  <form class="contact__form" data-contact-form data-wa={office.whatsapp}>
     <div class="contact__grid">
       <label class="contact__field">
         <span class="contact__label">Your Name:</span>
@@ -34,7 +34,7 @@ const {
 
       <label class="contact__field contact__field--wide">
         <span class="contact__label">Your Email:</span>
-        <input class="contact__input" type="email" name="email" placeholder="you@email.com" autocomplete="email" />
+        <input class="contact__input" type="email" name="email" placeholder="you@email.com" autocomplete="email" required />
       </label>
 
       <label class="contact__field">
@@ -66,7 +66,7 @@ const {
     <p class="contact__note" data-contact-note hidden></p>
 
     <div class="contact__actions">
-      <button class="cmp-btn-primary contact__submit" type="submit">Custom Order Now</button>
+      <button class="cmp-btn-primary contact__submit" type="submit" disabled>Custom Order Now</button>
     </div>
   </form>
 </section>
@@ -76,6 +76,14 @@ const {
   if (form) {
     const note = form.querySelector<HTMLElement>('[data-contact-note]')!;
     const wa = form.dataset.wa || '';
+    const submit = form.querySelector<HTMLButtonElement>('[type="submit"]')!;
+    const fields = Array.from(form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea'));
+    const syncValidity = () => {
+      submit.disabled = fields.some((field) => !field.checkValidity() || (field.required && !field.value.trim()));
+    };
+    form.addEventListener('input', syncValidity);
+    form.addEventListener('change', syncValidity);
+    syncValidity();
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -85,9 +93,9 @@ const {
       const whatsapp = get('whatsapp');
       const message = get('message');
 
-      if (!name || !whatsapp || !message) {
+      if (!name || !whatsapp || !get('email') || !message || !form.reportValidity()) {
         note.hidden = false;
-        note.textContent = 'Please fill in your name, WhatsApp number, and message.';
+        note.textContent = 'Please fill in your name, WhatsApp number, email, and message.';
         return;
       }
       note.hidden = true;

@@ -434,7 +434,7 @@
   .pgrid__row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 20px;
     max-width:1200px;margin:0 auto;align-items:start}
   .pgrid__row .pcard{width:100%;max-width:none;margin:0}
-  .pgrid__row .pcard__media{height:auto;aspect-ratio:320/406}
+  .pgrid__row .pcard__media{height:auto;aspect-ratio:1/1}
   .pgrid__foot{display:flex;justify-content:center;margin:32px 0 0}          /* index: tombol top:786, ~32px setelah grid */
   @media (max-width:1080px){ .pgrid__row{grid-template-columns:repeat(2,minmax(0,1fr));max-width:700px;gap:28px 22px} }
   /* @media (max-width:560px){ .pgrid__row{grid-template-columns:1fr;max-width:360px} } */
@@ -450,10 +450,11 @@
   .choose__tab--on{color:#1E2934}
   .choose__tab--on::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);
     width:180px;max-width:100%;height:2px;background:#525252}
-  .choose__row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:37px;margin:40px 0 0}
-  .choose__tile{display:flex;flex-direction:column;gap:14px;text-decoration:none;color:inherit}
+  .choose__row{display:flex;gap:24px;margin:40px 0 0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;scroll-snap-type:x proximity}
+  .choose__row::-webkit-scrollbar{display:none}
+  .choose__tile{display:flex;flex:0 0 calc((100% - 48px)/3);min-width:0;scroll-snap-align:start;flex-direction:column;gap:14px;text-decoration:none;color:inherit}
   .choose__tile[hidden]{display:none}
-  .choose__tileimg{display:block;width:100%;aspect-ratio:415/540;border-radius:8px;
+  .choose__tileimg{display:block;width:100%;aspect-ratio:1/1;border-radius:8px;
     background:#efe7dd center/cover no-repeat;   /* BEDA BANGET dari var(--img-placeholder) #EEF1F0 (selisih ~21 poin RGB, kelihatan lebih hangat/tan) —
        sengaja TIDAK digabung karena lumayan beda. SARAN: kalau memang harusnya sama, ganti ke
        var(--img-placeholder); kalau memang disengaja beda (buat section "Choose Flower" ini
@@ -617,7 +618,7 @@
 }
 
 @media (max-width: 760px) {
-  .choose__row { grid-template-columns: 1fr 1fr; }
+  .choose__tile { flex-basis: calc((100% - 24px)/2); }
 }
 
 @media (max-width: 720px) {
@@ -646,7 +647,8 @@
   .choose__tabs { gap: 22px; margin-top: 72px; }
   .choose__tab { width: 120px; font-size: 22px; padding-bottom: 10px; }
   .choose__tab--on::after { width: 120px; }
-  .choose__row { grid-template-columns: 1fr; gap: 22px; margin-top: 28px; }
+  .choose__row { gap: 22px; margin-top: 28px; }
+  .choose__tile { flex-basis: 82%; }
   .choose__tilelabel { font-size: 20px; }
   .choose__foot { margin-top: 28px; }
 
@@ -1091,7 +1093,7 @@
 }
 .buybox__head {
   background: #fff;
-  border: 1px solid var(--sand); border-radius: 10px; padding: 14px 18px;
+  border: 1px solid var(--sand); border-radius: 8px; padding: 14px 18px;
   display: grid; grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas: "name pill" "price swatch";
   align-items: center; gap: 8px 14px; text-align: left;
@@ -1103,7 +1105,7 @@
 
 .buybox__delivery {
   background: #fff;
-  border: 1px solid var(--sand); border-radius: 10px; padding: 14px 16px;
+  border: 1px solid var(--sand); border-radius: 8px; padding: 16px;
   display: flex; flex-direction: column; gap: 9px;
 }
 .buybox__dtitle { font: 600 14px/1 var(--font-sans); color: #1E2934; }
@@ -1116,18 +1118,21 @@
 }
 .buybox__mode.is-active { background: #ECEBEC; color: #3D3B2F; outline: 0; }
 .buybox__row, .buybox__field { display: flex; flex-direction: column; gap: 6px; }
-.buybox__sender { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.buybox__sender { display: grid; grid-template-columns: 1fr; gap: 14px; }
 .buybox__field--wide { grid-column: auto; }
 .buybox__row > span, .buybox__field > span, .buybox__dlabel {
   font: 400 12px/1 var(--font-sans); color: #3D3B2F;
 }
 .buybox__addrwrap { position: relative; }
-.buybox input[type="text"], .buybox input[type="tel"], .buybox input[type="email"], .buybox input[type="date"] {
+.delivery-fields input[type="text"], .delivery-fields input[type="tel"], .delivery-fields input[type="email"], .delivery-fields input[type="date"], .delivery-fields select {
   width: 100%; height: 38px; padding: 0 12px; border-radius: 4px;
   outline: 1px solid #D1D1D1; outline-offset: -1px; border: 0;
   font: 400 13px/1 var(--font-sans); color: #3D3B2F;
 }
-.buybox input:focus { outline-color: var(--olive); }
+.delivery-fields input:focus, .delivery-fields select:focus { outline-color: var(--olive); }
+.delivery-fields [hidden] { display: none; }
+.delivery-fields .buybox__detailbox:has([data-sendto-row][hidden]) { grid-template-columns: 1fr; }
+.cart__left > .delivery-fields { margin-top: 28px; }
 .buybox__addrlist {
   position: absolute; left: 0; right: 0; top: 100%; z-index: 20; margin: 6px 0 0; padding: 4px;
   list-style: none; background: #fff; border: 1px solid var(--hair); border-radius: 8px;
@@ -1145,7 +1150,7 @@
 .buybox__dcell + .buybox__dcell { border-left: 1px solid #D1D1D1; }
 .buybox__dcell b { font: 600 14px/1 var(--font-sans); color: #1E2934; }   /* distandarkan: 13px → 14px (Open Sans 600/14 paling sering dipakai, 65x di something.html) */
 .buybox__dcell input { height: 26px !important; padding: 0 !important; background: transparent !important; outline: 0 !important; font-size: 13px !important; color: #6D6D6D !important; }
-.buybox__note { margin: 0; font: 400 12px/1.5 var(--font-sans); color: #3D3B2F; }   /* distandarkan: 11px → 12px, disamakan ke .type-caption */
+.buybox__note { margin: 0; font: 400 10px/1.6 var(--font-sans); color: #3D3B2F; }
 .buybox__courier { margin: 0; font: 400 12px/1.4 var(--font-sans); color: var(--olive-ink); }
 .buybox__add, .buybox__checkout { width: 100%; justify-content: center; }
 
@@ -1153,10 +1158,12 @@
 .related, .addonx { padding: calc(var(--sec-y) * .8) var(--gutter) 0; text-align: center; }
 .related__title, .addonx__title { display: block; margin: 0 0 34px; }
 .related__row, .addonx__row {
-  display: flex; flex-wrap: wrap; gap: 24px 20px; justify-content: center; margin: 0 0 24px;
+  display: flex; flex-wrap: nowrap; gap: 20px; justify-content: flex-start; margin: 0 0 24px;
+  overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; scroll-snap-type: x proximity;
 }
-.related__row .pcard { width: 300px; }
-.addonx__row .mini--occ { width: 300px; }
+.related__row::-webkit-scrollbar, .addonx__row::-webkit-scrollbar { display: none; }
+.related__row .pcard, .addonx__row .mini--occ { flex: 0 0 calc((100% - 60px) / 4); width: auto; min-width: 0; scroll-snap-align: start; }
+.related__row .pcard__media { height: auto; aspect-ratio: 1 / 1; }
 .addonx__row .mini--occ .thumb { width: 100%; height: auto; aspect-ratio: 1 / 1; }
 .related .cmp-pagenav, .addonx .cmp-pagenav { max-width: 460px; margin: 0 auto; }
 
@@ -1198,11 +1205,27 @@
 }
 @media (max-width: 620px) {
   .care__grid { grid-template-columns: 1fr; }
-  .related__row .pcard { width: 100%; max-width: 320px; }
+  .related__row .pcard, .addonx__row .mini--occ { flex-basis: 82%; max-width: none; }
   .gallery__stage { width: 100%; aspect-ratio: 4 / 5; }
   .buybox__sender { grid-template-columns: 1fr; }
   .buybox__field--wide { grid-column: auto; }
   .buybox__head {
     display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
   }
+}
+
+/* Shared command sizing; segmented modes retain their compact dimensions. */
+.cmp-btn-primary, .cmp-btn-secondary, .cart__checkout, .cart__continue {
+  min-height: 40px;
+  height: auto;
+  padding: 12px 18px;
+  border-radius: 4px;
+  justify-content: center;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+.cmp-btn-primary:disabled, .cmp-btn-secondary:disabled { opacity: .45; cursor: not-allowed; }
+.search__grid { margin-top: 60px; }
+@media (min-width: 621px) and (max-width: 900px) {
+  .related__row .pcard, .addonx__row .mini--occ { flex-basis: calc((100% - 20px) / 2); }
 }

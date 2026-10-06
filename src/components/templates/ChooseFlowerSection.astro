@@ -6,6 +6,7 @@
  * Tile diturunkan dinamis dari katalog per tab (Occasions / Category / Flower).
  */
 import Button from '../atoms/Button.astro';
+import Icon from '../atoms/Icon.astro';
 import { chooseTabs, chooseTilesFrom, chooseHeadingLead } from '../../data/choose';
 import { getCatalog } from '../../lib/products';
 import { buildFacets } from '../../lib/facets';
@@ -18,7 +19,7 @@ const { activeTab = 'Occasions' } = Astro.props;
 const cat = await getCatalog();
 const chooseTiles = chooseTilesFrom(buildFacets([...cat.allProducts, ...cat.addons]));
 // Figma: 3 tile per tab
-const base = chooseTabs.flatMap((tab) => chooseTiles[tab].slice(0, 3).map((t) => ({ ...t, tab })));
+const base = chooseTabs.flatMap((tab) => chooseTiles[tab].map((t) => ({ ...t, tab })));
 ---
 
 <section class="choose" data-choose data-active-tab={activeTab}>
@@ -49,6 +50,7 @@ const base = chooseTabs.flatMap((tab) => chooseTiles[tab].slice(0, 3).map((t) =>
           <span class="choose__tileimg" style={`background-image:url(${t.image})`} />
           <span class="choose__tilelabel">
             <span>{t.label}</span>
+            <Icon name="arrow-right-black" size={18} alt="" />
           </span>
         </a>
       ))
@@ -61,6 +63,7 @@ const base = chooseTabs.flatMap((tab) => chooseTiles[tab].slice(0, 3).map((t) =>
 </section>
 
 <script>
+  import { initCardCarousel } from '../../lib/card-carousel';
   const CTA_LINK: Record<string, string> = { Occasions: '/occasions', Category: '/shop', Flower: '/shop' };
 
   document.querySelectorAll<HTMLElement>('[data-choose]').forEach((root) => {
@@ -70,6 +73,7 @@ const base = chooseTabs.flatMap((tab) => chooseTiles[tab].slice(0, 3).map((t) =>
     const cta = root.querySelector<HTMLAnchorElement>('.choose__foot a');
     const rowEl = root.querySelector<HTMLElement>('[data-choose-row]');
     let tab = root.dataset.activeTab || 'Occasions';
+    const carousel = rowEl ? initCardCarousel(rowEl) : null;
 
     const render = () => {
       tiles.forEach((c) => (c.hidden = c.dataset.tab !== tab));
@@ -83,7 +87,7 @@ const base = chooseTabs.flatMap((tab) => chooseTiles[tab].slice(0, 3).map((t) =>
         cta.textContent = `View All ${tab}`;
         cta.href = CTA_LINK[tab] || '/occasions';
       }
-      if (rowEl) rowEl.scrollLeft = 0;
+      carousel?.reset();
     };
 
     tabBtns.forEach((b) =>

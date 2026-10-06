@@ -4,13 +4,14 @@
  * item + qty + hapus (localStorage), ongkir via Biteship, total, checkout → WhatsApp.
  * Kiri: daftar item + info & form pengiriman. Kanan: Continue Shopping + Cart Totals.
  */
-import Icon from '../atoms/Icon.astro';
+import DeliveryFields from '../organisms/DeliveryFields.astro';
+import { office } from '../../data/contact';
 
 /** nomor WA butik untuk kirim ringkasan order */
 const WA_NUMBER = '6281211091885';
 ---
 
-<section class="cart" data-cart data-wa={WA_NUMBER}>
+<section class="cart" data-cart data-wa={WA_NUMBER} data-pickup-address={office.address.join(', ')}>
   <div class="cart__grid">
     <!-- ============ KIRI ============ -->
     <div class="cart__left">
@@ -20,48 +21,7 @@ const WA_NUMBER = '6281211091885';
         Your cart is empty. <a href="/shop">Browse our bouquets →</a>
       </p>
 
-      <div class="cart__deliverybox" data-delivery hidden>
-        <div class="cart__dcell">
-          <span class="cart__dlabel">Receive on:</span>
-          <input type="date" data-date class="cart__dinput" />
-        </div>
-        <div class="cart__dcell cart__dcell--addr">
-          <span class="cart__dlabel">Send to:</span>
-          <div class="cart__addrwrap">
-            <input
-              type="text"
-              data-addr
-              class="cart__dinput"
-              placeholder="Type district / area — e.g. Kebayoran Baru, Jakarta Selatan"
-              autocomplete="off"
-            />
-            <ul class="cart__addrlist" data-addrlist hidden></ul>
-          </div>
-          <Icon name="location" size={18} alt="" class="cart__pin" />
-        </div>
-        <div class="cart__dcell cart__dcell--courier" data-courierrow hidden>
-          <span class="cart__dlabel">Courier:</span>
-          <select data-courier class="cart__dinput"></select>
-          <span class="cart__estnote" data-estnote hidden>estimasi</span>
-        </div>
-      </div>
-
-      <div class="cart__form" data-form hidden>
-        <label class="cart__field cart__field--floating">
-          <input id="cart-sender-name" type="text" name="senderName" placeholder="Full name" autocomplete="name" required />
-          <span>Sender Name</span>
-        </label>
-        <div class="cart__formrow">
-          <label class="cart__field cart__field--floating">
-            <input id="cart-sender-wa" type="tel" name="senderWa" placeholder="(+62) 81212349876" autocomplete="tel" inputmode="tel" required />
-            <span>Sender WhatsApp</span>
-          </label>
-          <label class="cart__field cart__field--floating">
-            <input id="cart-sender-email" type="email" name="senderEmail" placeholder="you@email.com" autocomplete="email" inputmode="email" />
-            <span>Sender Email (Optional)</span>
-          </label>
-        </div>
-      </div>
+      <DeliveryFields cart />
     </div>
 
     <!-- ============ KANAN ============ -->
@@ -142,6 +102,8 @@ const WA_NUMBER = '6281211091885';
     const addrInput = $<HTMLInputElement>('[data-addr]');
     const addrList = $('[data-addrlist]');
     const dateInput = $<HTMLInputElement>('[data-date]');
+    const sendToInput = $<HTMLInputElement>('[data-sendto]');
+    let mode = 'delivery';
     const contactInputs = Array.from(root.querySelectorAll<HTMLInputElement>('[data-form] input'));
     const contactStorageKey = 'ania:checkout-contact';
 
@@ -166,6 +128,20 @@ const WA_NUMBER = '6281211091885';
     let dest: { areaId?: string; postal?: number; label?: string } = {};
     let rates: RateOption[] = [];
     let estimated = false;
+    let rateRequest = 0;
+    try {
+      const saved = JSON.parse(localStorage.getItem('ania:checkout-delivery') || '{}');
+      dest = { areaId: saved.areaId, postal: saved.postal, label: saved.label };
+      addrInput.value = saved.label || '';
+      sendToInput.value = saved.address || '';
+      if (saved.date >= iso) dateInput.value = saved.date;
+      mode = saved.mode === 'pickup' ? 'pickup' : 'delivery';
+    } catch {}
+    const saveDeliveryDraft = () => {
+      localStorage.setItem('ania:checkout-delivery', JSON.stringify({ ...dest, mode, date: dateInput.value, address: sendToInput.value }));
+    };
+    dateInput.addEventListener('change', saveDeliveryDraft);
+    sendToInput.addEventListener('input', saveDeliveryDraft);
 
     const renderItems = () => {
       const cart = getCart();
@@ -193,6 +169,7 @@ const WA_NUMBER = '6281211091885';
     };
 
     const deliveryCost = (): number | null => {
+      if (mode === 'pickup') return 0;
       if (!rates.length) return null;
       const idx = courierSel.selectedIndex >= 0 ? courierSel.selectedIndex : 0;
       return rates[idx]?.price ?? null;
@@ -209,13 +186,16 @@ const WA_NUMBER = '6281211091885';
     };
 
     const loadRates = async () => {
-      if (!dest.areaId && !dest.postal) return;
+      if (mode === 'pickup' || (!dest.areaId && !dest.postal)) return;
+      const request = ++rateRequest;
       const cart = getCart();
       const items = cart.map((l) => ({ name: l.slug, quantity: l.qty }));
       courierSel.innerHTML = '<option>Loading…</option>';
       courierRow.hidden = false;
       const res = await getRates({ destAreaId: dest.areaId, destPostal: dest.postal, items });
+      if (mode === 'pickup' || request !== rateRequest) return;
       rates = res.options;
+      courierRow.hidden = !rates.length;
       estimated = res.estimated;
       estNote.hidden = !estimated;
       courierSel.innerHTML = rates
@@ -227,7 +207,13 @@ const WA_NUMBER = '6281211091885';
     // --- address autocomplete ---
     let acTimer: number | undefined;
     addrInput.addEventListener('input', () => {
+      rateRequest++;
       dest = {};
+      rates = [];
+      estimated = false;
+      estNote.hidden = true;
+      courierRow.hidden = true;
+      saveDeliveryDraft();
       renderTotals();
       window.clearTimeout(acTimer);
       const q = addrInput.value;
@@ -247,6 +233,7 @@ const WA_NUMBER = '6281211091885';
       dest = { areaId: li.dataset.id, postal: Number(li.dataset.postal), label: li.textContent || '' };
       addrInput.value = dest.label!;
       addrList.hidden = true;
+      saveDeliveryDraft();
       loadRates();
     });
     document.addEventListener('click', (e) => {
@@ -254,6 +241,25 @@ const WA_NUMBER = '6281211091885';
     });
 
     courierSel.addEventListener('change', renderTotals);
+    const renderMode = () => {
+      const pickup = mode === 'pickup';
+      $('[data-city-row]').hidden = pickup;
+      $('[data-sendto-row]').hidden = pickup;
+      courierRow.hidden = pickup || !rates.length;
+      estNote.hidden = pickup || !estimated;
+      root.querySelectorAll<HTMLElement>('[data-mode]').forEach((button) => {
+        const active = button.dataset.mode === mode;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+      });
+      renderTotals();
+    };
+    root.querySelectorAll<HTMLElement>('[data-mode]').forEach((button) => button.addEventListener('click', () => {
+      mode = button.dataset.mode || 'delivery';
+      renderMode();
+      saveDeliveryDraft();
+      if (mode === 'delivery') loadRates();
+    }));
 
     // --- checkout → buat order + invoice Xendit ---
     const waFallback = (code: string) => {
@@ -275,10 +281,11 @@ const WA_NUMBER = '6281211091885';
         ...lines,
         '',
         `Subtotal: ${rupiah(subtotal())}`,
-        `Ongkir: ${ship == null ? '-' : rupiah(ship)}${estimated ? ' (estimasi)' : ''} ${courierSel.value || ''}`.trim(),
+        `Ongkir: ${ship == null ? '-' : rupiah(ship)}${mode === 'delivery' && estimated ? ' (estimasi)' : ''} ${mode === 'delivery' ? courierSel.value : ''}`.trim(),
         `Total: ${rupiah(total)}`,
         '',
-        `Kirim ke: ${dest.label}`,
+        `Metode: ${mode === 'pickup' ? 'Pickup' : 'Delivery'}`,
+        `Kirim ke: ${mode === 'pickup' ? root.dataset.pickupAddress : [sendToInput.value, dest.label].filter(Boolean).join(', ')}`,
         `Tanggal terima: ${dateInput.value}`,
       ].join('\n');
       window.open(`https://wa.me/${root.dataset.wa}?text=${encodeURIComponent(msg)}`, '_blank');
@@ -292,7 +299,8 @@ const WA_NUMBER = '6281211091885';
       const name = (root.querySelector('[name="senderName"]') as HTMLInputElement).value.trim();
       const wa = (root.querySelector('[name="senderWa"]') as HTMLInputElement).value.trim();
       const email = (root.querySelector('[name="senderEmail"]') as HTMLInputElement).value.trim();
-      if (!dest.label) { note.hidden = false; note.textContent = 'Pilih alamat pengiriman dulu.'; return; }
+      if (mode === 'delivery' && (!dest.label || !sendToInput.value.trim())) { note.hidden = false; note.textContent = 'Pilih kota dan lengkapi alamat penerima.'; return; }
+      if (!dateInput.checkValidity()) { dateInput.reportValidity(); return; }
       const invalidContact = contactInputs.find((input) => !input.checkValidity());
       if (invalidContact || !name || !wa) {
         note.hidden = false;
@@ -315,12 +323,13 @@ const WA_NUMBER = '6281211091885';
             items: cart.map((l) => ({ slug: l.slug, qty: l.qty })),
             customer: { name, phone: wa, email },
             shipping: {
-              areaId: dest.areaId,
-              postal: dest.postal,
-              label: dest.label,
+              mode,
+              areaId: mode === 'delivery' ? dest.areaId : undefined,
+              postal: mode === 'delivery' ? dest.postal : undefined,
+              label: mode === 'pickup' ? root.dataset.pickupAddress : [sendToInput.value.trim(), dest.label].filter(Boolean).join(', '),
               date: dateInput.value,
-              courier: chosen?.courier || '',
-              service: chosen?.service || '',
+              courier: mode === 'pickup' ? 'pickup' : chosen?.courier || '',
+              service: mode === 'pickup' ? 'Pickup at ANIA' : chosen?.service || '',
               cost: deliveryCost() ?? 0,
             },
           }),
@@ -348,7 +357,8 @@ const WA_NUMBER = '6281211091885';
     });
 
     renderItems();
-    renderTotals();
+    renderMode();
+    if (mode === 'delivery') loadRates();
   }
 </script>
 
@@ -453,10 +463,10 @@ const WA_NUMBER = '6281211091885';
 
   /* ---- right — Figma: garis/outline #BBCCBF, tombol radius 4 ---- */
   .cart__continue {
-    display: flex; align-items: center; justify-content: center; height: 54px;
+    display: flex; align-items: center; justify-content: center; min-height: 40px; padding: 12px 18px;
     text-decoration: none;
     border: 1px solid #BBCCBF; border-radius: 4px;
-    font: 600 12px/12px var(--font-sans); letter-spacing: 2px; text-transform: uppercase;
+    font: 600 12px/1.3 var(--font-sans); letter-spacing: 0; text-transform: uppercase;
     color: #1E2934;
   }
   .cart__totals {
@@ -474,9 +484,9 @@ const WA_NUMBER = '6281211091885';
   .cart__row--total { border-bottom: 0; }
   .cart__row--total b { font-weight: 600; color: #3D3B2F; }
   .cart__checkout {
-    width: 100%; height: 54px; margin: 18px 0 0; padding: 0 12px; border: 0; border-radius: 4px;
+    width: 100%; min-height: 40px; margin: 18px 0 0; padding: 12px 18px; border: 0; border-radius: 4px;
     background: var(--panel); color: #F8F8F8; cursor: pointer;
-    font: 700 12px/12px var(--font-sans); letter-spacing: 2px; text-transform: uppercase;
+    font: 700 12px/1.3 var(--font-sans); letter-spacing: 0; text-transform: uppercase;
   }
   .cart__note { margin: 10px 0 0; font-size: 12px; color: #7E4C4C; }   /* #7E4C4C BEDA BANGET, lihat saran di .type--sale (global.css) */
 

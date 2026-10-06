@@ -30,7 +30,7 @@ const { title = 'What Do You Want to Say?' } = Astro.props;
     /* sticky nempel di bawah navbar selama masih di dalam .oshow (baris-baris occasion di
        bawahnya) — otomatis lepas begitu section ini habis, nggak nempel selamanya */
     position: sticky;
-    top: calc(var(--promo-h, 0px) + var(--nav-h, 0px));
+    top: calc(var(--promo-h, 0px) + var(--nav-h, 0px) - 5px);
     z-index: 10;
     background: var(--bg);
     padding: 14px 0;

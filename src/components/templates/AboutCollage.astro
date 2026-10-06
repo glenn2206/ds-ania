@@ -28,6 +28,7 @@ import { collage as c } from '../../data/about';
       'big top'
       'big bottom';
     aspect-ratio: 2172 / 1430;
+    max-height: 700px;
     width: 100%;
     max-width: 1340px;
     margin: 0 auto;
@@ -37,7 +38,7 @@ import { collage as c } from '../../data/about';
     position: relative;
     margin: 0;
     overflow: hidden;
-    border-radius: 10px;
+    border-radius: 8px;
     background: var(--img-placeholder);   /* placeholder bg gambar — distandarkan ke var(--img-placeholder) */
     min-height: 0;
   }
@@ -62,10 +63,11 @@ import { collage as c } from '../../data/about';
         'top'
         'bottom';
       aspect-ratio: auto;
+      max-height: none;
       gap: 12px;
       background: transparent;
     }
-    .abt-collage__cell { aspect-ratio: 4 / 3; }
+    .abt-collage__cell { aspect-ratio: 4 / 3; max-height: 700px; }
     .abt-collage__cell--big { aspect-ratio: 5 / 6; }
   }
 </style>

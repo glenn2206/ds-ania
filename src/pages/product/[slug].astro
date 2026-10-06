@@ -1,14 +1,9 @@
 ---
-/**
- * PAGE · /product/<slug> — detail produk. SSR: data + stok live dari DB (cache 60 dtk).
- * 404 kalau slug tidak ada / status draft.
- */
 import Site from '../../layouts/Site.astro';
 import ProductDetailSection from '../../components/templates/ProductDetailSection.astro';
 import CareInstructions from '../../components/templates/CareInstructions.astro';
 import ProductCard from '../../components/organisms/ProductCard.astro';
 import OccasionCard from '../../components/organisms/OccasionCard.astro';
-import PageNav from '../../components/atoms/PageNav.astro';
 import { toProduct } from '../../data/shop';
 import { addonExtras } from '../../data/care';
 import { getCatalog, getProductBySlug } from '../../lib/products';
@@ -16,140 +11,33 @@ import { getCatalog, getProductBySlug } from '../../lib/products';
 const { slug } = Astro.params;
 const item = await getProductBySlug(slug ?? '');
 if (!item) return new Response('Produk tidak ditemukan', { status: 404 });
-
-const images = (item.gallery && item.gallery.length ? item.gallery : [item.image, item.image2].filter(Boolean)) as string[];
-
-// related = produk Premium Wrapped lain (bukan item ini), diurut mulai dari tetangga
+const images = (item.gallery?.length ? item.gallery : [item.image, item.image2].filter(Boolean)) as string[];
 const { premiumWrapped } = await getCatalog();
-const others = premiumWrapped.filter((p) => p.slug !== item.slug);
-const startIdx = Math.max(0, premiumWrapped.findIndex((p) => p.slug === item.slug));
-const RELATED_PER = 4;
-const ADDON_PER = 4;
-// batasi ke 6 halaman → PageNav tak pernah pakai elipsis (klien mudah wiring)
-const related = [...others.slice(startIdx), ...others.slice(0, startIdx)].slice(0, RELATED_PER * 6);
-
-const relatedPages = Math.max(1, Math.ceil(related.length / RELATED_PER));
-const addonPages = Math.max(1, Math.ceil(addonExtras.length / ADDON_PER));
+const others = premiumWrapped.filter((product) => product.slug !== item.slug);
+const start = Math.max(0, premiumWrapped.findIndex((product) => product.slug === item.slug));
+const related = [...others.slice(start), ...others.slice(0, start)].slice(0, 24);
 ---
 
 <Site title={`${item.name} — ANIA Flower Boutique`} description={item.description.slice(0, 150)}>
   <div class="ppage">
     <ProductDetailSection item={item} images={images} />
-
     <section class="related">
       <h2 class="type-h2 related__title">You May Also Like</h2>
-      <div class="related__row" data-cardpage={RELATED_PER}>
-        {related.map((c, i) => (
-          <div class="cardpage__cell" data-cardpage-cell hidden={i >= RELATED_PER}>
-            <ProductCard {...toProduct(c)} slug={c.slug} href={`/product/${c.slug}`} />
-          </div>
-        ))}
+      <div class="related__row" data-product-carousel>
+        {related.map((product) => <ProductCard {...toProduct(product)} slug={product.slug} href={`/product/${product.slug}`} />)}
       </div>
-      {relatedPages > 1 && <PageNav pages={relatedPages} current={1} />}
     </section>
-
     <section class="addonx">
       <h2 class="type-h2 addonx__title">Add On Cute Extras to Your Bouquet!</h2>
-      <div class="addonx__row" data-cardpage={ADDON_PER}>
-        {addonExtras.map((a, i) => (
-          <div class="cardpage__cell" data-cardpage-cell hidden={i >= ADDON_PER}>
-            <OccasionCard image={a.image} title={a.title} price={a.price} action="plus" slug={a.slug} />
-          </div>
-        ))}
+      <div class="addonx__row" data-product-carousel>
+        {addonExtras.map((addon) => <OccasionCard image={addon.image} title={addon.title} price={addon.price} action="plus" slug={addon.slug} />)}
       </div>
-      {addonPages > 1 && <PageNav pages={addonPages} current={1} />}
     </section>
-
     <CareInstructions />
   </div>
 </Site>
 
-<style>
-  .related__row .cardpage__cell,
-  .addonx__row .cardpage__cell { display: flex; }
-  .related__row .cardpage__cell[hidden],
-  .addonx__row .cardpage__cell[hidden] { display: none; }
-  .related :global(.cmp-pagenav__item a),
-  .addonx :global(.cmp-pagenav__item a) { cursor: pointer; }
-</style>
-
 <script>
-  // Pagination klien untuk "You May Also Like" / "Add On …": tampilkan `per` kartu,
-  // pager di-render ulang tiap ganti halaman → format ringkas 1 2 3 … N + panah ‹ / › kondisional.
-  // Auto-slide halaman tiap 4 dtk (numbering TETAP — khusus halaman detail produk).
-  const NAV_L = '/assets-svg/arrow-left-black.svg';
-  const NAV_R = '/assets-svg/arrow-right-black.svg';
-  const AUTO_MS = 4000;
-  const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  const pageList = (total: number, cur: number): (number | '…')[] => {
-    if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-    const keep = new Set<number>([1, total, cur, cur - 1, cur + 1]);
-    if (cur <= 3) { keep.add(2); keep.add(3); }
-    if (cur >= total - 2) { keep.add(total - 1); keep.add(total - 2); }
-    const nums = [...keep].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
-    const out: (number | '…')[] = [];
-    nums.forEach((n, i) => { if (i > 0 && n - nums[i - 1] > 1) out.push('…'); out.push(n); });
-    return out;
-  };
-
-  document.querySelectorAll<HTMLElement>('[data-cardpage]').forEach((row) => {
-    const per = parseInt(row.dataset.cardpage || '4', 10);
-    const cells = Array.from(row.querySelectorAll<HTMLElement>('[data-cardpage-cell]'));
-    const nav = row.closest('section')?.querySelector<HTMLElement>('.cmp-pagenav') ?? null;
-    const total = Math.ceil(cells.length / per);
-    if (!nav || total <= 1) { nav?.remove(); return; }
-    const list = nav.querySelector<HTMLElement>('.cmp-pagenav__list')!;
-    let page = 1;
-
-    const drawPager = () => {
-      const parts: string[] = [];
-      if (page > 1)
-        parts.push(`<li class="cmp-pagenav__prev"><a href="#" data-page="${page - 1}" aria-label="Previous page"><img class="ico" src="${NAV_L}" alt=""></a></li>`);
-      pageList(total, page).forEach((it) => {
-        parts.push(
-          it === '…'
-            ? `<li class="cmp-pagenav__gap" aria-hidden="true">…</li>`
-            : `<li class="cmp-pagenav__item${it === page ? ' is-current' : ''}"><a href="#" data-page="${it}"${it === page ? ' aria-current="page"' : ''}>${it}</a></li>`,
-        );
-      });
-      if (page < total)
-        parts.push(`<li class="cmp-pagenav__next"><a href="#" data-page="${page + 1}" aria-label="Next page"><img class="ico" src="${NAV_R}" alt=""></a></li>`);
-      list.innerHTML = parts.join('');
-    };
-
-    const render = () => {
-      cells.forEach((c, i) => { c.hidden = Math.floor(i / per) + 1 !== page; });
-      drawPager();
-    };
-
-    // --- auto-slide halaman (numbering tetap) ---
-    let timer = 0;
-    const stop = () => { window.clearInterval(timer); timer = 0; };
-    const startAuto = () => {
-      stop();
-      if (REDUCE || document.hidden || total <= 1) return;
-      timer = window.setInterval(() => { page = (page % total) + 1; render(); }, AUTO_MS);
-    };
-    const bump = () => { stop(); window.setTimeout(startAuto, AUTO_MS + 1500); };
-
-    nav.addEventListener('click', (e) => {
-      const a = (e.target as HTMLElement).closest<HTMLElement>('a[data-page]');
-      if (!a) return;
-      e.preventDefault();
-      const n = parseInt(a.dataset.page || '1', 10);
-      if (n >= 1 && n <= total && n !== page) { page = n; render(); }
-      bump();
-    });
-
-    const sec = row.closest('section');
-    sec?.addEventListener('pointerenter', (e) => { if ((e as PointerEvent).pointerType !== 'touch') stop(); });
-    sec?.addEventListener('pointerleave', (e) => { if ((e as PointerEvent).pointerType !== 'touch') startAuto(); });
-    sec?.addEventListener('focusin', stop);
-    sec?.addEventListener('focusout', startAuto);
-    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : startAuto()));
-
-    render();
-    startAuto();
-  });
+  import { initCardCarousel } from '../../lib/card-carousel';
+  document.querySelectorAll<HTMLElement>('[data-product-carousel]').forEach((row) => initCardCarousel(row));
 </script>

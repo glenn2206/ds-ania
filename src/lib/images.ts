@@ -11,7 +11,7 @@ import { readFile, writeFile, unlink, mkdir, rename } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { env } from './env';
 
-export const UPLOADS_DIR = env('UPLOADS_DIR') || path.resolve(process.cwd(), 'uploads');
+export const UPLOADS_DIR = env('UPLOADS_DIR') || path.resolve(env('APP_ROOT') || process.cwd(), 'uploads');
 
 export async function ensureUploadsDir() {
   await mkdir(UPLOADS_DIR, { recursive: true });

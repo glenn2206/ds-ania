@@ -9,6 +9,7 @@ interface Props {
   body: string;
   bestFor: string;
 }
+import Icon from '../atoms/Icon.astro';
 const { icon, title, body, bestFor } = Astro.props;
 
 /** Ikon SVG persis dari desain — dipetakan dari sendTo[].icon di data/occasions.ts */
@@ -21,10 +22,11 @@ const ICONS: Record<string, string> = {
 };
 
 const iconSvg = ICONS[icon] ?? '';
+const updatedIcons: Record<string, string> = { partner: 'heart-handshake', colleague: 'briefcase-business', difficult: 'hand-heart' };
 ---
 
 <article class="sendto__card">
-  <span class="sendto__ico" aria-hidden="true" set:html={iconSvg} />
+  {updatedIcons[icon] ? <Icon name={updatedIcons[icon]} size={32} alt="" class="sendto__ico" /> : <span class="sendto__ico" aria-hidden="true" set:html={iconSvg} />}
   <h3 class="type-h3 sendto__tt">{title}</h3>
   <p class="sendto__bd">{body}</p>
   <p class="sendto__best">{bestFor}</p>

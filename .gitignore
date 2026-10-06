@@ -12,7 +12,7 @@ npm-debug.log*
 .env.production
 .env.local
 # uploaded product photos (persisted outside the repo in prod; local dev writes here)
-uploads/
+/uploads/
 # os
 .DS_Store
 

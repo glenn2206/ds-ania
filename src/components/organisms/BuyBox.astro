@@ -5,7 +5,7 @@
  */
 import Pill from '../atoms/Pill.astro';
 import Swatch from '../atoms/Swatch.astro';
-import Icon from '../atoms/Icon.astro';
+import DeliveryFields from './DeliveryFields.astro';
 import type { CatalogItem } from '../../data/catalog';
 
 interface Props {
@@ -27,52 +27,7 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
     <Swatch options={['Standard', 'Premium']} images={swatchImages} />
   </div>
 
-  <div class="buybox__delivery">
-    <span class="buybox__dtitle">Delivery Information</span>
-
-    <div class="buybox__modes">
-      <button type="button" class="buybox__mode is-active" data-mode="delivery">
-        <Icon name="truck-delivery" size={16} alt="" /> Delivery
-      </button>
-      <button type="button" class="buybox__mode" data-mode="pickup">
-        <Icon name="toko" size={16} alt="" /> Pickup
-      </button>
-    </div>
-
-    <label class="buybox__row">
-      <span>Available Delivery City:</span>
-      <span class="buybox__addrwrap">
-        <input type="text" data-addr placeholder="Select a city / district" autocomplete="off" />
-        <ul class="buybox__addrlist" data-addrlist hidden></ul>
-      </span>
-    </label>
-
-    <div class="buybox__detail">
-      <span class="buybox__dlabel">Detail Delivery:</span>
-      <div class="buybox__detailbox">
-        <div class="buybox__dcell">
-          <b>Receive on:</b>
-          <input type="date" data-date />
-        </div>
-        <div class="buybox__dcell">
-          <b>Send to:</b>
-          <input type="text" data-sendto placeholder="Recipient address / building" />
-        </div>
-      </div>
-    </div>
-
-    <p class="buybox__note">
-      *Note: If you order D-1 after 3 PM, your order would be processed on the next day after 2 PM
-    </p>
-
-    <div class="buybox__sender">
-      <label class="buybox__field"><span>Sender Name:</span><input type="text" name="senderName" placeholder="Name" /></label>
-      <label class="buybox__field"><span>Sender WhatsApp:</span><input type="tel" name="senderWa" placeholder="(+62)" /></label>
-      <label class="buybox__field buybox__field--wide"><span>Sender Email:</span><input type="email" name="senderEmail" placeholder="Email" /></label>
-    </div>
-
-    <p class="buybox__courier" data-courier hidden></p>
-  </div>
+  <DeliveryFields />
 
   {item.soldOut ? (
     <button class="cmp-btn-primary buybox__checkout" type="button" disabled>Sold Out</button>
@@ -133,13 +88,16 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
 
     let dest: { areaId?: string; postal?: number; label?: string } = {};
     let ship = 0;
+    let mode = 'delivery';
+    let rateRequest = 0;
 
     const updateTotal = () => {
       coTot.textContent = unit ? rupiah(unit + ship) : 'By request';
     };
 
     const loadRates = async () => {
-      if (!dest.areaId && !dest.postal) return;
+      if (mode === 'pickup' || (!dest.areaId && !dest.postal)) return;
+      const request = ++rateRequest;
       courierEl.hidden = false;
       courierEl.textContent = 'Checking delivery…';
       const res = await getRates({
@@ -147,6 +105,7 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
         destPostal: dest.postal,
         items: [{ name: slug, value: unit || 300000, weight: 1500, quantity: 1 }],
       });
+      if (mode === 'pickup' || request !== rateRequest) return;
       const cheapest = res.options[0];
       ship = cheapest?.price ?? 0;
       courierEl.textContent = cheapest
@@ -158,8 +117,12 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
     // toggle delivery / pickup
     box.querySelectorAll<HTMLElement>('[data-mode]').forEach((b) => {
       b.addEventListener('click', () => {
-        box.querySelectorAll('[data-mode]').forEach((x) => x.classList.remove('is-active'));
+        mode = b.dataset.mode || 'delivery';
+        box.querySelectorAll('[data-mode]').forEach((x) => { x.classList.remove('is-active'); x.setAttribute('aria-pressed', 'false'); });
         b.classList.add('is-active');
+        b.setAttribute('aria-pressed', 'true');
+        $('[data-city-row]').hidden = mode === 'pickup';
+        $('[data-sendto-row]').hidden = mode === 'pickup';
         if (b.dataset.mode === 'pickup') { ship = 0; courierEl.hidden = true; updateTotal(); }
         else if (dest.areaId || dest.postal) loadRates();
       });
@@ -168,7 +131,8 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
     // address autocomplete
     let tmr: number | undefined;
     addrInput.addEventListener('input', () => {
-      dest = {}; ship = 0; updateTotal();
+      rateRequest++;
+      dest = {}; ship = 0; courierEl.hidden = true; updateTotal();
       window.clearTimeout(tmr);
       tmr = window.setTimeout(async () => {
         const areas = await searchAreas(addrInput.value);
@@ -201,6 +165,9 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
 
     // check out now → tambah ke cart, ke halaman /cart
     $('[data-checkout]').addEventListener('click', () => {
+      const contact = Object.fromEntries(Array.from(box.querySelectorAll<HTMLInputElement>('[data-form] input')).map((input) => [input.name, input.value.trim()]));
+      localStorage.setItem('ania:checkout-contact', JSON.stringify(contact));
+      localStorage.setItem('ania:checkout-delivery', JSON.stringify({ ...dest, mode, date: dateInput.value, address: $<HTMLInputElement>('[data-sendto]').value }));
       addItem(slug, 1);
       window.location.href = '/cart';
     });

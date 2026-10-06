@@ -108,6 +108,9 @@ const searchText = (c: CatalogItem) =>
     const pagerBox = root.querySelector<HTMLElement>('[data-pagenav]')!;
     const emptyMsg = root.querySelector<HTMLElement>('[data-empty]')!;
     const titleEl = root.querySelector<HTMLElement>('[data-shop-title]')!;
+    const filterLabels = new Map(Array.from(root.querySelectorAll<HTMLAnchorElement>('[data-filter]')).map((link) => [
+      `${link.dataset.group}:${link.dataset.value || ''}`, link.textContent?.trim() || 'Explore',
+    ]));
     const sortSel = root.querySelector<HTMLSelectElement>('[data-sort]')!;
     const filterCount = root.querySelector<HTMLElement>('[data-filter-count]');
     const perPage = parseInt(root.dataset.perPage || '9', 10);
@@ -161,9 +164,10 @@ const searchText = (c: CatalogItem) =>
 
     const matches = (el: HTMLElement) => {
       const { group, value } = filter;
+      if (group === 'sale') return el.dataset.sale === 'true';
+      if (group === 'addon' && !value) return el.dataset.cat === 'accessory';
       if (!value || group === 'all') return true;
       if (group === 'category') return el.dataset.cat === value;
-      if (group === 'sale') return el.dataset.sale === 'true';
       if (group === 'addon')
         return el.dataset.cat === 'accessory' && (el.dataset.name || '').toLowerCase() === value;
       // occasion / flower → cocokkan substring ke data-search
@@ -232,8 +236,9 @@ const searchText = (c: CatalogItem) =>
       renderPager(totalPages);
       animateIn(shown);
       // judul ikut kategori aktif
-      if (filter.group === 'category' && filter.value) titleEl.textContent = CAT_LABEL[filter.value] || titleEl.textContent;
-      else if (filter.group === 'all') titleEl.textContent = 'Explore';
+      titleEl.textContent = filter.value
+        ? filterLabels.get(`${filter.group}:${filter.value}`) || CAT_LABEL[filter.value] || filter.value
+        : filter.group === 'sale' ? 'Sale' : filter.group === 'addon' ? 'Add On' : 'Explore';
       if (filterCount) {
         const count = filter.value && filter.group !== 'all' ? 1 : 0;
         filterCount.textContent = String(count);

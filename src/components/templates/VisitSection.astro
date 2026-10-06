@@ -17,7 +17,7 @@ const { title = 'We’d Love to See You' } = Astro.props;
     <h2 class="type-h1 visit__title">{title}</h2>
     <p class="visit__label">{office.label}</p>
     <address class="visit__addr">
-      {office.address.map((line) => <>{line}<br /></>)}
+      <a href={`mailto:${office.email}`}>{office.address.map((line) => <>{line}<br /></>)}</a>
       <br />
       <a href={`mailto:${office.email}`}>{office.email}</a><br />
       <a href={`tel:+${office.whatsapp}`}>{office.phone}</a>
