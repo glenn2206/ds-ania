@@ -23,7 +23,7 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
   <div class="buybox__head">
     <h1 class="type-h2 buybox__name">{item.name}</h1>
     <Pill>{item.pill}</Pill>
-    <p class="buybox__price">{priceLabel}</p>
+    <p class="buybox__price">{item.compareAt && <del>Rp {item.compareAt.toLocaleString('en-US')}</del>} {priceLabel}</p>
     <Swatch options={['Standard', 'Premium']} images={swatchImages} />
   </div>
 
@@ -167,7 +167,7 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
     $('[data-checkout]').addEventListener('click', () => {
       const contact = Object.fromEntries(Array.from(box.querySelectorAll<HTMLInputElement>('[data-form] input')).map((input) => [input.name, input.value.trim()]));
       localStorage.setItem('ania:checkout-contact', JSON.stringify(contact));
-      localStorage.setItem('ania:checkout-delivery', JSON.stringify({ ...dest, mode, date: dateInput.value, address: $<HTMLInputElement>('[data-sendto]').value }));
+      localStorage.setItem('ania:checkout-delivery', JSON.stringify({ ...dest, mode, date: dateInput.value, address: $<HTMLTextAreaElement>('[data-sendto]').value }));
       addItem(slug, 1);
       window.location.href = '/cart';
     });

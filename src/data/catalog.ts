@@ -24,6 +24,8 @@ export interface CatalogItem {
   flowers: string;
   size?: string;
   price: number | null;
+  compareAt?: number;
+  discountPercent?: number;
   priceNote?: string;
   description: string;
   occasion?: string;

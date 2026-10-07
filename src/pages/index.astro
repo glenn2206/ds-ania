@@ -12,17 +12,19 @@ import TestimonialSection from '../components/templates/TestimonialSection.astro
 import UnspokenWordsSection from '../components/templates/UnspokenWordsSection.astro';
 import FloatingWhatsApp from '../components/organisms/FloatingWhatsApp.astro';
 
-import { heroSlides, addons, whyAnia, testimonials, toFeatured } from '../data/home';
+import { addons, whyAnia, testimonials, toFeatured } from '../data/home';
+import { getMedia } from '../lib/settings';
 import { getCatalog } from '../lib/products';
 
 const { premiumWrapped } = await getCatalog();
 const products = toFeatured(premiumWrapped);
+const media = await getMedia();
 ---
 
 <Site title="ANIA Flower Boutique — Home">
   {/* hero full-bleed; navbar (sticky) + hero = 1 layar */}
   <div class="home-hero">
-    <Hero slides={heroSlides} />
+    <Hero slides={media.heroSlides} />
   </div>
 
   <div class="home">

@@ -4,16 +4,24 @@
  *      { promo: { enabled: boolean, text: string, cta: string, href: string } }
  */
 import { withAdmin, jsonResponse } from '../../../lib/admin';
-import { getPromo, savePromo } from '../../../lib/settings';
+import { getPromo, savePromo, getMedia, saveMedia, readMedia } from '../../../lib/settings';
 
 export const prerender = false;
 
 export const GET = withAdmin(async () => {
-  return jsonResponse({ promo: await getPromo() });
+  return jsonResponse({ promo: await getPromo(), media: await getMedia() });
 });
 
 export const PUT = withAdmin(async ({ request }) => {
-  const body = (await request.json().catch(() => ({}))) as { promo?: Record<string, unknown> };
+  const body = (await request.json().catch(() => ({}))) as { promo?: Record<string, unknown>; media?: Record<string, unknown> };
+  if (body.media) {
+    let media;
+    try { media = readMedia(body.media); }
+    catch (err) { return jsonResponse({ error: (err as Error).message }, 400); }
+    await saveMedia(media);
+    return jsonResponse({ ok: true, media });
+  }
+  if (!body.promo) return jsonResponse({ error: 'Pengaturan tidak ada.' }, 400);
   const p = body.promo ?? {};
 
   const text = String(p.text ?? '').trim();

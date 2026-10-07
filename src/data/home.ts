@@ -27,7 +27,8 @@ const cardOf = (c: CatalogItem): Product => ({
   title: c.name,
   pill: c.pill,
   price: c.price ?? 'By request',
-  state: c.soldOut ? 'soldout' : undefined,
+  compareAt: c.compareAt,
+  state: c.soldOut ? 'soldout' : c.discountPercent ? 'sale' : undefined,
   swatchImages: c.image2 ? [c.image, c.image2] : undefined,
 });
 

@@ -4,6 +4,7 @@ import Admin from '../../../layouts/Admin.astro';
 import ProductEditor, { type ProductRow, type ImageRow } from '../../../components/admin/ProductEditor.tsx';
 import { getSession } from '../../../lib/session';
 import { one, q } from '../../../lib/db';
+import { getDiscounts } from '../../../lib/discounts';
 
 const session = getSession(Astro.cookies);
 if (!session) return Astro.redirect('/admin/login');
@@ -11,6 +12,7 @@ if (!session) return Astro.redirect('/admin/login');
 const id = Number(Astro.params.id);
 const product = (Number.isFinite(id) ? await one('SELECT * FROM products WHERE id = ?', [id]) : null) as ProductRow | null;
 if (!product) return new Response('Produk tidak ada', { status: 404 });
+product.discount_percent = (await getDiscounts()).get(id) || 0;
 
 const images = (await q(
   'SELECT id, filename, position FROM product_images WHERE product_id = ? ORDER BY position, id',

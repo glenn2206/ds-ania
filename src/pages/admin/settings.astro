@@ -7,12 +7,14 @@
 export const prerender = false;
 import Admin from '../../layouts/Admin.astro';
 import { getSession } from '../../lib/session';
-import { getPromo } from '../../lib/settings';
+import { getPromo, getMedia } from '../../lib/settings';
+import MediaEditor from '../../components/admin/MediaEditor';
 
 const session = getSession(Astro.cookies);
 if (!session) return Astro.redirect('/admin/login');
 
 const promo = await getPromo();
+const media = await getMedia();
 ---
 
 <Admin title="Pengaturan — ANIA CMS" active="settings" user={session.uname}>
@@ -56,9 +58,11 @@ const promo = await getPromo();
     </div>
   </div>
 
+  <MediaEditor client:load media={media} />
+
   <p style="color:var(--a-muted);font-size:13px">
-    Perubahan tampil di halaman dinamis (Beranda, Shop, Produk) dalam ±60 detik.
-    Halaman statik (About, FAQ, Kontak, Terms) ikut setelah <b>Deploy ulang</b> di menu Produk.
+    Perubahan tampil di halaman dinamis (Beranda, Shop, Produk, About) dalam ±60 detik.
+    Halaman statik (FAQ, Kontak, Terms) ikut setelah <b>Deploy ulang</b> di menu Produk.
   </p>
 
   <style>

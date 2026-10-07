@@ -9,6 +9,7 @@
  * DB tidak terkonfigurasi / query gagal → fallback ke snapshot (src/data/catalog.ts).
  */
 import { q, isConfigured } from './db';
+import { getDiscounts, applyDiscount } from './discounts';
 import {
   buildCatalog,
   toItem,
@@ -97,6 +98,8 @@ async function fetchCatalog(): Promise<Catalog> {
     }
 
     const idBySlug = new Map(rows.map((p) => [p.slug, Number(p.id)]));
+    // Missing settings permissions must not discard the live product catalog.
+    const discounts = await getDiscounts().catch(() => new Map<number, number>());
     const rawList = rows.map((p, i) => rowToRaw(p, byProduct.get(Number(p.id)) || [], i));
     // gunakan transform yang sama, tapi foto CMS disajikan dari /uploads/
     const all = rawList
@@ -105,7 +108,7 @@ async function fetchCatalog(): Promise<Catalog> {
       .map((r, i) => {
         const item = toItem(r, i, '/uploads/');
         item.id = idBySlug.get(r.slug);
-        return item;
+        return applyDiscount(item, discounts.get(item.id!) || 0);
       });
     const pick = (c: CatalogItem['category']) => all.filter((x) => x.category === c);
     const premiumWrapped = pick('premium-wrapped');

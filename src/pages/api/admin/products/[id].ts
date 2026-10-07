@@ -1,5 +1,6 @@
 /** PUT /api/admin/products/:id — update. DELETE — hapus (foto ikut). */
-import { q, one } from '../../../../lib/db';
+import { q, one, tx } from '../../../../lib/db';
+import { saveDiscount } from '../../../../lib/discounts';
 import { withAdmin, jsonResponse, readProduct, slugify } from '../../../../lib/admin';
 import { invalidateCatalog } from '../../../../lib/products';
 import { removeUpload, renameForOrder } from '../../../../lib/images';
@@ -11,20 +12,26 @@ export const PUT = withAdmin(async ({ params, request }) => {
   const product = await one('SELECT * FROM products WHERE id = ?', [id]);
   if (!product) return jsonResponse({ error: 'Produk tidak ada' }, 404);
 
-  const b = readProduct(await request.json().catch(() => ({})));
+  const body = await request.json().catch(() => ({}));
+  let b;
+  try { b = readProduct(body); }
+  catch (error) { return jsonResponse({ error: (error as Error).message }, 400); }
   if (!b.name) return jsonResponse({ error: 'Nama wajib.' }, 400);
 
   let slug = b.slug || product.slug;
   if (slug !== product.slug && (await one('SELECT id FROM products WHERE slug = ? AND id <> ?', [slug, id])))
     slug = `${slugify(slug)}-${Date.now().toString(36).slice(-4)}`;
 
-  await q(
-    `UPDATE products SET slug=?,name=?,category=?,pill=?,flowers=?,size=?,price=?,price_note=?,stock=?,
-       description=?,occasion=?,drive=?,featured=?,status=?,updated_at=CURRENT_TIMESTAMP
-     WHERE id=?`,
-    [slug, b.name, b.category, b.pill, b.flowers, b.size, b.price, b.price_note, b.stock,
-     b.description, b.occasion, b.drive, b.featured, b.status, id],
-  );
+  await tx(async (t) => {
+    await t.q(
+      `UPDATE products SET slug=?,name=?,category=?,pill=?,flowers=?,size=?,price=?,price_note=?,stock=?,
+         description=?,occasion=?,drive=?,featured=?,status=?,updated_at=CURRENT_TIMESTAMP
+       WHERE id=?`,
+      [slug, b.name, b.category, b.pill, b.flowers, b.size, b.price, b.price_note, b.stock,
+       b.description, b.occasion, b.drive, b.featured, b.status, id],
+    );
+    if ('discount_percent' in body) await saveDiscount(t, id, b.discount_percent);
+  });
 
   // slug berubah → rename file foto biar konsisten
   if (slug !== product.slug) {

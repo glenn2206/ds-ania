@@ -26,6 +26,8 @@ a { color: var(--a-accent); }
 }
 .admin-top__brand { font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 14px; }
 .admin-top__nav { display: flex; gap: 18px; align-items: center; }
+.admin-top { flex-wrap: wrap; }
+.admin-top__nav { flex-wrap: wrap; }
 .admin-top__nav a { text-decoration: none; color: var(--a-muted); font-weight: 600; }
 .admin-top__nav a.is-active { color: var(--a-ink); }
 
@@ -94,3 +96,8 @@ table.admin-table { width: 100%; border-collapse: collapse; background: var(--a-
   .admin-table td { display: block; border: 0; padding: 6px 14px; }
   .admin-table tr { display: block; border-bottom: 1px solid var(--a-line); padding: 8px 0; }
 }
+.media-editor h3 { font-size: 14px; margin: 24px 0 12px; }
+.media-editor__drop { width: 100%; margin-top: 12px; background: transparent; color: var(--a-muted); }
+.media-editor__drop:disabled { opacity: .5; cursor: default; }
+.media-editor__video { display: block; width: 100%; max-width: 640px; max-height: 360px; background: #111; border-radius: 8px; margin-bottom: 12px; }
+.media-editor__actions { display: flex; gap: 8px; flex-wrap: wrap; }

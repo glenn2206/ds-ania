@@ -59,7 +59,7 @@ const WA_NUMBER = '6281211091885';
 
 <script>
   import {
-    getCart, setQty, removeItem, findProduct, unitPrice, subtotal, seedIfFirstVisit, rupiah,
+    getCart, setQty, removeItem, findProduct, unitPrice, seedIfFirstVisit, rupiah,
   } from '../../lib/cart';
 
   interface RateOption { courier: string; service: string; price: number; etd: string }
@@ -102,10 +102,20 @@ const WA_NUMBER = '6281211091885';
     const addrInput = $<HTMLInputElement>('[data-addr]');
     const addrList = $('[data-addrlist]');
     const dateInput = $<HTMLInputElement>('[data-date]');
-    const sendToInput = $<HTMLInputElement>('[data-sendto]');
+    const sendToInput = $<HTMLTextAreaElement>('[data-sendto]');
     let mode = 'delivery';
     const contactInputs = Array.from(root.querySelectorAll<HTMLInputElement>('[data-form] input'));
     const contactStorageKey = 'ania:checkout-contact';
+    type PricedItem = { slug: string; name: string; image: string; pill: string; unitPrice: number; priceNote?: string };
+    let priced = new Map<string, PricedItem>();
+    let pricingRequest = 0;
+    let pricingReady = false;
+    const currentProduct = (slug: string) => {
+      const live = priced.get(slug);
+      return live ? { ...live, price: live.unitPrice > 0 ? live.unitPrice : null } : findProduct(slug);
+    };
+    const currentUnit = (slug: string) => priced.get(slug)?.unitPrice ?? unitPrice(slug);
+    const currentSubtotal = () => getCart().reduce((sum, line) => sum + currentUnit(line.slug) * line.qty, 0);
 
     try {
       const saved = JSON.parse(localStorage.getItem(contactStorageKey) || '{}');
@@ -147,7 +157,7 @@ const WA_NUMBER = '6281211091885';
       const cart = getCart();
       itemsEl.innerHTML = '';
       cart.forEach((l) => {
-        const p = findProduct(l.slug);
+        const p = currentProduct(l.slug);
         if (!p) return;
         const node = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
         (node.querySelector('.cart__thumb') as HTMLElement).style.backgroundImage = `url(${p.image})`;
@@ -155,7 +165,7 @@ const WA_NUMBER = '6281211091885';
         node.querySelector('.cart__variant')!.textContent = p.pill;
         node.querySelector('[data-qty]')!.textContent = String(l.qty);
         node.querySelector('.cart__price')!.textContent =
-          typeof p.price === 'number' ? rupiah(unitPrice(l.slug) * l.qty) : (p.priceNote ? 'By request' : '—');
+          typeof p.price === 'number' ? rupiah(currentUnit(l.slug) * l.qty) : (p.priceNote ? 'By request' : '—');
         node.querySelector('[data-dec]')!.addEventListener('click', () => setQty(l.slug, l.qty - 1));
         node.querySelector('[data-inc]')!.addEventListener('click', () => setQty(l.slug, l.qty + 1));
         node.querySelector('[data-remove]')!.addEventListener('click', () => removeItem(l.slug));
@@ -176,7 +186,7 @@ const WA_NUMBER = '6281211091885';
     };
 
     const renderTotals = () => {
-      const sub = subtotal();
+      const sub = currentSubtotal();
       const ship = deliveryCost();
       $('[data-subtotal]').textContent = rupiah(sub);
       $('[data-delivery-cost]').textContent = ship == null ? '—' : rupiah(ship);
@@ -268,19 +278,19 @@ const WA_NUMBER = '6281211091885';
       // sejak snapshot terakhir) → jangan crash, lewati saja barisnya di ringkasan WhatsApp.
       const lines = cart
         .map((l) => {
-          const p = findProduct(l.slug);
+          const p = currentProduct(l.slug);
           if (!p) return null;
-          const price = typeof p.price === 'number' ? rupiah(unitPrice(l.slug) * l.qty) : 'By request';
+          const price = typeof p.price === 'number' ? rupiah(currentUnit(l.slug) * l.qty) : 'By request';
           return `• ${p.name} (${p.pill}) ×${l.qty} — ${price}`;
         })
         .filter((line): line is string => line !== null);
       const ship = deliveryCost();
-      const total = subtotal() + (ship ?? 0);
+      const total = currentSubtotal() + (ship ?? 0);
       const msg = [
         `Halo ANIA, saya mau order (kode ${code}):`,
         ...lines,
         '',
-        `Subtotal: ${rupiah(subtotal())}`,
+        `Subtotal: ${rupiah(currentSubtotal())}`,
         `Ongkir: ${ship == null ? '-' : rupiah(ship)}${mode === 'delivery' && estimated ? ' (estimasi)' : ''} ${mode === 'delivery' ? courierSel.value : ''}`.trim(),
         `Total: ${rupiah(total)}`,
         '',
@@ -292,7 +302,27 @@ const WA_NUMBER = '6281211091885';
     };
 
     const checkoutBtn = $<HTMLButtonElement>('[data-checkout]');
+    const refreshPrices = async () => {
+      const requestId = ++pricingRequest;
+      pricingReady = false;
+      checkoutBtn.disabled = true;
+      try {
+        const response = await fetch('/api/pricing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: getCart() }) });
+        if (!response.ok) throw new Error('Harga belum dapat dimuat. Silakan refresh halaman.');
+        const data = await response.json();
+        if (requestId !== pricingRequest) return;
+        priced = new Map(data.items.map((item: PricedItem) => [item.slug, item]));
+        pricingReady = true;
+        renderItems(); renderTotals();
+        checkoutBtn.disabled = false;
+      } catch (error) {
+        if (requestId !== pricingRequest) return;
+        const note = $('[data-checkoutnote]');
+        note.hidden = false; note.textContent = (error as Error).message;
+      }
+    };
     checkoutBtn.addEventListener('click', async () => {
+      if (!pricingReady) return;
       const cart = getCart();
       if (!cart.length) return;
       const note = $('[data-checkoutnote]');
@@ -326,6 +356,7 @@ const WA_NUMBER = '6281211091885';
               mode,
               areaId: mode === 'delivery' ? dest.areaId : undefined,
               postal: mode === 'delivery' ? dest.postal : undefined,
+              address: mode === 'delivery' ? sendToInput.value.trim() : '',
               label: mode === 'pickup' ? root.dataset.pickupAddress : [sendToInput.value.trim(), dest.label].filter(Boolean).join(', '),
               date: dateInput.value,
               courier: mode === 'pickup' ? 'pickup' : chosen?.courier || '',
@@ -354,10 +385,12 @@ const WA_NUMBER = '6281211091885';
       renderItems();
       renderTotals();
       if (dest.areaId || dest.postal) loadRates();
+      refreshPrices();
     });
 
     renderItems();
     renderMode();
+    refreshPrices();
     if (mode === 'delivery') loadRates();
   }
 </script>

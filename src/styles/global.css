@@ -1059,6 +1059,12 @@
   opacity: 0; transition: opacity .5s ease;
 }
 .gallery__img.is-active { opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .gallery__stage { cursor: zoom-in; }
+  .gallery__stage.is-zoomed .gallery__img.is-active {
+    transform: scale(2); transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%);
+  }
+}
 .gallery__nav {
   position: absolute; bottom: 22px; z-index: 2;
   width: 30px; height: 30px; border: 0; border-radius: 50%; cursor: pointer;
@@ -1129,9 +1135,14 @@
   outline: 1px solid #D1D1D1; outline-offset: -1px; border: 0;
   font: 400 13px/1 var(--font-sans); color: #3D3B2F;
 }
-.delivery-fields input:focus, .delivery-fields select:focus { outline-color: var(--olive); }
+.delivery-fields textarea {
+  width: 100%; min-height: 80px; padding: 10px 12px; resize: vertical;
+  border: 1px solid #D1D1D1; border-radius: 4px; background: #fff;
+  font: 400 13px/1.5 var(--font-sans); color: #3D3B2F;
+}
+.delivery-fields input:focus, .delivery-fields select:focus, .delivery-fields textarea:focus { outline-color: var(--olive); }
 .delivery-fields [hidden] { display: none; }
-.delivery-fields .buybox__detailbox:has([data-sendto-row][hidden]) { grid-template-columns: 1fr; }
+.delivery-fields .buybox__detailbox { grid-template-columns: 1fr; }
 .cart__left > .delivery-fields { margin-top: 28px; }
 .buybox__addrlist {
   position: absolute; left: 0; right: 0; top: 100%; z-index: 20; margin: 6px 0 0; padding: 4px;

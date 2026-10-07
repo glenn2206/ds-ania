@@ -12,6 +12,8 @@ export function toProduct(c: CatalogItem): Product {
     title: c.name,
     pill: c.pill,
     price: c.price ?? 'By request',
+    compareAt: c.compareAt,
+    state: c.soldOut ? 'soldout' : c.discountPercent ? 'sale' : undefined,
     swatchImages: c.image2 ? [c.image, c.image2] : undefined,
   };
 }

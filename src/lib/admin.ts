@@ -3,6 +3,7 @@
  */
 import type { APIContext, APIRoute } from 'astro';
 import { getSession, type Session } from './session';
+import { readDiscount } from './discounts';
 
 export function jsonResponse(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -54,6 +55,7 @@ export interface ProductInput {
   drive: string | null;
   featured: string | null;
   status: 'draft' | 'published';
+  discount_percent: number;
 }
 
 const toIntOrNull = (v: unknown): number | null => {
@@ -93,5 +95,6 @@ export function readProduct(src: Record<string, any> | FormData): ProductInput {
     drive: blankNull('drive'),
     featured: blankNull('featured'),
     status: get('status') === 'draft' ? 'draft' : 'published',
+    discount_percent: readDiscount(get('discount_percent')),
   };
 }

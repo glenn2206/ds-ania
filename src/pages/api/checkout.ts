@@ -35,6 +35,8 @@ export const POST: APIRoute = async ({ request }) => {
   const phone = String(body.customer?.phone || '').trim();
   const email = String(body.customer?.email || '').trim() || null;
   if (!name || !phone) return json({ error: 'Nama & WhatsApp wajib.' }, 400);
+  if (body.shipping?.mode === 'delivery' && !String(body.shipping.address || '').trim())
+    return json({ error: 'Alamat lengkap penerima wajib.' }, 400);
 
   const wanted: { slug: string; qty: number }[] = Array.isArray(body.items)
     ? body.items

@@ -34,6 +34,7 @@ export const POST: APIRoute = async ({ request }) => {
       return {
         slug,
         name: p.name,
+        pill: p.pill,
         image: p.image,
         unitPrice,
         qty,

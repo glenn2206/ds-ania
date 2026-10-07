@@ -5,7 +5,8 @@
  * Dibaca oleh Navbar.astro tiap render (cache 60 dtk, sama pola dg lib/products.ts).
  * Ditulis oleh /api/admin/settings. Kalau DB belum siap → pakai DEFAULT_PROMO.
  */
-import { q, tx, isConfigured } from './db';
+import { q, tx, isConfigured, type Querier } from './db';
+import { heroSlides } from '../data/home';
 
 export interface PromoSettings {
   enabled: boolean;
@@ -18,7 +19,7 @@ export const DEFAULT_PROMO: PromoSettings = {
   enabled: true,
   text: 'Mother’s Day Graduation Sale',
   cta: '25% Off! Shop Now',
-  href: '/shop',
+  href: '/shop?filter=sale',
 };
 
 const PROMO_KEYS = ['promo_enabled', 'promo_text', 'promo_cta', 'promo_href'] as const;
@@ -66,4 +67,45 @@ export async function savePromo(p: PromoSettings): Promise<void> {
     }
   });
   invalidatePromo();
+}
+
+export interface MediaSettings {
+  heroSlides: string[];
+  aboutVideo: string;
+}
+
+export function safeMediaUrl(value: string): boolean {
+  if (value.length > 2048) return false;
+  if (/^\/(?!\/)[^\s\\]+$/.test(value)) return true;
+  try { return new URL(value).protocol === 'https:'; } catch { return false; }
+}
+
+export function readMedia(input: Record<string, unknown>): MediaSettings {
+  if (!Array.isArray(input.heroSlides) || input.heroSlides.length < 1 || input.heroSlides.length > 10)
+    throw new Error('Carousel membutuhkan 1 sampai 10 URL gambar.');
+  const slides = input.heroSlides.map((url) => String(url).trim());
+  const aboutVideo = String(input.aboutVideo ?? '').trim();
+  if (slides.some((url) => !safeMediaUrl(url)) || (aboutVideo && !safeMediaUrl(aboutVideo)))
+    throw new Error('Gunakan path /assets/... atau URL HTTPS lengkap.');
+  if (aboutVideo && !/\.(mp4|webm)(?:[?#]|$)/i.test(aboutVideo))
+    throw new Error('Video harus link langsung file MP4 atau WebM.');
+  return { heroSlides: slides, aboutVideo };
+}
+
+export async function writeSetting(t: Querier, key: string, value: string) {
+  await t.q('DELETE FROM site_settings WHERE skey = ?', [key]);
+  await t.q('INSERT INTO site_settings (skey, svalue) VALUES (?, ?)', [key, value]);
+}
+
+export async function getMedia(): Promise<MediaSettings> {
+  const defaults = { heroSlides: [...heroSlides], aboutVideo: '' };
+  if (!isConfigured()) return defaults;
+  try {
+    const rows = await q('SELECT svalue FROM site_settings WHERE skey = ?', ['site_media']);
+    return rows.length ? readMedia(JSON.parse(rows[0].svalue)) : defaults;
+  } catch { return defaults; }
+}
+
+export async function saveMedia(media: MediaSettings) {
+  await tx((t) => writeSetting(t, 'site_media', JSON.stringify(media)));
 }

@@ -76,6 +76,7 @@ const searchText = (c: CatalogItem) =>
               data-cat={c.category}
               data-name={c.name}
               data-price={c.price ?? ''}
+              data-sale={c.discountPercent ? 'true' : 'false'}
               data-search={searchText(c)}
               data-index={i}
             >

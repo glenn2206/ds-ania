@@ -1,0 +1,200 @@
+---
+export const prerender = false;
+import Admin from '../../layouts/Admin.astro';
+import { getSession } from '../../lib/session';
+import { guideGroups, guideRoutes, guideSections, guideUpdated } from '../../data/admin-guide';
+
+const session = getSession(Astro.cookies);
+if (!session) return Astro.redirect('/admin/login');
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+---
+
+<Admin title="Panduan Admin — ANIA CMS" active="guide" user={session.uname}>
+  <header class="guide-header" id="awal">
+    <div>
+      <p class="guide-meta">SOP ADMIN · {guideUpdated}</p>
+      <h1 class="admin-h">Panduan Admin ANIA</h1>
+      <p>Langkah demi langkah untuk mengelola produk, order, promo, foto beranda, dan video About.</p>
+    </div>
+    <div class="guide-actions">
+      <button type="button" class="btn btn--sm" id="guide-print">Cetak / simpan PDF</button>
+      <a class="btn btn--sm" href="/admin/panduan/unduh">Unduh teks SOP</a>
+    </div>
+  </header>
+
+  <div class="guide-layout">
+    <aside class="guide-sidebar">
+      <nav aria-label="Daftar isi panduan">
+        <h2>Daftar isi</h2>
+        {guideGroups.map(group => (
+          <div class="guide-nav-group">
+            <a class="guide-nav-title" href={`#${group.id}`}>{group.title}</a>
+            <ul>{guideSections.filter(section => section.group === group.id).map(section => (
+              <li><a href={`#${section.id}`}>{section.title}</a></li>
+            ))}</ul>
+          </div>
+        ))}
+      </nav>
+    </aside>
+
+    <article class="guide-content">
+      <section class="guide-intro" aria-labelledby="guide-start">
+        <h2 id="guide-start">Sebelum mulai</h2>
+        <p>Pilih tugas dari daftar isi, ikuti langkahnya, lalu cek bagian <strong>Tanda berhasil</strong>. Screenshot adalah contoh posisi tombol dan kolom; isi data mengikuti produk atau order Anda sendiri.</p>
+        <p><strong>Latihan lokal berbeda dari website live.</strong> Alamat <code>127.0.0.1:4331</code> hanya berjalan di komputer ini. Panduan dan fitur terbaru ini belum otomatis tersedia di live sebelum publikasi kode disetujui.</p>
+        <p><strong>Jangan membagikan password.</strong> Screenshot order memakai data contoh. Tidak ada pembayaran atau deploy yang dilakukan untuk membuat panduan ini.</p>
+        <details class="guide-routes">
+          <summary>Peta halaman dan alamat CMS</summary>
+          <div class="guide-table-wrap">
+            <table class="guide-table">
+              <thead><tr><th>Halaman</th><th>Route</th><th>Kegunaan</th></tr></thead>
+              <tbody>{guideRoutes.map(([name, route, description]) => <tr><th scope="row">{name}</th><td><code>{route}</code></td><td>{description}</td></tr>)}</tbody>
+            </table>
+          </div>
+          <p class="guide-caption">Ganti {'{id}'} dengan ID yang sesuai. Cara paling mudah adalah klik nama produk atau kode order, bukan mengetik ID sendiri.</p>
+        </details>
+      </section>
+
+      {guideGroups.map(group => (
+        <section class="guide-group" id={group.id} aria-labelledby={`${group.id}-heading`}>
+          <header class="guide-group-heading">
+            <h2 id={`${group.id}-heading`}>{group.title}</h2>
+            <p>{group.description}</p>
+          </header>
+          {guideSections.filter(section => section.group === group.id).map(section => (
+            <section class="guide-topic" id={section.id} aria-labelledby={`${section.id}-heading`}>
+              <h3 id={`${section.id}-heading`}><span class="guide-number">{String(guideSections.findIndex(item => item.id === section.id) + 1).padStart(2, '0')}</span>{section.title}</h3>
+              {section.route && <p class="guide-route">Halaman: <code>{section.route}</code>{section.href && <> · <a href={section.href}>Buka halaman</a></>}</p>}
+              <p>{section.intro}</p>
+              <h4>Langkah kerja</h4>
+              <ol class="guide-steps">{section.steps.map(step => <li>{step}</li>)}</ol>
+              {section.fields && (
+                <div class="guide-table-wrap" tabindex="0" role="region" aria-label={`Penjelasan kolom untuk ${section.title}`}>
+                  <table class="guide-table">
+                    <thead><tr><th>Kolom / kondisi</th><th>Penjelasan</th><th>Contoh / catatan</th></tr></thead>
+                    <tbody>{section.fields.map(field => <tr><th scope="row">{field.name}</th><td>{field.description}</td><td>{field.example}</td></tr>)}</tbody>
+                  </table>
+                </div>
+              )}
+              {section.image && <figure>
+                <a href={`/assets/admin-guide/${section.image.file}`} target="_blank" rel="noopener" aria-label={`Buka screenshot ukuran penuh: ${section.title}`}>
+                  <img src={`/assets/admin-guide/${section.image.file}`} alt={section.image.alt} loading="lazy" decoding="async" />
+                </a>
+                <figcaption>{section.image.caption} <span>Klik gambar untuk melihat ukuran penuh.</span></figcaption>
+              </figure>}
+              {section.result && <p class="guide-result"><strong>Tanda berhasil:</strong> {section.result}</p>}
+              {section.notes && <aside class="guide-notes" aria-label={`Catatan penting ${section.title}`}><h4>Catatan penting</h4><ul>{section.notes.map(note => <li>{note}</li>)}</ul></aside>}
+              <a class="guide-back" href="#awal">Kembali ke atas ↑</a>
+            </section>
+          ))}
+        </section>
+      ))}
+    </article>
+  </div>
+</Admin>
+
+<script>
+  const printButton = document.querySelector<HTMLButtonElement>('#guide-print');
+  printButton?.addEventListener('click', async () => {
+    printButton.disabled = true;
+    printButton.textContent = 'Menyiapkan gambar...';
+    const images = Array.from(document.querySelectorAll<HTMLImageElement>('.guide-content img'));
+    for (const image of images) image.loading = 'eager';
+    await Promise.all(images.map(image => image.decode().catch(() => {})));
+    printButton.disabled = false;
+    printButton.textContent = 'Cetak / simpan PDF';
+    window.print();
+  });
+  const routeMap = document.querySelector<HTMLDetailsElement>('.guide-routes');
+  let wasOpen = false;
+  window.addEventListener('beforeprint', () => {
+    wasOpen = routeMap?.open ?? false;
+    if (routeMap) routeMap.open = true;
+  });
+  window.addEventListener('afterprint', () => { if (routeMap) routeMap.open = wasOpen; });
+</script>
+
+<style>
+  .guide-header { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; padding-bottom: 24px; border-bottom: 1px solid var(--a-line); }
+  .guide-header .admin-h { margin: 6px 0 10px; }
+  .guide-header p { margin: 0; max-width: 630px; }
+  .guide-meta { font-size: 12px; color: var(--a-muted); }
+  .guide-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 8px; }
+  .guide-actions .btn { white-space: nowrap; }
+  .guide-layout { display: grid; grid-template-columns: 218px minmax(0, 1fr); gap: 32px; padding-top: 28px; }
+  .guide-sidebar { min-width: 0; }
+  .guide-sidebar nav { position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow: auto; padding-right: 18px; }
+  .guide-sidebar h2 { font-size: 14px; margin: 0 0 20px; }
+  .guide-nav-group { margin-bottom: 20px; }
+  .guide-nav-title { font-size: 13px; font-weight: 700; text-decoration: none; }
+  .guide-nav-group ul { list-style: none; margin: 8px 0 0; padding: 0; }
+  .guide-nav-group li { margin: 8px 0; font-size: 12px; line-height: 1.5; }
+  .guide-nav-group li a { color: var(--a-muted); text-decoration: none; }
+  .guide-nav-group a:hover { color: var(--a-ink); text-decoration: underline; }
+  .guide-content { min-width: 0; }
+  .guide-content p { margin: 0 0 14px; }
+  .guide-content h2 { font-size: 20px; margin: 0 0 12px; }
+  .guide-content h3 { display: flex; gap: 12px; align-items: baseline; font-size: 17px; margin: 0 0 12px; }
+  .guide-content h4 { font-size: 13px; margin: 20px 0 10px; }
+  .guide-number { font-size: 12px; flex: 0 0 22px; color: var(--a-muted); }
+  .guide-group { margin-top: 48px; scroll-margin-top: 24px; }
+  .guide-group-heading { border-bottom: 2px solid var(--a-line); padding-bottom: 12px; }
+  .guide-group-heading p { color: var(--a-muted); font-size: 13px; margin-bottom: 0; }
+  .guide-topic { border-bottom: 1px solid var(--a-line); padding: 30px 0; scroll-margin-top: 24px; }
+  .guide-route { font-size: 12px; color: var(--a-muted); overflow-wrap: anywhere; }
+  code { font-size: .9em; overflow-wrap: anywhere; }
+  .guide-steps { padding-left: 24px; margin: 0 0 20px; }
+  .guide-steps li, .guide-notes li { padding-left: 4px; margin-bottom: 10px; }
+  .guide-steps li::marker { font-weight: 700; }
+  figure { margin: 24px 0; }
+  figure a { display: block; }
+  figure img { display: block; width: 100%; height: auto; border: 1px solid var(--a-line); border-radius: 8px; background: white; }
+  figcaption, .guide-caption { color: var(--a-muted); font-size: 12px; margin-top: 10px; line-height: 1.6; }
+  figcaption span { display: block; }
+  .guide-result { padding: 12px 0; border-top: 1px solid var(--a-line); }
+  .guide-notes { padding-left: 16px; border-left: 3px solid #b3bcc6; margin: 20px 0; }
+  .guide-notes h4 { margin-top: 0; }
+  .guide-notes ul { padding-left: 18px; margin: 0; font-size: 13px; }
+  .guide-back { display: inline-block; font-size: 12px; margin-top: 10px; }
+  .guide-table-wrap { overflow-x: auto; margin: 20px 0; }
+  .guide-table { border-collapse: collapse; width: 100%; font-size: 12px; background: white; }
+  .guide-table th, .guide-table td { border: 1px solid #d9d9d9; padding: 10px 12px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+  .guide-table thead { background: #edf0f3; }
+  .guide-table th:first-child { width: 23%; }
+  .guide-table td:last-child { width: 27%; }
+  .guide-table tbody th { font-weight: 600; }
+  .guide-routes { margin: 24px 0; }
+  .guide-routes summary { cursor: pointer; font-weight: 600; }
+  @media (max-width: 820px) {
+    .guide-header { flex-direction: column; gap: 12px; }
+    .guide-layout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    .guide-sidebar nav { position: static; max-height: none; padding: 0; }
+    .guide-sidebar .guide-nav-group { display: inline-block; margin: 0 14px 12px 0; }
+    .guide-sidebar .guide-nav-group ul { display: none; }
+    .guide-sidebar h2 { margin-bottom: 12px; }
+    .guide-sidebar { padding-bottom: 12px; border-bottom: 1px solid var(--a-line); }
+  }
+  @media (max-width: 480px) {
+    .guide-content h3 { font-size: 16px; }
+    .guide-table { min-width: 540px; }
+  }
+  @media print {
+    @page { size: A4; margin: 18mm; }
+    :global(.admin-top), .guide-sidebar, .guide-actions, .guide-back, figcaption span, :global(astro-dev-toolbar) { display: none !important; }
+    :global(.admin-body) { background: white; color: black; font-size: 10pt; }
+    :global(.admin-shell) { max-width: none; padding: 0; }
+    .guide-layout { display: block; padding-top: 16px; }
+    .guide-header { display: block; }
+    .guide-group { margin-top: 26px; }
+    .guide-topic { padding: 20px 0; }
+    .guide-content h2, .guide-content h3, .guide-content h4 { break-after: avoid; color: black; }
+    .guide-table-wrap { overflow: visible; }
+    .guide-table { min-width: 0; font-size: 9pt; }
+    .guide-table thead { display: table-header-group; }
+    .guide-table tr { break-inside: avoid; }
+    figure { break-inside: avoid; }
+    figure img { width: auto; max-width: 100%; max-height: 180mm; margin: 0 auto; border-radius: 0; }
+    .guide-content a { color: black; }
+    .guide-nav-group ul { display: block; }
+  }
+</style>

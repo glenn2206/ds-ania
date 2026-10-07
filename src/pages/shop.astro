@@ -16,6 +16,7 @@ import { shopFilterGroups } from '../lib/facets';
 const cat = await getCatalog();
 const params = Astro.url.searchParams;
 const addonMode = params.get('filter') === 'addon';
+const saleMode = params.get('filter') === 'sale';
 
 const CAT_SLUGS = ['premium-wrapped', 'bloom-box', 'standing', 'vase', 'accessory', 'preserved'];
 const CAT_LABEL: Record<string, string> = {
@@ -32,14 +33,16 @@ const qsOcc = params.get('occasion');
 const qsFlw = params.get('flower');
 // default: tampilkan SEMUA produk. Query menimpa.
 let activeFilter: { group: string; value: string } = { group: 'all', value: '' };
-if (addonMode) activeFilter = { group: 'category', value: 'accessory' };
+if (saleMode) activeFilter = { group: 'sale', value: '' };
+else if (addonMode) activeFilter = { group: 'category', value: 'accessory' };
 else if (qsCat && CAT_SLUGS.includes(qsCat)) activeFilter = { group: 'category', value: qsCat };
 else if (qsOcc) activeFilter = { group: 'occasion', value: qsOcc.slice(0, 40) };
 else if (qsFlw) activeFilter = { group: 'flower', value: qsFlw.slice(0, 40) };
 
 const titleCase = (s: string) => s.replace(/\b\w/g, (m) => m.toUpperCase());
 let title = 'Explore';
-if (addonMode) title = 'Add On Extras';
+if (saleMode) title = 'Sale';
+else if (addonMode) title = 'Add On Extras';
 else if (activeFilter.group === 'category') title = CAT_LABEL[activeFilter.value] ?? title;
 else if (activeFilter.group === 'occasion') title = `${titleCase(activeFilter.value)} Flowers`;
 else if (activeFilter.group === 'flower') title = titleCase(activeFilter.value);

@@ -45,9 +45,28 @@ const slides = images.length ? images : ['/assets/hero-bouquet-on-table.jpg'];
   document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((g) => {
     const imgs = Array.from(g.querySelectorAll<HTMLElement>('.gallery__img'));
     const dots = Array.from(g.querySelectorAll<HTMLElement>('.gallery__progress .cmp-progress i'));
-    if (imgs.length < 2) return;
+    const stage = g.querySelector<HTMLElement>('.gallery__stage')!;
+    const zoom = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const resetZoom = () => {
+      stage.classList.remove('is-zoomed');
+      stage.style.removeProperty('--zoom-x');
+      stage.style.removeProperty('--zoom-y');
+    };
+    stage.addEventListener('pointermove', (event) => {
+      if (!zoom.matches || (event.target as Element).closest('button, .gallery__progress')) {
+        resetZoom();
+        return;
+      }
+      const bounds = stage.getBoundingClientRect();
+      stage.style.setProperty('--zoom-x', `${(event.clientX - bounds.left) / bounds.width * 100}%`);
+      stage.style.setProperty('--zoom-y', `${(event.clientY - bounds.top) / bounds.height * 100}%`);
+      stage.classList.add('is-zoomed');
+    });
+    stage.addEventListener('pointerleave', resetZoom);
+    zoom.addEventListener('change', resetZoom);
     let i = 0;
     const go = (n: number) => {
+      resetZoom();
       i = (n + imgs.length) % imgs.length;
       imgs.forEach((im, k) => im.classList.toggle('is-active', k === i));
       dots.forEach((d, k) => d.classList.toggle('on', k === i));
@@ -58,7 +77,11 @@ const slides = images.length ? images : ['/assets/hero-bouquet-on-table.jpg'];
       d.style.cursor = 'pointer';
       d.setAttribute('role', 'button');
       d.setAttribute('tabindex', '0');
+      d.setAttribute('aria-label', `Photo ${k + 1}`);
       d.addEventListener('click', () => go(k));
+      d.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); go(k); }
+      });
     });
   });
 </script>

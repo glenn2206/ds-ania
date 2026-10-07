@@ -17,6 +17,7 @@ export interface ProductRow {
   drive: string | null;
   featured: string | null;
   status: string;
+  discount_percent?: number;
 }
 export interface ImageRow {
   id: number;
@@ -47,6 +48,7 @@ export default function ProductEditor({ mode, product, images: initialImages }: 
     category: str(product?.category) || 'premium-wrapped',
     pill: str(product?.pill),
     price: str(product?.price),
+    discount_percent: str(product?.discount_percent ?? 0),
     stock: str(product?.stock),
     flowers: str(product?.flowers),
     size: str(product?.size),
@@ -187,6 +189,11 @@ export default function ProductEditor({ mode, product, images: initialImages }: 
           <div className="field">
             <label>Stok</label>
             <input value={form.stock} onChange={set('stock')} inputMode="numeric" placeholder="kosong = ∞ (tidak dilacak)" />
+          </div>
+          <div className="field">
+            <label htmlFor="product-discount">Diskon (%)</label>
+            <input id="product-discount" type="number" min="0" max="99" step="1" value={form.discount_percent} onChange={set('discount_percent')} />
+            <span className="hint">0 = tanpa diskon. Produk diskon muncul di Sale.</span>
           </div>
           <div className="field">
             <label>Pill (label kartu)</label>
