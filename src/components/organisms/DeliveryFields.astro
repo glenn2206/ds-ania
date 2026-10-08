@@ -2,6 +2,7 @@
 import Icon from '../atoms/Icon.astro';
 interface Props { cart?: boolean }
 const { cart = false } = Astro.props;
+const prefix = cart ? 'cart-area' : 'product-area';
 ---
 
 <div class="buybox__delivery delivery-fields" data-delivery hidden={cart}>
@@ -10,13 +11,19 @@ const { cart = false } = Astro.props;
     <button type="button" class="buybox__mode is-active" data-mode="delivery" aria-pressed="true"><Icon name="truck-delivery" size={16} alt="" /> Delivery</button>
     <button type="button" class="buybox__mode" data-mode="pickup" aria-pressed="false"><Icon name="toko" size={16} alt="" /> Pickup</button>
   </div>
-  <label class="buybox__row" data-city-row>
-    <span>Available Delivery City:</span>
+  <div class="buybox__row" data-city-row data-area-picker>
+    <label for={`${prefix}-city`}>City / Regency:</label>
     <span class="buybox__addrwrap">
-      <input type="text" data-addr placeholder="Select a city / district" autocomplete="off" />
-      <ul class="buybox__addrlist" data-addrlist hidden></ul>
+      <input id={`${prefix}-city`} type="text" data-area-city placeholder="Search city / regency" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls={`${prefix}-cities`} />
+      <ul id={`${prefix}-cities`} class="buybox__addrlist" data-area-cities role="listbox" hidden></ul>
     </span>
-  </label>
+    <label for={`${prefix}-district`}>District / Subdistrict:</label>
+    <span class="buybox__addrwrap">
+      <input id={`${prefix}-district`} type="text" data-addr placeholder="Select a city first" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls={`${prefix}-districts`} disabled />
+      <ul id={`${prefix}-districts`} class="buybox__addrlist" data-addrlist role="listbox" hidden></ul>
+    </span>
+    <p class="buybox__area-status" data-area-status role="status" aria-live="polite" hidden></p>
+  </div>
   <div class="buybox__detail">
     <span class="buybox__dlabel">Detail Delivery:</span>
     <div class="buybox__detailbox">

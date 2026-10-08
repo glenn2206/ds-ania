@@ -56,15 +56,17 @@ interface Props {
   style?: string;
 }
 const { name, src, size, width, height, alt, class: extra = '', style } = Astro.props;
+const brand = ['ania-logo', 'visa', 'jcb', 'mastercard', 'googlepay', 'paypal', 'whatsapp'].includes(name || '');
 const file = src ?? (name && FILES[name] ? `/assets-svg/${FILES[name]}` : '');
 const sizeStyle = size ? `width:${size}px;height:${size}px` : '';
-const finalStyle = [sizeStyle, style].filter(Boolean).join(';') || undefined;
+const finalStyle = [sizeStyle, style, !brand && 'filter:brightness(0) saturate(100%) invert(32.16%)'].filter(Boolean).join(';') || undefined;
 ---
 
 <img
   class={['ico', extra].filter(Boolean).join(' ')}
   src={file}
   alt={alt ?? (typeof name === 'string' ? name : '')}
+  data-brand={brand || undefined}
   width={width ?? size}
   height={height ?? size}
   style={finalStyle}

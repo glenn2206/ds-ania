@@ -61,17 +61,10 @@ const WA_NUMBER = '6281211091885';
   import {
     getCart, setQty, removeItem, findProduct, unitPrice, seedIfFirstVisit, rupiah,
   } from '../../lib/cart';
+  import { initAreaPicker, type DeliveryDestination } from '../../lib/area-picker';
 
   interface RateOption { courier: string; service: string; price: number; etd: string }
-  interface Area { id: string; name: string; postal_code: number }
   // ongkir & alamat lewat endpoint server (/api/shipping) — token Biteship tidak ke browser
-  const searchAreas = (input: string): Promise<Area[]> =>
-    input.trim().length < 3
-      ? Promise.resolve([])
-      : fetch('/api/shipping?q=' + encodeURIComponent(input))
-          .then((r) => r.json())
-          .then((j) => (Array.isArray(j.areas) ? (j.areas as Area[]) : []))
-          .catch(() => []);
   const getRates = (opts: { destAreaId?: string; destPostal?: number; items: { name: string; quantity: number }[] }): Promise<{ options: RateOption[]; estimated: boolean }> =>
     fetch('/api/shipping', {
       method: 'POST',
@@ -99,8 +92,6 @@ const WA_NUMBER = '6281211091885';
     const courierSel = $<HTMLSelectElement>('[data-courier]');
     const courierRow = $('[data-courierrow]');
     const estNote = $('[data-estnote]');
-    const addrInput = $<HTMLInputElement>('[data-addr]');
-    const addrList = $('[data-addrlist]');
     const dateInput = $<HTMLInputElement>('[data-date]');
     const sendToInput = $<HTMLTextAreaElement>('[data-sendto]');
     let mode = 'delivery';
@@ -135,14 +126,13 @@ const WA_NUMBER = '6281211091885';
     const iso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
     dateInput.min = iso; dateInput.value = iso;
 
-    let dest: { areaId?: string; postal?: number; label?: string } = {};
+    let dest: DeliveryDestination = {};
     let rates: RateOption[] = [];
     let estimated = false;
     let rateRequest = 0;
     try {
       const saved = JSON.parse(localStorage.getItem('ania:checkout-delivery') || '{}');
-      dest = { areaId: saved.areaId, postal: saved.postal, label: saved.label };
-      addrInput.value = saved.label || '';
+      dest = { areaId: saved.areaId, postal: saved.postal, label: saved.label, cityLabel: saved.cityLabel, districtLabel: saved.districtLabel };
       sendToInput.value = saved.address || '';
       if (saved.date >= iso) dateInput.value = saved.date;
       mode = saved.mode === 'pickup' ? 'pickup' : 'delivery';
@@ -214,41 +204,17 @@ const WA_NUMBER = '6281211091885';
       renderTotals();
     };
 
-    // --- address autocomplete ---
-    let acTimer: number | undefined;
-    addrInput.addEventListener('input', () => {
+    initAreaPicker($('[data-area-picker]'), (destination) => {
       rateRequest++;
-      dest = {};
+      dest = destination;
       rates = [];
       estimated = false;
       estNote.hidden = true;
       courierRow.hidden = true;
       saveDeliveryDraft();
       renderTotals();
-      window.clearTimeout(acTimer);
-      const q = addrInput.value;
-      acTimer = window.setTimeout(async () => {
-        const areas = await searchAreas(q);
-        if (!areas.length) { addrList.hidden = true; return; }
-        addrList.innerHTML = areas
-          .slice(0, 8)
-          .map((a) => `<li data-id="${a.id}" data-postal="${a.postal_code}">${a.name}</li>`)
-          .join('');
-        addrList.hidden = false;
-      }, 300);
-    });
-    addrList.addEventListener('click', (e) => {
-      const li = (e.target as HTMLElement).closest<HTMLElement>('li[data-id]');
-      if (!li) return;
-      dest = { areaId: li.dataset.id, postal: Number(li.dataset.postal), label: li.textContent || '' };
-      addrInput.value = dest.label!;
-      addrList.hidden = true;
-      saveDeliveryDraft();
-      loadRates();
-    });
-    document.addEventListener('click', (e) => {
-      if (!addrInput.parentElement!.contains(e.target as Node)) addrList.hidden = true;
-    });
+      if (dest.areaId || dest.postal) loadRates();
+    }, dest);
 
     courierSel.addEventListener('change', renderTotals);
     const renderMode = () => {

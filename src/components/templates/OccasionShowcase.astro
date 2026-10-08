@@ -27,7 +27,9 @@ const { title = 'What Do You Want to Say?' } = Astro.props;
     text-align: center;
     margin: 0 0 24px;
     color: #1E2934;                     /* Figma: judul section ini #1E2934, bukan --ink */
-    position: static;
+    position: sticky;
+    top: var(--nav-h, 148px);
+    z-index: 10;
     background: var(--bg);
     padding: 14px 0;
   }

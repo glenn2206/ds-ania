@@ -24,17 +24,20 @@ const {
     <div class="contact__grid">
       <label class="contact__field">
         <span class="contact__label">Your Name:</span>
-        <input class="contact__input" type="text" name="name" placeholder="Name" autocomplete="name" required />
+        <input class="contact__input" type="text" name="name" placeholder="Name" autocomplete="name" aria-describedby="contact-name-error" required />
+        <span class="contact__error" id="contact-name-error" data-contact-error="name" hidden></span>
       </label>
 
       <label class="contact__field">
         <span class="contact__label">Your WhatsApp Number:</span>
-        <input class="contact__input" type="tel" name="whatsapp" placeholder="08xxxxxxxxxx" autocomplete="tel" required />
+        <input class="contact__input" type="tel" name="whatsapp" placeholder="08xxxxxxxxxx" autocomplete="tel" aria-describedby="contact-whatsapp-error" required />
+        <span class="contact__error" id="contact-whatsapp-error" data-contact-error="whatsapp" hidden></span>
       </label>
 
       <label class="contact__field contact__field--wide">
         <span class="contact__label">Your Email:</span>
-        <input class="contact__input" type="email" name="email" placeholder="you@email.com" autocomplete="email" required />
+        <input class="contact__input" type="email" name="email" placeholder="you@email.com" autocomplete="email" aria-describedby="contact-email-error" required />
+        <span class="contact__error" id="contact-email-error" data-contact-error="email" hidden></span>
       </label>
 
       <label class="contact__field">
@@ -59,14 +62,15 @@ const {
 
       <label class="contact__field contact__field--wide">
         <span class="contact__label">Your Message:</span>
-        <textarea class="contact__input contact__textarea" name="message" rows={6} placeholder="Message" required></textarea>
+        <textarea class="contact__input contact__textarea" name="message" rows={6} placeholder="Message" aria-describedby="contact-message-error" required></textarea>
+        <span class="contact__error" id="contact-message-error" data-contact-error="message" hidden></span>
       </label>
     </div>
 
-    <p class="contact__note" data-contact-note hidden></p>
+    <p class="contact__note" data-contact-note role="status" aria-live="polite" hidden></p>
 
     <div class="contact__actions">
-      <button class="cmp-btn-primary contact__submit" type="submit" disabled>Custom Order Now</button>
+      <button class="cmp-btn-primary contact__submit" type="submit">Custom Order Now</button>
     </div>
   </form>
 </section>
@@ -76,28 +80,47 @@ const {
   if (form) {
     const note = form.querySelector<HTMLElement>('[data-contact-note]')!;
     const wa = form.dataset.wa || '';
-    const submit = form.querySelector<HTMLButtonElement>('[type="submit"]')!;
     const fields = Array.from(form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea'));
-    const syncValidity = () => {
-      submit.disabled = fields.some((field) => !field.checkValidity() || (field.required && !field.value.trim()));
+    const labels: Record<string, string> = { name: 'Name', whatsapp: 'WhatsApp number', email: 'Email', message: 'Message' };
+    let attempted = false;
+    // Leave native validation enabled when JavaScript is unavailable.
+    form.noValidate = true;
+    const validate = () => {
+      const invalid = fields.filter((field) => {
+        const error = form.querySelector<HTMLElement>(`[data-contact-error="${field.name}"]`)!;
+        const message = !field.value.trim()
+          ? 'This field is mandatory.'
+          : field.validity.typeMismatch ? 'Please enter a valid email address.'
+          : !field.validity.valid ? 'Please check this field.' : '';
+        error.textContent = message;
+        error.hidden = !message;
+        if (message) field.setAttribute('aria-invalid', 'true');
+        else field.removeAttribute('aria-invalid');
+        return Boolean(message);
+      });
+      note.hidden = invalid.length === 0;
+      note.textContent = invalid.length
+        ? `Please check: ${invalid.map((field) => labels[field.name]).join(', ')}.` : '';
+      return invalid;
     };
-    form.addEventListener('input', syncValidity);
-    form.addEventListener('change', syncValidity);
-    syncValidity();
+    const updateErrors = () => { if (attempted) validate(); };
+    form.addEventListener('input', updateErrors);
+    form.addEventListener('change', updateErrors);
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+      attempted = true;
+      const invalid = validate();
+      if (invalid.length) {
+        invalid[0].focus();
+        return;
+      }
       const data = new FormData(form);
       const get = (k: string) => String(data.get(k) || '').trim();
       const name = get('name');
       const whatsapp = get('whatsapp');
       const message = get('message');
 
-      if (!name || !whatsapp || !get('email') || !message || !form.reportValidity()) {
-        note.hidden = false;
-        note.textContent = 'Please fill in your name, WhatsApp number, email, and message.';
-        return;
-      }
       note.hidden = true;
 
       const lines = [
@@ -168,6 +191,10 @@ const {
   }
   .contact__input::placeholder { color: #6D6D6D; }
   .contact__input:focus { outline: none; border-color: var(--olive); }
+  .contact__input[aria-invalid="true"] { border-color: #A43C3C; }
+  .contact__input[aria-invalid="true"]:focus { outline: 2px solid #A43C3C; outline-offset: 2px; }
+  .contact__error { color: #A43C3C; font: 400 12px/1.5 var(--font-sans); }
+  .contact__error[hidden] { display: none; }
 
   .contact__select {
     position: relative;

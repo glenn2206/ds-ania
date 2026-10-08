@@ -17,10 +17,11 @@ const { title = 'We’d Love to See You' } = Astro.props;
     <h2 class="type-h1 visit__title">{title}</h2>
     <p class="visit__label">{office.label}</p>
     <address class="visit__addr">
-      <a href={`mailto:${office.email}`}>{office.address.map((line) => <>{line}<br /></>)}</a>
+      <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(office.address.join(' '))}`} target="_blank" rel="noopener noreferrer">{office.address.map((line) => <>{line}<br /></>)}</a>
       <br />
-      <a href={`mailto:${office.email}`}>{office.email}</a><br />
-      <a href={`tel:+${office.whatsapp}`}>{office.phone}</a>
+      <a href={`mailto:${office.email}`}>{office.email}</a>
+      <br />
+      <a href={`https://wa.me/${office.whatsapp}`} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${office.phone}`}>{office.phone}</a>
     </address>
   </div>
 </section>
@@ -67,6 +68,8 @@ const { title = 'We’d Love to See You' } = Astro.props;
     text-decoration: none;
   }
   .visit__addr a:hover { color: var(--olive-ink); }
+  .visit__addr a:focus-visible { outline: 2px solid var(--olive); outline-offset: 4px; }
+  .visit__webmail { display: inline-block; margin-left: 12px; font-size: 12px; }
 
   @media (max-width: 860px) {
     .visit { grid-template-columns: 1fr; }

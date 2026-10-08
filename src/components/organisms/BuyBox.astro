@@ -43,17 +43,10 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
 
 <script>
   import { addItem, rupiah } from '../../lib/cart';
+  import { initAreaPicker, type DeliveryDestination } from '../../lib/area-picker';
 
   // ongkir & alamat lewat endpoint server (/api/shipping) — token Biteship tak pernah ke browser
-  type Area = { id: string; name: string; postal_code: number };
   type RateOption = { courier: string; service: string; price: number; etd: string };
-  const searchAreas = (input: string): Promise<Area[]> =>
-    input.trim().length < 3
-      ? Promise.resolve([])
-      : fetch('/api/shipping?q=' + encodeURIComponent(input))
-          .then((r) => r.json())
-          .then((j) => (Array.isArray(j.areas) ? (j.areas as Area[]) : []))
-          .catch(() => []);
   const getRates = (opts: {
     destAreaId?: string;
     destPostal?: number;
@@ -76,8 +69,6 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
     const slug = box.dataset.slug!;
     const unit = parseInt(box.dataset.price || '0', 10);
     const $ = <T extends Element = HTMLElement>(s: string) => box.querySelector<T>(s)!;
-    const addrInput = $<HTMLInputElement>('[data-addr]');
-    const addrList = $('[data-addrlist]');
     const dateInput = $<HTMLInputElement>('[data-date]');
     const courierEl = $('[data-courier]');
     const coTot = $('[data-cotot]');
@@ -86,7 +77,7 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
     dateInput.value = dateInput.min =
       `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
 
-    let dest: { areaId?: string; postal?: number; label?: string } = {};
+    let dest: DeliveryDestination = {};
     let ship = 0;
     let mode = 'delivery';
     let rateRequest = 0;
@@ -128,30 +119,10 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
       });
     });
 
-    // address autocomplete
-    let tmr: number | undefined;
-    addrInput.addEventListener('input', () => {
+    initAreaPicker($('[data-area-picker]'), (destination) => {
       rateRequest++;
-      dest = {}; ship = 0; courierEl.hidden = true; updateTotal();
-      window.clearTimeout(tmr);
-      tmr = window.setTimeout(async () => {
-        const areas = await searchAreas(addrInput.value);
-        if (!areas.length) { addrList.hidden = true; return; }
-        addrList.innerHTML = areas.slice(0, 8)
-          .map((a) => `<li data-id="${a.id}" data-postal="${a.postal_code}">${a.name}</li>`).join('');
-        addrList.hidden = false;
-      }, 300);
-    });
-    addrList.addEventListener('click', (e) => {
-      const li = (e.target as HTMLElement).closest<HTMLElement>('li[data-id]');
-      if (!li) return;
-      dest = { areaId: li.dataset.id, postal: Number(li.dataset.postal), label: li.textContent || '' };
-      addrInput.value = dest.label!;
-      addrList.hidden = true;
-      loadRates();
-    });
-    document.addEventListener('click', (e) => {
-      if (!addrInput.parentElement!.contains(e.target as Node)) addrList.hidden = true;
+      dest = destination; ship = 0; courierEl.hidden = true; updateTotal();
+      if (dest.areaId || dest.postal) loadRates();
     });
 
     // add to cart
