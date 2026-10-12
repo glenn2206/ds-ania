@@ -110,7 +110,7 @@ const searchText = (c: CatalogItem) =>
     const emptyMsg = root.querySelector<HTMLElement>('[data-empty]')!;
     const titleEl = root.querySelector<HTMLElement>('[data-shop-title]')!;
     const filterLabels = new Map(Array.from(root.querySelectorAll<HTMLAnchorElement>('[data-filter]')).map((link) => [
-      `${link.dataset.group}:${link.dataset.value || ''}`, link.textContent?.trim() || 'Explore',
+      `${link.dataset.group}:${link.dataset.value || ''}`, link.dataset.sourceLabel || link.textContent?.trim() || 'Explore',
     ]));
     const sortSel = root.querySelector<HTMLSelectElement>('[data-sort]')!;
     const filterCount = root.querySelector<HTMLElement>('[data-filter-count]');

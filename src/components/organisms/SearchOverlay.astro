@@ -65,6 +65,7 @@ const SUGGESTIONS = ['Roses', 'Peonies', 'Tulips', 'Birthday', 'Anniversary', 'G
 </div>
 
 <script>
+  import { normalizeSearchQuery } from '../../lib/i18n';
   const root = document.querySelector<HTMLElement>('[data-search]');
   if (root) {
     const input = root.querySelector<HTMLInputElement>('[data-search-input]')!;
@@ -89,7 +90,7 @@ const SUGGESTIONS = ['Roses', 'Peonies', 'Tulips', 'Birthday', 'Anniversary', 'G
     };
 
     const render = () => {
-      const q = input.value.trim().toLowerCase();
+      const q = normalizeSearchQuery(input.value);
       const tokens = q.split(/\s+/).filter(Boolean);
       clearBtn.hidden = q.length === 0;
 
@@ -134,7 +135,7 @@ const SUGGESTIONS = ['Roses', 'Peonies', 'Tulips', 'Birthday', 'Anniversary', 'G
 
     root.querySelectorAll<HTMLElement>('[data-search-chip]').forEach((b) =>
       b.addEventListener('click', () => {
-        input.value = b.dataset.searchChip || b.textContent || '';
+        input.value = b.textContent?.trim() || b.dataset.searchChip || '';
         render();
         input.focus();
       }),

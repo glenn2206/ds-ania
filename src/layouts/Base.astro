@@ -10,17 +10,19 @@ interface Props {
   description?: string;
   /** kelas untuk <body>, mis. "ds" untuk halaman design-system */
   bodyClass?: string;
+  lang?: 'en' | 'id';
 }
 
 const {
   title = 'ANIA Flower Boutique',
   description = 'Handcrafted bouquets, arranged with care.',
   bodyClass = '',
+  lang = 'id',
 } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="id">
+<html lang={lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

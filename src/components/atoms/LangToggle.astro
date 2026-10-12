@@ -10,7 +10,7 @@ interface Props {
 const { active = 'ENG', class: extra = '' } = Astro.props;
 ---
 
-<span class={['cmp-lang', extra].filter(Boolean).join(' ')}>
-  <b class={active === 'ENG' ? 'on' : undefined}>ENG</b>
-  <b class={active === 'IND' ? 'on' : undefined}>IND</b>
+<span class={['cmp-lang', extra].filter(Boolean).join(' ')} role="group" aria-label="Language">
+  <button type="button" data-language="en" class={active === 'ENG' ? 'on' : undefined} aria-pressed={active === 'ENG'} aria-label="English">ENG</button>
+  <button type="button" data-language="id" class={active === 'IND' ? 'on' : undefined} aria-pressed={active === 'IND'} aria-label="Bahasa Indonesia">IND</button>
 </span>

@@ -61,7 +61,7 @@ const rows: FilterItem[] = items.map((it) =>
     }
     {
       rows.length === 0 ? (
-        <a class="filtergrp__title filtergrp__title--link" href="#" data-filter data-group={group} data-value="">
+        <a class="filtergrp__title filtergrp__title--link" href="#" data-filter data-group={group} data-value="" data-source-label={title}>
           {title}
         </a>
       ) : (
@@ -78,7 +78,7 @@ const rows: FilterItem[] = items.map((it) =>
           {rows.map((it) => (
             <li class:list={['filtergrp__item', it.label === active && 'is-active']}>
               <span class="filtergrp__dot" aria-hidden="true">&bull;</span>
-              <a href="#" data-filter data-group={group} data-value={it.value}>
+              <a href="#" data-filter data-group={group} data-value={it.value} data-source-label={it.label}>
                 {it.label}
               </a>
             </li>

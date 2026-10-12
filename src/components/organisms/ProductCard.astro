@@ -40,7 +40,7 @@ const {
 ---
 
 <div class="pcard" class:list={[slug && 'pcard--buyable', href && 'pcard--link']}>
-  {href && <a class="pcard__link" href={href} aria-label={title} />}
+  {href && <a class="pcard__link" href={href} aria-label={title} data-i18n-ignore />}
   <div class="pcard__media">
     <img class="ph" src={image} alt={imageAlt || title} loading="lazy" decoding="async" />
     {state === 'sale' && <Badge>Sale</Badge>}

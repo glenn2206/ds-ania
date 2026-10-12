@@ -16,7 +16,7 @@ interface Props {
 const { title, description, bodyClass } = Astro.props;
 ---
 
-<Base title={title} description={description} bodyClass={bodyClass}>
+<Base title={title} description={description} bodyClass={bodyClass} lang="en">
   <Navbar />
   <SearchOverlay />
   <main class="site-main">
@@ -24,3 +24,8 @@ const { title, description, bodyClass } = Astro.props;
   </main>
   <Footer />
 </Base>
+
+<script>
+  import { initLanguage } from '../lib/i18n';
+  initLanguage();
+</script>
