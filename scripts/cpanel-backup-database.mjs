@@ -20,10 +20,12 @@ export function parsePassengerEnvironment(config) {
 async function main() {
 // Read the existing Passenger environment; never copy credentials into the dump or logs.
 const configPath = process.env.PASSENGER_CONFIG_PATH ||
-  '/home/myaniaco/conscientious-rose-beaver.180-235-151-42.cpanel.site/.htaccess';
+  '/home/myaniaco/public_html/.htaccess';
 const backupDir = process.env.BACKUP_DIR || '/home/myaniaco/ania-backups';
 const date = process.argv[2] || new Date().toISOString().slice(0, 10);
 if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Invalid backup date');
+const suffix = process.argv[3] || '';
+if (suffix && !/^[a-zA-Z0-9-]{1,64}$/.test(suffix)) throw new Error('Invalid backup suffix');
 const config = await readFile(configPath, 'utf8');
 const vars = parsePassengerEnvironment(config);
 for (const key of ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASS', 'DB_NAME']) {
@@ -32,8 +34,9 @@ for (const key of ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASS', 'DB_NAME']) {
 if (vars.DB_CLIENT !== 'pg') throw new Error('PostgreSQL backup only');
 await mkdir(backupDir, { recursive: true, mode: 0o700 });
 await chmod(backupDir, 0o700);
-const target = path.join(backupDir, `ania-testing-database-${date}.sql.gz`);
-const temporary = path.join(backupDir, `ania-testing-database-${date}.sql.tmp`);
+const basename = `ania-testing-database-${date}${suffix ? `-${suffix}` : ''}`;
+const target = path.join(backupDir, `${basename}.sql.gz`);
+const temporary = path.join(backupDir, `${basename}.sql.tmp`);
 try {
   const result = spawnSync('pg_dump', ['--no-password', '--no-owner', '--no-acl',
     '--host', vars.DB_HOST, '--port', vars.DB_PORT, '--username', vars.DB_USER,

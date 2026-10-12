@@ -14,11 +14,11 @@ set -u
 export PUBLIC_SITE_URL="$DEFAULT_SITE_URL"
 
 cd "$REPO_DIR"
-if [[ -f /home/myaniaco/conscientious-rose-beaver.180-235-151-42.cpanel.site/.htaccess ]]; then
-  node "$REPO_DIR/scripts/cpanel-backup-database.mjs" "$(date +%F)"
+if [[ -f /home/myaniaco/public_html/.htaccess ]]; then
+  node "$REPO_DIR/scripts/cpanel-backup-database.mjs" "$(date +%F)" "$DEPLOY_SHA"
 fi
-npm ci
-npm run build
+npm ci --include=dev
+NODE_ENV=production npm run build
 
 rm -rf "$APP_DIR/dist.next"
 cp -a "$REPO_DIR/dist" "$APP_DIR/dist.next"
