@@ -7,7 +7,7 @@
  * Daftarkan URL ini di Xendit Dashboard → Settings → Webhooks → Invoices.
  */
 import type { APIRoute } from 'astro';
-import { one, tx } from '../../../lib/db';
+import { tx } from '../../../lib/db';
 import { verifyCallbackToken } from '../../../lib/xendit';
 import { invalidateCatalog } from '../../../lib/products';
 
@@ -27,12 +27,13 @@ export const POST: APIRoute = async ({ request }) => {
   const status: string = String(body.status || '').toUpperCase();
   if (!externalId) return ok({ ignored: 'no external_id' });
 
-  const order = await one('SELECT id, status FROM orders WHERE code = ?', [externalId]);
-  if (!order) return ok({ ignored: 'unknown order' });
-  if (order.status !== 'pending') return ok({ ignored: `already ${order.status}` });
+  const result = await tx(async (t) => {
+    // Serialize callbacks for the same order before checking status or deducting stock.
+    const [order] = await t.q('SELECT id, status FROM orders WHERE code = ? FOR UPDATE', [externalId]);
+    if (!order) return { ignored: 'unknown order' };
+    if (order.status !== 'pending') return { ignored: `already ${order.status}` };
 
-  if (status === 'PAID' || status === 'SETTLED') {
-    await tx(async (t) => {
+    if (status === 'PAID' || status === 'SETTLED') {
       await t.q(
         "UPDATE orders SET status='paid', paid_at=CURRENT_TIMESTAMP, updated_at=CURRENT_TIMESTAMP WHERE id=? AND status='pending'",
         [order.id],
@@ -46,17 +47,16 @@ export const POST: APIRoute = async ({ request }) => {
           it.product_id,
         ]);
       }
-    });
-    invalidateCatalog();
-    return ok({ applied: 'paid' });
-  }
+      return { applied: 'paid' };
+    }
 
-  if (status === 'EXPIRED') {
-    await tx(async (t) => {
+    if (status === 'EXPIRED') {
       await t.q("UPDATE orders SET status='expired', updated_at=CURRENT_TIMESTAMP WHERE id=? AND status='pending'", [order.id]);
-    });
-    return ok({ applied: 'expired' });
-  }
+      return { applied: 'expired' };
+    }
 
-  return ok({ ignored: status });
+    return { ignored: status };
+  });
+  if (result.applied === 'paid') invalidateCatalog();
+  return ok(result);
 };
