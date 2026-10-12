@@ -101,3 +101,7 @@ table.admin-table { width: 100%; border-collapse: collapse; background: var(--a-
 .media-editor__drop:disabled { opacity: .5; cursor: default; }
 .media-editor__video { display: block; width: 100%; max-width: 640px; max-height: 360px; background: #111; border-radius: 8px; margin-bottom: 12px; }
 .media-editor__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.imgs--descriptions { grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); }
+.imgs--descriptions .imgs__cell { min-width: 0; }
+.imgs__alt { padding: 10px; }
+.imgs__alt textarea { min-height: 80px; resize: vertical; }

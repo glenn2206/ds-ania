@@ -9,6 +9,7 @@ import { premiumWrapped, type CatalogItem } from './catalog';
 export function toProduct(c: CatalogItem): Product {
   return {
     image: c.image,
+    imageAlt: c.imageAlt,
     title: c.name,
     pill: c.pill,
     price: c.price ?? 'By request',

@@ -22,11 +22,21 @@ mkdirSync(PUBLIC_PRODUCTS, { recursive: true });
 const products = await q(
   `SELECT * FROM products WHERE status = 'published' ORDER BY sort_order, id`,
 );
-const imgs = await q('SELECT product_id, filename FROM product_images ORDER BY product_id, position');
+const imgs = await q('SELECT id, product_id, filename FROM product_images ORDER BY product_id, position, id');
+const altRows = await q("SELECT skey, svalue FROM site_settings WHERE skey LIKE 'image_alts_%'").catch(() => []);
+const imageAlts = new Map();
+for (const row of altRows) {
+  try { imageAlts.set(Number(row.skey.slice('image_alts_'.length)), JSON.parse(row.svalue)); }
+  catch { /* Keep snapshots usable when legacy metadata is invalid. */ }
+}
 const byProd = new Map();
+const altsByProd = new Map();
 for (const im of imgs) {
   if (!byProd.has(im.product_id)) byProd.set(im.product_id, []);
   byProd.get(im.product_id).push(im.filename);
+  if (!altsByProd.has(im.product_id)) altsByProd.set(im.product_id, []);
+  const alt = imageAlts.get(Number(im.product_id))?.[im.id];
+  altsByProd.get(im.product_id).push(typeof alt === 'string' && alt.length <= 300 ? alt : '');
 }
 
 const rows = products.map((p, i) => ({
@@ -45,6 +55,7 @@ const rows = products.map((p, i) => ({
   featured: p.featured || null,
   sortOrder: p.sort_order ?? i,
   images: byProd.get(p.id) || [],
+  imageAlts: altsByProd.get(p.id) || [],
 }));
 
 // sinkronkan foto ke public/assets/products/ supaya fallback offline tetap punya gambar

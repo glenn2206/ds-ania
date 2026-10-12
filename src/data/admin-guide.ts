@@ -1,4 +1,4 @@
-export const guideUpdated = '8 Oktober 2026';
+export const guideUpdated = '13 Oktober 2026';
 
 export const guideGroups = [
   { id: 'akses', title: 'Mulai di sini', description: 'Login, menu, dan aturan penyimpanan.' },
@@ -58,7 +58,7 @@ export const guideSections: GuideSection[] = [
     ],
     fields: [
       { name: 'Detail produk', description: 'Nama, harga, stok, diskon, dan kolom lainnya harus disimpan.', example: 'Simpan perubahan' },
-      { name: 'Foto produk', description: 'Upload, ubah urutan, dan hapus foto langsung diproses saat dilakukan. Bukan menunggu tombol simpan form.', example: 'Preview muncul setelah upload selesai' },
+      { name: 'Foto produk', description: 'Upload, ubah urutan, dan hapus foto langsung diproses. Deskripsi foto / Alt text harus disimpan lewat Simpan perubahan.', example: 'Preview muncul setelah upload selesai; teks disimpan lewat tombol simpan' },
       { name: 'Status order', description: 'Pilihan status baru berlaku setelah tombol simpan diklik.', example: 'Simpan status' },
       { name: 'Bar promo', description: 'Tombol ini menyimpan promo saja, bukan carousel atau video.', example: 'Simpan' },
       { name: 'Carousel dan video', description: 'Upload membuat preview. Urutan, penghapusan dari daftar, dan pilihan video diterapkan setelah simpan.', example: 'Simpan media' },
@@ -146,11 +146,18 @@ export const guideSections: GuideSection[] = [
   },
   {
     id: 'foto-produk', group: 'produk', title: 'Upload dan urutkan foto produk', route: '/admin/products/{id}',
-    intro: 'Foto pertama menjadi gambar utama. Perubahan foto produk langsung diproses, terpisah dari penyimpanan detail produk.',
+    intro: 'Foto pertama menjadi gambar utama. Upload, urutan, dan hapus foto langsung diproses; deskripsi foto / Alt text disimpan bersama detail produk.',
     steps: ['Buka produk yang sudah disimpan, lalu scroll ke bagian Foto.', 'Klik area Klik atau tarik foto ke sini, lalu pilih foto dari komputer. Anda juga dapat menyeret file foto ke area tersebut.', 'Gunakan JPG atau PNG, maksimal 12 MB per file. Beberapa foto dapat dipilih sekaligus.', 'Tunggu tulisan Mengunggah selesai dan preview foto muncul. Sistem mengoptimalkan foto menjadi JPEG hingga 1200 px tanpa memperbesar foto kecil.', 'Gunakan tombol panah naik untuk memajukan urutan, dan panah turun untuk memundurkan urutan. Foto paling awal menjadi gambar utama.', 'Untuk menghapus foto, klik tombol silang di bawah foto tersebut. Baca konfirmasi Hapus foto ini sebelum menyetujui.', 'Buka ulang editor untuk memastikan urutan tersimpan. Periksa foto utama dan galeri pada Lihat di situs.'],
     result: 'Preview foto terlihat tanpa ikon gambar rusak; galeri pelanggan menampilkan foto sesuai urutan.',
-    notes: ['Upload, perubahan urutan, dan penghapusan foto diproses langsung. Tombol Simpan perubahan tetap diperlukan jika Anda juga mengedit harga, nama, atau kolom detail.', 'Hapus foto produk menghapus file, bukan sekadar menyembunyikannya. Simpan file asli di komputer/Drive sebelum menghapus.', 'Upload foto pengganti lebih dulu sebelum menghapus foto lama agar produk tidak kosong.', 'Jika upload beberapa foto gagal di tengah jalan, reload untuk mengecek foto yang sudah masuk sebelum mengulangi upload.'],
-    image: { file: '04-foto-produk.jpg', alt: 'Preview foto produk dengan tombol urutan dan hapus serta area upload', caption: 'Bagian Foto pada editor produk. Foto pertama adalah gambar utama; tombol silang menghapus foto setelah konfirmasi.' },
+    notes: ['Upload, perubahan urutan, dan penghapusan foto diproses langsung. Tombol Simpan perubahan diperlukan untuk deskripsi foto / Alt text, harga, nama, atau kolom detail.', 'Hapus foto produk menghapus file, bukan sekadar menyembunyikannya. Simpan file asli di komputer/Drive sebelum menghapus.', 'Upload foto pengganti lebih dulu sebelum menghapus foto lama agar produk tidak kosong.', 'Jika upload beberapa foto gagal di tengah jalan, reload untuk mengecek foto yang sudah masuk sebelum mengulangi upload.'],
+    image: { file: '04-foto-produk.jpg', alt: 'Preview foto produk dengan kolom Deskripsi foto atau Alt text, tombol urutan dan hapus serta area upload', caption: 'Foto pertama adalah gambar utama. Deskripsi foto disimpan lewat Simpan perubahan; urutan dan upload langsung diproses.' },
+  },
+  {
+    id: 'seo-foto', group: 'produk', title: 'Isi deskripsi foto untuk SEO dan aksesibilitas', route: '/admin/products/{id}',
+    intro: 'Deskripsi foto / Alt text menjelaskan isi setiap foto kepada pembaca layar dan mesin pencari. Teks ini tidak ditempelkan di foto dan tidak mengubah tampilan produk.',
+    steps: ['Buka Produk, klik nama produk, lalu scroll ke bagian Foto.', 'Di bawah setiap preview, isi kolom Deskripsi foto / Alt text. Maksimal 300 karakter.', 'Tulis isi foto yang benar-benar terlihat: jenis bunga, warna, wadah, atau sudut pengambilan. Contoh: Mawar pink dalam flower box A Handful dengan pita ANIA.', 'Sesuaikan deskripsi jika foto berikutnya menampilkan detail berbeda. Jangan menambahkan hashtag atau mengulang keyword berkali-kali.', 'Klik Simpan perubahan dan tunggu pesan Tersimpan. Upload dan urutan foto langsung diproses, tetapi teks deskripsi baru tersimpan lewat tombol ini.', 'Buka ulang editor untuk memastikan teks tetap tersimpan. Kolom kosong memakai nama produk secara otomatis.'],
+    result: 'Deskripsi foto digunakan pada atribut alt gambar galeri produk dan foto utama di kartu produk. Identitas foto tetap sama saat urutan atau nama file berubah.',
+    notes: ['Gunakan bahasa yang mudah dipahami, bukan daftar keyword. Jangan menyebut bunga, warna, atau klaim yang tidak sesuai foto.', 'Nama file upload sudah mengikuti slug produk. Tidak perlu mengganti nama file foto lama hanya untuk SEO.', 'Alt text membantu aksesibilitas dan pemahaman gambar, tetapi tidak menjamin posisi pencarian meningkat.', 'Foto lama tidak perlu diupload ulang. Isi deskripsinya langsung pada foto yang sudah tersedia.', 'Referensi: https://developers.google.com/search/docs/appearance/google-images'],
   },
   {
     id: 'hapus-produk', group: 'produk', title: 'Nonaktifkan atau hapus produk', route: '/admin/products/{id}',
@@ -248,6 +255,6 @@ export const guideSections: GuideSection[] = [
     id: 'rutinitas', group: 'bantuan', title: 'Urutan kerja harian yang disarankan',
     intro: 'Gunakan urutan ini sebagai ringkasan setelah memahami SOP detail di atas.',
     steps: ['Login dan pastikan sedang membuka situs yang benar: lokal untuk latihan, live untuk operasional.', 'Buka Order: cek pending yang perlu ditindaklanjuti dan paid yang siap diproses. Cocokkan invoice dan data pengiriman.', 'Setelah pesanan benar-benar selesai, perbarui ke fulfilled dan cek hasil simpan.', 'Buka Produk: perbarui stok nyata, harga, atau diskon jika ada perubahan yang telah disetujui.', 'Jika ada kampanye, buka Pengaturan: siapkan promo, foto carousel, dan video yang sesuai. Simpan promo dan media dengan tombol masing-masing.', 'Cek website pelanggan di desktop dan ponsel. Pastikan tujuan promo, harga, stok, foto, dan video benar.', 'Catat perubahan penting untuk tim, lalu Keluar jika menggunakan komputer bersama.'],
-    notes: ['Jangan gunakan order contoh SOP sebagai pesanan operasional.', 'Panduan ini mengikuti versi CMS lokal per 8 Oktober 2026. Tampilan live mengikuti versi kode yang sudah dipublikasikan; fitur lokal belum otomatis tersedia di live.'],
+    notes: ['Jangan gunakan order contoh SOP sebagai pesanan operasional.', 'Panduan ini mengikuti versi CMS lokal per 13 Oktober 2026. Tampilan live mengikuti versi kode yang sudah dipublikasikan; fitur lokal belum otomatis tersedia di live.'],
   },
 ];

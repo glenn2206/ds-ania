@@ -3,6 +3,7 @@ import { q, one } from '../../../../../../lib/db';
 import { withAdmin, jsonResponse } from '../../../../../../lib/admin';
 import { invalidateCatalog } from '../../../../../../lib/products';
 import { removeUpload, renameForOrder } from '../../../../../../lib/images';
+import { listProductImages } from '../../../../../../lib/image-alt';
 
 export const prerender = false;
 
@@ -24,9 +25,6 @@ export const DELETE = withAdmin(async ({ params }) => {
   }
 
   invalidateCatalog();
-  const images = await q(
-    'SELECT id, filename, position FROM product_images WHERE product_id = ? ORDER BY position, id',
-    [id],
-  );
+  const images = await listProductImages(id);
   return jsonResponse({ images });
 });

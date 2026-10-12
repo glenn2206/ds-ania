@@ -23,6 +23,7 @@ export interface ImageRow {
   id: number;
   filename: string;
   position: number;
+  alt_text?: string;
 }
 interface Props {
   mode: 'new' | 'edit';
@@ -60,6 +61,7 @@ export default function ProductEditor({ mode, product, images: initialImages }: 
     status: str(product?.status) || 'published',
   });
   const [images, setImages] = useState<ImageRow[]>(initialImages || []);
+  const [imageAlts, setImageAlts] = useState<Record<number, string>>({});
   const [flash, setFlash] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -81,7 +83,7 @@ export default function ProductEditor({ mode, product, images: initialImages }: 
         const res = await fetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
+          body: JSON.stringify({ ...form, ...(mode === 'edit' ? { image_alts: images.map((image) => ({ id: image.id, alt: imageAlts[image.id] ?? image.alt_text ?? '' })) } : {}) }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Gagal menyimpan');
@@ -97,7 +99,7 @@ export default function ProductEditor({ mode, product, images: initialImages }: 
         setSaving(false);
       }
     },
-    [form, mode, product],
+    [form, mode, product, images, imageAlts],
   );
 
   /* ---- images ---- */
@@ -241,14 +243,18 @@ export default function ProductEditor({ mode, product, images: initialImages }: 
         <div className="card">
           <h2>Foto ({images.length})</h2>
           {images.length > 0 && (
-            <div className="imgs" style={{ marginBottom: 14 }}>
+            <div className="imgs imgs--descriptions" style={{ marginBottom: 14 }}>
               {images.map((im, i) => (
                 <div className="imgs__cell" key={im.id}>
-                  <img src={`/uploads/${im.filename}`} alt="" loading="lazy" />
+                  <img src={`/uploads/${im.filename}`} alt={(imageAlts[im.id] ?? im.alt_text)?.trim() || form.name} loading="lazy" />
                   <div className="imgs__bar">
                     <button type="button" className="btn btn--sm" disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
                     <button type="button" className="btn btn--sm" disabled={i === images.length - 1} onClick={() => move(i, 1)}>↓</button>
                     <button type="button" className="btn btn--sm btn--danger" onClick={() => del(im.id)}>✕</button>
+                  </div>
+                  <div className="imgs__alt field">
+                    <label htmlFor={`image-alt-${im.id}`}>Deskripsi foto / Alt text</label>
+                    <textarea id={`image-alt-${im.id}`} rows={3} maxLength={300} value={imageAlts[im.id] ?? im.alt_text ?? ''} placeholder={form.name || 'Deskripsikan isi foto'} onChange={(event) => setImageAlts((current) => ({ ...current, [im.id]: event.target.value }))} />
                   </div>
                 </div>
               ))}
@@ -264,7 +270,7 @@ export default function ProductEditor({ mode, product, images: initialImages }: 
             {uploading ? 'Mengunggah…' : 'Klik atau tarik foto ke sini (JPG/PNG, otomatis di-resize 1200px)'}
           </div>
           <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => upload(e.target.files)} />
-          <p className="hint" style={{ marginTop: 8 }}>Foto pertama = gambar utama. Urutkan dengan ↑ ↓.</p>
+          <p className="hint" style={{ marginTop: 8 }}>Foto pertama = gambar utama. Urutkan dengan ↑ ↓. Deskripsi foto disimpan lewat Simpan perubahan; kosong = gunakan nama produk.</p>
         </div>
       )}
 

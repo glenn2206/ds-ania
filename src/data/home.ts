@@ -7,6 +7,7 @@ import { premiumWrapped, type CatalogItem } from './catalog';
 
 export interface Product {
   image: string;
+  imageAlt?: string;
   title: string;
   pill?: string;
   price: number | string;
@@ -24,6 +25,7 @@ const cardOf = (c: CatalogItem): Product => ({
   slug: c.slug,
   href: `/product/${c.slug}`,
   image: c.image,
+  imageAlt: c.imageAlt,
   title: c.name,
   pill: c.pill,
   price: c.price ?? 'By request',

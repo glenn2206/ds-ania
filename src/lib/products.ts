@@ -10,6 +10,7 @@
  */
 import { q, isConfigured } from './db';
 import { getDiscounts, applyDiscount } from './discounts';
+import { getAllImageAlts } from './image-alt';
 import {
   buildCatalog,
   toItem,
@@ -88,19 +89,23 @@ async function fetchCatalog(): Promise<Catalog> {
     if (!rows.length) return SNAPSHOT;
 
     const imgRows = await q(
-      'SELECT product_id, filename FROM product_images ORDER BY product_id, position',
+      'SELECT id, product_id, filename FROM product_images ORDER BY product_id, position, id',
     );
     const byProduct = new Map<number, string[]>();
+    const byProductAlts = new Map<number, string[]>();
+    const imageAlts = await getAllImageAlts().catch(() => new Map<number, Record<string, string>>());
     for (const im of imgRows) {
       const pid = Number(im.product_id);
       if (!byProduct.has(pid)) byProduct.set(pid, []);
       byProduct.get(pid)!.push(im.filename);
+      if (!byProductAlts.has(pid)) byProductAlts.set(pid, []);
+      byProductAlts.get(pid)!.push(imageAlts.get(pid)?.[im.id] || '');
     }
 
     const idBySlug = new Map(rows.map((p) => [p.slug, Number(p.id)]));
     // Missing settings permissions must not discard the live product catalog.
     const discounts = await getDiscounts().catch(() => new Map<number, number>());
-    const rawList = rows.map((p, i) => rowToRaw(p, byProduct.get(Number(p.id)) || [], i));
+    const rawList = rows.map((p, i) => ({ ...rowToRaw(p, byProduct.get(Number(p.id)) || [], i), imageAlts: byProductAlts.get(Number(p.id)) || [] }));
     // gunakan transform yang sama, tapi foto CMS disajikan dari /uploads/
     const all = rawList
       .slice()

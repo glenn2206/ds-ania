@@ -11,6 +11,7 @@ import CardTitleBlock from '../molecules/CardTitleBlock.astro';
 
 interface Props {
   image: string;
+  imageAlt?: string;
   title: string;
   pill?: string;
   price: number | string;
@@ -25,6 +26,7 @@ interface Props {
 const {
   image,
   title,
+  imageAlt,
   pill,
   price,
   compareAt,
@@ -40,7 +42,7 @@ const {
 <div class="pcard" class:list={[slug && 'pcard--buyable', href && 'pcard--link']}>
   {href && <a class="pcard__link" href={href} aria-label={title} />}
   <div class="pcard__media">
-    <img class="ph" src={image} alt={title} loading="lazy" decoding="async" />
+    <img class="ph" src={image} alt={imageAlt || title} loading="lazy" decoding="async" />
     {state === 'sale' && <Badge>Sale</Badge>}
     {state === 'soldout' && <span class="pcard__dim" />}
     {state === 'hover' && !slug && <Button variant="secondary-onwhite">Add to Cart</Button>}

@@ -8,8 +8,9 @@ import Progress from '../atoms/Progress.astro';
 interface Props {
   images: string[];
   alt?: string;
+  imageAlts?: string[];
 }
-const { images, alt = '' } = Astro.props;
+const { images, alt = '', imageAlts = [] } = Astro.props;
 const slides = images.length ? images : ['/assets/hero-bouquet-on-table.jpg'];
 ---
 
@@ -20,7 +21,8 @@ const slides = images.length ? images : ['/assets/hero-bouquet-on-table.jpg'];
         <img
           class:list={['gallery__img', i === 0 && 'is-active']}
           src={src}
-          alt={i === 0 ? alt : ''}
+          alt={imageAlts[i] || alt}
+          aria-hidden={i !== 0 ? 'true' : undefined}
           loading={i === 0 ? "eager" : "lazy"} decoding="async"
         />
       ))
@@ -68,7 +70,11 @@ const slides = images.length ? images : ['/assets/hero-bouquet-on-table.jpg'];
     const go = (n: number) => {
       resetZoom();
       i = (n + imgs.length) % imgs.length;
-      imgs.forEach((im, k) => im.classList.toggle('is-active', k === i));
+      imgs.forEach((im, k) => {
+        im.classList.toggle('is-active', k === i);
+        if (k === i) im.removeAttribute('aria-hidden');
+        else im.setAttribute('aria-hidden', 'true');
+      });
       dots.forEach((d, k) => d.classList.toggle('on', k === i));
     };
     g.querySelector('[data-prev]')?.addEventListener('click', () => go(i - 1));

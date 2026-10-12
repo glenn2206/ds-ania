@@ -31,6 +31,8 @@ export interface CatalogItem {
   occasion?: string;
   drive?: string;
   image: string;
+  imageAlt?: string;
+  imageAlts?: string[];
   image2?: string;
   featured?: string;
   /** nama file foto (mentah, tanpa prefix) */
@@ -58,6 +60,7 @@ export interface RawProduct {
   featured: string | null;
   sortOrder: number;
   images: string[];
+  imageAlts?: string[];
   stock?: number | null;
 }
 
@@ -103,6 +106,8 @@ export function toItem(r: RawProduct, i: number, imgPrefix = '/assets/products/'
     price: typeof r.price === 'number' ? r.price : null,
     description: r.description,
     image: imgs[0] ?? pool(i),
+    imageAlt: r.imageAlts?.[0]?.trim() || r.name,
+    imageAlts: imgs.map((_, index) => r.imageAlts?.[index]?.trim() || r.name),
     images: r.images ?? [],
     gallery: imgs,
   };

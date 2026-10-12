@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import { guideGroups, guideRoutes, guideSections } from '../src/data/admin-guide';
 
 test('SOP has complete steps, unique anchors, all groups and existing screenshots', async () => {
-  assert.equal(guideSections.length, 20);
+  assert.equal(guideSections.length, 21);
   assert.equal(new Set(guideSections.map(section => section.id)).size, guideSections.length);
   for (const group of guideGroups) assert.ok(guideSections.some(section => section.group === group.id));
   const screenshots = guideSections.flatMap(section => section.image ? [section.image] : []);

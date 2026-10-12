@@ -6,13 +6,14 @@ import { q, one, insert } from '../../../../../lib/db';
 import { withAdmin, jsonResponse } from '../../../../../lib/admin';
 import { invalidateCatalog } from '../../../../../lib/products';
 import { processUpload } from '../../../../../lib/images';
+import { listProductImages } from '../../../../../lib/image-alt';
 
 export const prerender = false;
 
 const MAX_BYTES = 12 * 1024 * 1024;
 
 async function listImages(id: number) {
-  return q('SELECT id, filename, position FROM product_images WHERE product_id = ? ORDER BY position, id', [id]);
+  return listProductImages(id);
 }
 
 export const GET = withAdmin(async ({ params }) => {

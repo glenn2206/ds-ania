@@ -4,6 +4,7 @@ import { saveDiscount } from '../../../../lib/discounts';
 import { withAdmin, jsonResponse, readProduct, slugify } from '../../../../lib/admin';
 import { invalidateCatalog } from '../../../../lib/products';
 import { removeUpload, renameForOrder } from '../../../../lib/images';
+import { imageAltKey, readImageAltInputs, saveImageAlts, type ImageAltInput } from '../../../../lib/image-alt';
 
 export const prerender = false;
 
@@ -17,6 +18,14 @@ export const PUT = withAdmin(async ({ params, request }) => {
   try { b = readProduct(body); }
   catch (error) { return jsonResponse({ error: (error as Error).message }, 400); }
   if (!b.name) return jsonResponse({ error: 'Nama wajib.' }, 400);
+  let imageAlts: ImageAltInput[] | undefined;
+  if ('image_alts' in body) {
+    try { imageAlts = readImageAltInputs(body.image_alts); }
+    catch (error) { return jsonResponse({ error: (error as Error).message }, 400); }
+    const images = await q('SELECT id FROM product_images WHERE product_id = ?', [id]);
+    const owned = new Set(images.map((image) => Number(image.id)));
+    if (imageAlts.some((image) => !owned.has(image.id))) return jsonResponse({ error: 'Foto tidak termasuk produk ini. Muat ulang editor.' }, 400);
+  }
 
   let slug = b.slug || product.slug;
   if (slug !== product.slug && (await one('SELECT id FROM products WHERE slug = ? AND id <> ?', [slug, id])))
@@ -31,6 +40,7 @@ export const PUT = withAdmin(async ({ params, request }) => {
        b.description, b.occasion, b.drive, b.featured, b.status, id],
     );
     if ('discount_percent' in body) await saveDiscount(t, id, b.discount_percent);
+    if (imageAlts) await saveImageAlts(t, id, imageAlts);
   });
 
   // slug berubah → rename file foto biar konsisten
@@ -52,6 +62,7 @@ export const DELETE = withAdmin(async ({ params }) => {
   const imgs = await q('SELECT filename FROM product_images WHERE product_id = ?', [id]);
   for (const im of imgs) await removeUpload(im.filename);
   await q('DELETE FROM products WHERE id = ?', [id]); // product_images cascade
+  await q('DELETE FROM site_settings WHERE skey = ?', [imageAltKey(id)]);
   invalidateCatalog();
   return jsonResponse({ ok: true });
 });
