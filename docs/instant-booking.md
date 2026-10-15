@@ -1,5 +1,44 @@
 # Booking Instant dari CMS
 
+## Demo paid lokal tanpa biaya
+
+Jalankan `npm run demo:booking` (PostgreSQL lokal saja). Server demo terpisah di
+http://127.0.0.1:4332, tanpa mengubah .env atau server biasa di port 4331.
+Jika port terpakai, pilih `LOCAL_BOOKING_DEMO_PORT` lain. URL order dicetak di terminal.
+
+1. Buka link Paid order dan login memakai akun admin lokal biasa bila diminta.
+   Order DEMO ini awalnya pending, kemudian handler webhook Xendit asli menerima
+   callback PAID simulasi. Callback dikirim dua kali untuk memeriksa stok hanya
+   berkurang sekali. Produk dan kontak yang dipakai adalah data contoh lokal.
+2. Klik Cek tarif sebelum pesan. Dialog harus bertuliskan SANDBOX / SIMULASI.
+   Tarif Rp30.000 adalah mock, bukan tarif Biteship sungguhan.
+3. Centang konfirmasi, lalu Pesan Kurir Instant. Periksa state booked, ID berawalan
+   mock_, resi MOCK dan mode test. Ini tidak memanggil kurir atau memotong saldo.
+4. Klik Sinkronkan status Biteship tiga kali untuk mencoba picking_up,
+   dropping_off dan delivered. Ulangi membuka halaman: tombol booking baru tidak
+   boleh muncul. Link Pending gate menunjukkan tombol booking belum tersedia.
+5. Ctrl+C menghentikan demo dan membersihkan hanya fixture miliknya. Jalankan ulang
+   untuk mendapatkan order demo baru. Jangan memakai order pelanggan lain pada demo.
+
+Untuk mencoba dari sisi pelanggan, buka URL Customer demo product yang dicetak
+di terminal. Hanya produk clone DEMO itu yang diizinkan checkout melalui portal
+pembayaran lokal di port demo + 1 (default 4333). Isi data fiktif, pilih pin,
+cek ongkir di keranjang, lalu checkout. Portal berlabel LOCAL MOCK mengirim callback
+PAID simulasi melalui handler webhook aplikasi; bukan halaman pembayaran Xendit.
+Order checkout demo juga dibersihkan saat demo dihentikan. Jangan memakai data
+pelanggan nyata. Produk DEMO dipublikasikan hanya pada database lokal selama demo.
+
+Panduan 15 screenshot dari checkout sampai fulfilled tersedia di
+[laporan alur lokal](reports/local-order-flow-2026-10-16/index.html).
+Status delivered kurir tidak otomatis menutup order. Admin memeriksa penerimaan,
+lalu memilih fulfilled dan menyimpan agar pelanggan melihat Selesai dikirim.
+
+Preload mock hanya dimuat oleh perintah demo, bukan app.mjs/build/deploy. Key dummy
+dipaksakan pada proses demo; permintaan Xendit nyata diblokir dan permintaan Biteship
+ditangani di memori tanpa jaringan. .env asli tidak ditulis. Ini membuktikan alur
+internal aplikasi, BUKAN kesiapan key live, saldo, cakupan/rate aktual, callback dari
+server Xendit sungguhan, atau keberhasilan pemesanan kurir nyata.
+
 ## Alur
 
 Xendit callback terverifikasi -> `paid` + `paid_at` -> admin menyiapkan bunga ->

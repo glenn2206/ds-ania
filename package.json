@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
+    "demo:booking": "node scripts/local-booking-demo.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "start": "node app.mjs",

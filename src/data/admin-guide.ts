@@ -216,6 +216,7 @@ export const guideSections: GuideSection[] = [
       'Jika muncul Booking CMS belum diaktifkan, minta pengelola menjalankan migrasi order_shipments, memastikan key live dengan Order API aktif, kontak pickup yang benar, SESSION_SECRET aman, dan BITESHIP_BOOKING_ENABLED=true. Jangan membagikan key/password di screenshot.',
       'Jika creating masih baru, tunggu setidaknya satu menit sebelum rekonsiliasi. Jika tidak ditemukan di dashboard setelah timeout, minta bantuan pengelola/Biteship; jangan reset state sendiri.',
       'Dokumentasi ini menjelaskan fitur lokal. Operasional live baru tersedia setelah migrasi, konfigurasi dan deploy disetujui.',
+      'Latihan tanpa biaya: pengelola teknis menjalankan npm run demo:booking, lalu memberikan link order DEMO di port 4332. Gunakan hanya data DEMO dan pastikan dialog SANDBOX / SIMULASI. Pembayaran serta tarif pada demo bukan transaksi/provider nyata.',
     ],
     image: { file: '09-booking-instant.jpg', alt: 'Detail Pengiriman Instant pada order contoh lokal dengan alamat dan kontak fiktif', caption: 'DATA CONTOH LOKAL. Periksa penerima, asal, tujuan dan pembayaran sebelum memesan. Screenshot ini tidak membuat booking kurir.' },
   },
