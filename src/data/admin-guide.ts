@@ -1,4 +1,4 @@
-export const guideUpdated = '15 Oktober 2026';
+export const guideUpdated = '16 Oktober 2026';
 
 export const guideGroups = [
   { id: 'akses', title: 'Mulai di sini', description: 'Login, menu, dan aturan penyimpanan.' },
@@ -181,16 +181,43 @@ export const guideSections: GuideSection[] = [
       'Klik Check Instant Delivery setelah lokasi dan keranjang sudah benar. Pilih kurir Instant yang tersedia; membuka peta dan mengetik alamat tidak memanggil Biteship.',
       'Jika pin atau isi keranjang berubah, cek ongkir ulang. Jika tarif berubah saat checkout, pelanggan diminta mengecek lagi sebelum pembayaran dibuat.',
       'Jika tidak ada kurir atau API bermasalah, pilih Pickup atau hubungi ANIA. Jangan menggunakan angka estimasi sebagai ongkir pasti.',
-      'Setelah pembayaran paid, admin memesan kurir secara manual. Cocokkan alamat toko, alamat penerima, pin pada catatan order, berat, ukuran, dan nominal ongkir sebelum booking.',
+      'Setelah pembayaran Xendit terkonfirmasi, siapkan rangkaian. Buka detail order dan ikuti SOP Pesan Kurir Instant. Kurir hanya dipesan setelah admin meninjau tarif dan menyetujui booking.',
     ],
     result: 'Order delivery memakai layanan Instant dan tarif server yang tervalidasi. Order pickup memakai ongkir nol.',
     notes: [
-      'Booking kurir belum otomatis. Status paid bukan bukti kurir sudah dipesan.',
+      'Pembayaran tidak otomatis memanggil kurir. Tombol booking di CMS memanggil Order API setelah konfirmasi admin; paid bukan bukti kurir sudah dipesan.',
       'Asal ongkir Instant memakai cabang Tangerang: Bloomingfields CR6, The HOOD, Jl. Symphonia, Boulevard W No.001, Cijantra, Pagedangan, Kabupaten Tangerang, Banten 15336. Pin mengikuti plus code PJG5+2M: -6.2749375, 106.6091875. Pengadegan tidak lagi menjadi default asal ongkir. Pengelola teknis dapat menggantinya melalui BITESHIP_ORIGIN_LATITUDE dan BITESHIP_ORIGIN_LONGITUDE. Jika masih ada koordinat lama di Environment Variables cPanel, perbarui keduanya, simpan dan restart aplikasi.',
       'Cache area 24 jam dan tarif 90 detik bersifat per proses server; restart mengosongkan cache. Cache tidak berlaku jika koordinat atau isi keranjang berbeda.',
       'Batas keamanan: 20 pencarian area/menit dan 12 cek ongkir/menit per alamat koneksi; maksimal 30 panggilan provider/menit per proses. Ini bukan batas tagihan bulanan.',
       'Berat per item saat ini 1.500 gram. Admin wajib memastikan ukuran dan berat nyata cocok, khususnya rangkaian besar yang mungkin tidak dapat dibawa motor.',
     ],
+  },
+  {
+    id: 'pesan-kurir', group: 'order', title: 'Pesan Kurir Instant setelah bunga siap', route: '/admin/orders/{id}',
+    intro: 'Gunakan alur Xendit lunas, siapkan bunga, lalu pesan kurir dari detail order. Booking memakai saldo Biteship toko dan meminta penjemputan sekarang, bukan otomatis pada tanggal yang diminta pelanggan.',
+    steps: [
+      'Buka Order lalu klik kode pesanan. Pastikan status paid berasal dari callback Xendit: paid manual saja tidak cukup. Pickup dan order lama tanpa data pin terstruktur tidak dapat dipesan dari tombol CMS.',
+      'Siapkan dan kemas rangkaian. Cocokkan tanggal permintaan pelanggan, asal cabang Tangerang, alamat lengkap, pin tujuan, jumlah item, ukuran, dan berat. Perhitungan saat ini 1.500 gram per item; jangan lanjut jika berat nyata berbeda atau paket tidak muat dibawa motor.',
+      'Pada Pengiriman Instant, isi Nama penerima dan WhatsApp penerima. Nilai awal berasal dari pemesan; ganti jika penerima hadiah berbeda. Alamat/pin adalah data checkout yang tersimpan, bukan lokasi browser admin.',
+      'Klik Cek tarif sebelum pesan. Ini memanggil tarif terbaru untuk kurir pilihan pelanggan (Gojek atau Grab Instant). Membuka detail order tidak memanggil API ongkir atau membuat booking.',
+      'Baca dialog: mode LIVE atau SANDBOX, kurir, penerima, kontak pickup, alamat, tanggal diminta, tarif terbaru, ongkir dibayar, dan selisih. Selisih tidak menagih pelanggan lagi secara otomatis; minta persetujuan toko sebelum lanjut. Jika tarif kedaluwarsa setelah 90 detik, cek ulang.',
+      'Hanya jika rangkaian siap dijemput sekarang dan semua detail benar, centang konfirmasi lalu klik Pesan Kurir Instant satu kali. Mode LIVE membuat permintaan kurir nyata dan dapat menggunakan saldo toko. Kembali menutup dialog tanpa memesan.',
+      'Tunggu sampai halaman dimuat ulang. Tanda berhasil adalah status booking booked, ID Biteship dan status kurir. Nomor resi bisa menyusul; klik Sinkronkan status Biteship untuk memperbarui data dan tautan lacak bila tersedia.',
+      'Jika hasil tidak pasti atau halaman terputus, jangan booking ulang. Muat ulang CMS, cari Reference ID di dashboard Biteship, lalu masukkan ID order Biteship (bukan resi) pada kolom rekonsiliasi dan klik Sinkronkan status Biteship. ID yang berbeda Reference ID ditolak.',
+      'Jika state rejected, Biteship sudah menolak permintaan: perbaiki saldo/key/alamat sesuai dashboard, kemudian cek tarif baru. State creating/review tetap terkunci sampai diperiksa. Jangan membuat order baru untuk melewati kunci.',
+    ],
+    result: 'Booking tersimpan satu kali dengan Reference ID unik, ID Biteship, kontak penerima, admin pemesan, status terakhir, tarif aktual dan resi bila sudah tersedia.',
+    notes: [
+      'Pembayaran Xendit pelanggan sudah mencakup bunga dan ongkir. Pesan Kurir Instant adalah tindakan admin untuk membayar/memesan layanan dari saldo Biteship toko, bukan pembayaran kedua dari pelanggan. Dana Xendit tidak otomatis menjadi saldo Biteship.',
+      'Kontak pickup default memakai nomor website 0821-1109-1885 sesuai persetujuan pengelola. Jika staf cabang memakai nomor berbeda, pengelola teknis dapat mengisi BITESHIP_ORIGIN_PHONE. Periksa nomor yang tampil pada dialog sebelum booking.',
+      'booked berarti booking tercatat, bukan paket sudah diterima. Status kurir hanya diperbarui saat tombol Sinkronkan status Biteship diklik; belum ada sinkronisasi otomatis/webhook Biteship.',
+      'Status fulfilled website tetap diatur admin setelah pesanan selesai. Mengubah status website tidak membatalkan kurir, mengembalikan saldo, atau memproses refund Xendit. Pembatalan pengiriman dilakukan lewat dashboard Biteship.',
+      'Booking kedua tidak diizinkan, termasuk bila pengiriman sebelumnya dibatalkan. Koordinasikan pengiriman pengganti dengan pengelola agar tidak ada biaya ganda.',
+      'Jika muncul Booking CMS belum diaktifkan, minta pengelola menjalankan migrasi order_shipments, memastikan key live dengan Order API aktif, kontak pickup yang benar, SESSION_SECRET aman, dan BITESHIP_BOOKING_ENABLED=true. Jangan membagikan key/password di screenshot.',
+      'Jika creating masih baru, tunggu setidaknya satu menit sebelum rekonsiliasi. Jika tidak ditemukan di dashboard setelah timeout, minta bantuan pengelola/Biteship; jangan reset state sendiri.',
+      'Dokumentasi ini menjelaskan fitur lokal. Operasional live baru tersedia setelah migrasi, konfigurasi dan deploy disetujui.',
+    ],
+    image: { file: '09-booking-instant.jpg', alt: 'Detail Pengiriman Instant pada order contoh lokal dengan alamat dan kontak fiktif', caption: 'DATA CONTOH LOKAL. Periksa penerima, asal, tujuan dan pembayaran sebelum memesan. Screenshot ini tidak membuat booking kurir.' },
   },
   {
     id: 'daftar-order', group: 'order', title: 'Lihat dan filter order', route: '/admin/orders', href: '/admin/orders',
@@ -220,7 +247,7 @@ export const guideSections: GuideSection[] = [
       { name: 'cancelled', description: 'Pesanan dibatalkan berdasarkan keputusan operasional.', example: 'Pembatalan disetujui' },
       { name: 'failed', description: 'Pesanan/proses gagal; perlu diperiksa penyebabnya.', example: 'Jangan dianggap paid' },
     ],
-    notes: ['Simpan status hanya mengubah label status di database. Tidak memproses pembayaran, refund, mengirim notifikasi, memotong stok, atau mengembalikan stok.', 'Jangan menandai paid manual untuk simulasi pembayaran. Callback pembayaran hanya diproses dari pending; perubahan manual dapat mengganggu pencatatan pembayaran dan stok.', 'Mengubah paid kembali ke pending bukan cara melakukan refund. Hubungi penanggung jawab pembayaran untuk alur pembatalan/refund dan rekonsiliasi stok.'],
+    notes: ['Simpan status hanya mengubah label status di database. Tidak memproses pembayaran, refund, mengirim notifikasi, memotong stok, atau mengembalikan stok.', 'Jangan menandai paid manual untuk simulasi pembayaran. Callback pembayaran hanya diproses dari pending; perubahan manual dapat mengganggu pencatatan pembayaran dan stok.', 'Setelah booking creating/review/booked, perubahan status selain fulfilled dikunci untuk mencegah koreksi tanpa rekonsiliasi. fulfilled bukan bukti pembayaran atau pembatalan kurir.', 'Mengubah paid kembali ke pending bukan cara melakukan refund. Hubungi penanggung jawab pembayaran untuk alur pembatalan/refund dan rekonsiliasi stok.'],
   },
   {
     id: 'promo', group: 'pengaturan', title: 'Ubah bar promo di atas navbar', route: '/admin/settings', href: '/admin/settings',
@@ -282,6 +309,6 @@ export const guideSections: GuideSection[] = [
     id: 'rutinitas', group: 'bantuan', title: 'Urutan kerja harian yang disarankan',
     intro: 'Gunakan urutan ini sebagai ringkasan setelah memahami SOP detail di atas.',
     steps: ['Login dan pastikan sedang membuka situs yang benar: lokal untuk latihan, live untuk operasional.', 'Buka Order: cek pending yang perlu ditindaklanjuti dan paid yang siap diproses. Cocokkan invoice dan data pengiriman.', 'Setelah pesanan benar-benar selesai, perbarui ke fulfilled dan cek hasil simpan.', 'Buka Produk: perbarui stok nyata, harga, atau diskon jika ada perubahan yang telah disetujui.', 'Jika ada kampanye, buka Pengaturan: siapkan promo, foto carousel, dan video yang sesuai. Simpan promo dan media dengan tombol masing-masing.', 'Cek website pelanggan di desktop dan ponsel. Pastikan tujuan promo, harga, stok, foto, dan video benar.', 'Catat perubahan penting untuk tim, lalu Keluar jika menggunakan komputer bersama.'],
-    notes: ['Jangan gunakan order contoh SOP sebagai pesanan operasional.', 'Panduan ini mengikuti versi CMS lokal per 13 Oktober 2026. Tampilan live mengikuti versi kode yang sudah dipublikasikan; fitur lokal belum otomatis tersedia di live.'],
+    notes: ['Jangan gunakan order contoh SOP sebagai pesanan operasional.', 'Panduan ini mengikuti versi CMS lokal per 16 Oktober 2026. Tampilan live mengikuti versi kode yang sudah dipublikasikan; fitur lokal belum otomatis tersedia di live.'],
   },
 ];

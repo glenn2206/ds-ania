@@ -20,6 +20,10 @@ fi
 npm ci --include=dev
 NODE_ENV=production npm run build
 
+# Finish the additive migration before switching the running application.
+# set -e leaves the old app intact if database permissions/migration fail.
+node "$REPO_DIR/scripts/db-shipping.mjs" --passenger
+
 rm -rf "$APP_DIR/dist.next"
 cp -a "$REPO_DIR/dist" "$APP_DIR/dist.next"
 cp "$REPO_DIR/app.mjs" "$REPO_DIR/package.json" "$REPO_DIR/package-lock.json" "$APP_DIR/"

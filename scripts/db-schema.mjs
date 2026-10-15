@@ -21,6 +21,7 @@ const cfg = {
 };
 
 const DROP_SQL = `
+DROP TABLE IF EXISTS order_shipments;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS product_images;
@@ -30,7 +31,7 @@ DROP TABLE IF EXISTS users;
 `;
 
 const file = CLIENT === 'pg' ? 'schema.pg.sql' : 'schema.sql';
-const sql = readFileSync(path.resolve('db', file), 'utf8');
+const sql = readFileSync(path.resolve('db', file), 'utf8') + '\n' + readFileSync(path.resolve('db', CLIENT === 'pg' ? 'shipping.pg.sql' : 'shipping.sql'), 'utf8');
 
 if (CLIENT === 'pg') {
   const pg = (await import('pg')).default;

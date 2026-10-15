@@ -6,11 +6,11 @@ import crypto from 'node:crypto';
 import { guideGroups, guideRoutes, guideSections } from '../src/data/admin-guide';
 
 test('SOP has complete steps, unique anchors, all groups and existing screenshots', async () => {
-  assert.equal(guideSections.length, 23);
+  assert.equal(guideSections.length, 24);
   assert.equal(new Set(guideSections.map(section => section.id)).size, guideSections.length);
   for (const group of guideGroups) assert.ok(guideSections.some(section => section.group === group.id));
   const screenshots = guideSections.flatMap(section => section.image ? [section.image] : []);
-  assert.equal(screenshots.length, 9);
+  assert.equal(screenshots.length, 10);
   for (const section of guideSections) {
     assert.ok(section.steps.length >= 3, section.id);
     assert.ok(section.intro.length > 40, section.id);
@@ -44,7 +44,7 @@ test('SOP route and download require login and include all sections and images',
   assert.match(download.headers.get('content-disposition') || '', /SOP-Admin-ANIA\.md/);
   const markdown = await download.text();
   for (const section of guideSections) assert.ok(markdown.includes(section.title));
-  assert.equal((markdown.match(/!\[/g) || []).length, 9);
+  assert.equal((markdown.match(/!\[/g) || []).length, 10);
   assert.ok(!markdown.includes('AniaAdmin#'));
   for (const section of guideSections.filter(section => section.image)) {
     const image = await fetch(base + '/assets/admin-guide/' + section.image!.file);

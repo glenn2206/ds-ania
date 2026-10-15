@@ -63,7 +63,12 @@ export async function searchAreas(input: string): Promise<Area[]> {
     return data.areas;
   });
 }
-export async function getRates(opts: { destination?: Coordinates; items: RateItem[] }): Promise<RateResult> {
+export function getShippingOrigin() {
+  const point = coordinates({ latitude: Number(env('BITESHIP_ORIGIN_LATITUDE', String(shippingOrigin.latitude))), longitude: Number(env('BITESHIP_ORIGIN_LONGITUDE', String(shippingOrigin.longitude))) });
+  if (!point) throw new ShippingError('The store pickup pin is not configured. Please choose pickup or contact ANIA.');
+  return { ...point, name: env('BITESHIP_ORIGIN_NAME', shippingOrigin.name), address: env('BITESHIP_ORIGIN_ADDRESS', shippingOrigin.address) };
+}
+export async function getRates(opts: { destination?: Coordinates; items: RateItem[]; fresh?: boolean }): Promise<RateResult> {
   const destination = coordinates(opts.destination);
   if (!destination) throw new ShippingError('Choose a delivery pin before checking Instant delivery.', 400);
   const lat = env('BITESHIP_ORIGIN_LATITUDE', String(shippingOrigin.latitude));
@@ -79,7 +84,7 @@ export async function getRates(opts: { destination?: Coordinates; items: RateIte
     destination_latitude: destination.latitude, destination_longitude: destination.longitude,
     couriers: 'gojek,grab', items,
   };
-  return ratesCache.get(JSON.stringify(body), async () => {
+  const load = async () => {
     const data = await provider('/rates/couriers', { method: 'POST', body: JSON.stringify(body) });
     if (!Array.isArray(data.pricing)) throw new ShippingError('Invalid delivery rate response.');
     const options = data.pricing.filter((p: any) =>
@@ -91,5 +96,29 @@ export async function getRates(opts: { destination?: Coordinates; items: RateIte
       price: p.price, etd: p.duration || p.shipment_duration_range || '',
     })).sort((a: RateOption, b: RateOption) => a.price - b.price);
     return { options, estimated: false as const };
-  });
+  };
+  return opts.fresh ? load() : ratesCache.get(JSON.stringify(body), load);
+}
+
+export class BookingError extends Error {
+  constructor(message: string, public uncertain = true) { super(message); }
+}
+export async function bookingRequest(endpoint: string, body?: unknown): Promise<any> {
+  const token = env('BITESHIP_TOKEN');
+  if (!/^biteship_(live|test)\./.test(token)) throw new BookingError('Key Biteship belum dikonfigurasi.', false);
+  let response: Response;
+  try {
+    response = await fetch(`${BASE}${endpoint}`, {
+      method: body ? 'POST' : 'GET', headers: { Authorization: token, 'Content-Type': 'application/json' },
+      ...(body ? { body: JSON.stringify(body) } : {}), signal: AbortSignal.timeout(20_000),
+    });
+  } catch { throw new BookingError('Respons Biteship tidak pasti. Periksa dashboard sebelum mencoba lagi.'); }
+  const data = await response.json().catch(() => null);
+  if (!response.ok || !data?.success) {
+    // Duplicate reference can mean a previous timed-out request actually succeeded.
+    const uncertain = !data || response.status >= 500 || [408, 409].includes(response.status) || Number(data.code) === 40002060;
+    console.warn('[biteship booking]', { status: response.status, code: data?.code, uncertain });
+    throw new BookingError(uncertain ? 'Hasil booking perlu diperiksa di dashboard Biteship.' : 'Biteship menolak booking. Periksa key, saldo, alamat, dan layanan di dashboard.', uncertain);
+  }
+  return data;
 }

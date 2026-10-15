@@ -1,0 +1,156 @@
+---
+import { bookingEnabled } from '../../lib/order-shipping';
+import { getShippingOrigin } from '../../lib/biteship';
+const { order, shipment } = Astro.props;
+let details: any = null;
+let result: any = null;
+try { details = JSON.parse(shipment?.snapshot || 'null'); result = JSON.parse(shipment?.provider_data || 'null'); } catch {}
+let origin: ReturnType<typeof getShippingOrigin> | null = null;
+try { origin = getShippingOrigin(); } catch {}
+const eligible = order.status === 'paid' && order.paid_at && order.xendit_invoice_id;
+const canBook = bookingEnabled() && eligible && ['ready', 'rejected'].includes(shipment?.state);
+const needsReview = ['creating', 'review'].includes(shipment?.state);
+const rp = (n: number) => 'Rp ' + Number(n).toLocaleString('id-ID');
+const tracking = typeof result?.link === 'string' && result.link.startsWith('https://') ? result.link : null;
+---
+<section class="card shipping" data-admin-shipping data-order={order.id}>
+  <h2>Pengiriman Instant</h2>
+  <p class="shipping__notice">Ongkir sudah termasuk dalam total checkout pelanggan. Booking khusus admin setelah pembayaran terkonfirmasi dan rangkaian siap; tidak menagih pelanggan lagi.</p>
+  {!shipment ? <p>Order pickup atau order lama tanpa data pin terstruktur. Booking CMS tidak tersedia; periksa pengiriman secara manual.</p> : <>
+    <dl>
+      <div><dt>Asal pickup</dt><dd>{details?.booking?.origin_contact_name || origin?.name}<br />{details?.booking?.origin_address || origin?.address}<br />Pin: {details?.booking?.origin_coordinate?.latitude ?? origin?.latitude}, {details?.booking?.origin_coordinate?.longitude ?? origin?.longitude}</dd></div>
+      <div><dt>Tujuan</dt><dd>{details?.address}<br />Pin: {details?.destination?.latitude}, {details?.destination?.longitude}</dd></div>
+      <div><dt>Layanan / tanggal diminta</dt><dd>{details?.courier} Instant / {details?.date || 'Belum dicantumkan'}</dd></div>
+      <div><dt>Ongkir dibayar pelanggan</dt><dd>{rp(order.shipping_cost)}</dd></div>
+      <div><dt>Reference ID</dt><dd>{shipment.reference_id}</dd></div>
+      <div><dt>Status booking CMS</dt><dd>{shipment.state}{shipment.provider_mode ? ` (${shipment.provider_mode})` : ''}</dd></div>
+      {details?.booking && <div><dt>Kontak pada booking</dt><dd>Pickup: {details.booking.origin_contact_phone}<br />Penerima: {details.booking.destination_contact_name}, {details.booking.destination_contact_phone}<br />Dipesan oleh: {shipment.booked_by}</dd></div>}
+      {result && <>
+        <div><dt>ID Biteship / resi</dt><dd>{result.id} / {result.waybill || 'Belum terbit'}</dd></div>
+        <div><dt>Status kurir terakhir</dt><dd>{result.status}{result.price != null ? ` / ${rp(result.price)}` : ''}<br />Diperbarui: {new Date(shipment.updated_at).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB</dd></div>
+      </>}
+    </dl>
+    {tracking && <p><a href={tracking} target="_blank" rel="noopener noreferrer">Lacak pengiriman</a></p>}
+    {shipment.last_error && <p class="shipping__error">{shipment.last_error}</p>}
+    {!bookingEnabled() && <p>Booking CMS belum diaktifkan. Pengelola perlu memeriksa konfigurasi sebelum operasional.</p>}
+    {!eligible && !result && <p>Menunggu pembayaran terkonfirmasi Xendit. Status paid manual saja tidak mengaktifkan booking.</p>}
+    {needsReview && <p class="shipping__error">Jangan membuat booking ulang. Cari Reference ID di dashboard Biteship dan cocokkan ID order. Status creating yang macet juga harus diperiksa.</p>}
+    {canBook && <form data-quote-form>
+      <div class="shipping__fields">
+        <label>Nama penerima<input name="recipient" value={details?.booking?.destination_contact_name || order.customer_name} required maxlength="200" /></label>
+        <label>WhatsApp penerima<input name="phone" type="tel" value={details?.booking?.destination_contact_phone || order.customer_phone} required maxlength="40" /></label>
+      </div>
+      <p>Data awal memakai kontak pemesan. Ganti bila penerima berbeda; pastikan alamat dan pin di atas sudah benar.</p>
+      <button class="btn" type="submit">Cek tarif sebelum pesan</button>
+    </form>}
+    {(result || needsReview) && <form data-sync-form>
+      {!result && <label>ID order Biteship untuk rekonsiliasi<input name="providerId" required placeholder="ID order dari dashboard, bukan nomor resi" /></label>}
+      <button class="btn" type="submit">Sinkronkan status Biteship</button>
+      <p>Sinkronisasi tidak membuat booking. Perubahan status website tidak membatalkan kurir atau melakukan refund. Pembatalan kurir melalui dashboard Biteship.</p>
+    </form>}
+  </>}
+  <p data-shipping-message role="status" aria-live="polite"></p>
+  <dialog data-booking-dialog aria-labelledby="booking-title">
+    <form data-booking-form>
+      <h2 id="booking-title">Pesan Kurir Instant sekarang?</h2>
+      <p data-review></p>
+      <p><strong>Kurir akan diminta menjemput sekarang, bukan mengikuti tanggal permintaan secara otomatis. Tarif dapat berubah dan memakai saldo Biteship toko.</strong></p>
+      <label class="shipping__check"><input type="checkbox" required /> Saya sudah memeriksa tanggal, kontak pickup, penerima, alamat, pin, serta berat 1.500 gram per item; rangkaian siap dan muat dibawa motor. Selisih ongkir disetujui toko.</label>
+      <div class="shipping__actions">
+        <button class="btn" type="button" data-close-dialog>Kembali</button>
+        <button class="btn btn--primary" type="submit" data-book>Pesan Kurir Instant</button>
+      </div>
+      <p data-dialog-message role="status"></p>
+    </form>
+  </dialog>
+</section>
+<script>
+  const root = document.querySelector<HTMLElement>('[data-admin-shipping]');
+  if (root) {
+    const id = root.dataset.order;
+    const message = root.querySelector<HTMLElement>('[data-shipping-message]')!;
+    const dialog = root.querySelector<HTMLDialogElement>('[data-booking-dialog]')!;
+    const bookingForm = root.querySelector<HTMLFormElement>('[data-booking-form]')!;
+    const dialogMessage = root.querySelector<HTMLElement>('[data-dialog-message]')!;
+    const review = root.querySelector<HTMLElement>('[data-review]')!;
+    let quoteToken = '';
+    let busy = false;
+    const request = async (body: unknown) => {
+      const response = await fetch(`/api/admin/orders/${id}/shipping`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Permintaan gagal.');
+      return data;
+    };
+    const disable = (value: boolean) => {
+      busy = value;
+      root.querySelectorAll<HTMLButtonElement>('button').forEach(button => { button.disabled = value; });
+    };
+    root.querySelector('[data-close-dialog]')?.addEventListener('click', () => { if (!busy) dialog.close(); });
+    dialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
+    root.querySelector<HTMLFormElement>('[data-quote-form]')?.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (busy) return;
+      disable(true); message.textContent = 'Memeriksa tarif terbaru...';
+      const form = new FormData(event.currentTarget as HTMLFormElement);
+      try {
+        const data = await request({ action: 'quote', name: form.get('recipient'), phone: form.get('phone') });
+        quoteToken = data.token; bookingForm.reset(); dialogMessage.textContent = '';
+        const money = (n: number) => 'Rp ' + Number(n).toLocaleString('id-ID');
+        review.textContent = [data.mode === 'test' ? 'SANDBOX / SIMULASI' : 'LIVE / BOOKING NYATA',
+          `Kurir: ${data.payload.courier_company} Instant`,
+          `Penerima: ${data.payload.destination_contact_name}, ${data.payload.destination_contact_phone}`,
+          `Tujuan: ${data.payload.destination_address}`,
+          `Pickup: ${data.payload.origin_contact_name}, ${data.payload.origin_contact_phone}`,
+          `Tanggal diminta: ${data.date || '-'}`,
+          `Tarif terbaru: ${money(data.price)}`,
+          `Dibayar pelanggan: ${money(data.paidShipping)}`,
+          `Selisih: ${money(data.price - data.paidShipping)}`,
+          'Konfirmasi berlaku 90 detik.'].join('\n');
+        message.textContent = ''; dialog.showModal();
+      } catch (error) { message.textContent = (error as Error).message; }
+      finally { disable(false); }
+    });
+    bookingForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (busy) return;
+      disable(true); dialogMessage.textContent = 'Memesan. Jangan tutup halaman atau pesan ulang...';
+      try { await request({ action: 'book', token: quoteToken, confirmed: true }); window.location.reload(); }
+      catch (error) {
+        quoteToken = ''; dialog.close();
+        message.textContent = `${(error as Error).message} Muat ulang halaman untuk melihat status tersimpan sebelum melanjutkan.`;
+        // A lost response may still have booked a courier. Reload before any new attempt.
+        root.querySelector<HTMLFormElement>('[data-quote-form]')?.remove();
+        disable(false);
+      }
+    });
+    root.querySelector<HTMLFormElement>('[data-sync-form]')?.addEventListener('submit', async event => {
+      event.preventDefault(); if (busy) return;
+      disable(true); message.textContent = 'Memeriksa status Biteship...';
+      try {
+        await request({ action: 'sync', providerId: new FormData(event.currentTarget as HTMLFormElement).get('providerId') || '' });
+        window.location.reload();
+      } catch (error) { message.textContent = (error as Error).message; disable(false); }
+    });
+  }
+</script>
+<style>
+  .shipping dl { margin: 20px 0; }
+  .shipping dl > div { display: grid; grid-template-columns: minmax(140px, 1fr) 3fr; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--a-line); }
+  .shipping dt { color: var(--a-muted); }
+  .shipping dd { margin: 0; overflow-wrap: anywhere; line-height: 1.6; font-weight: 400; }
+  .shipping p { line-height: 1.6; font-size: 13px; font-weight: 400; }
+  .shipping__fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .shipping label { display: block; font-size: 13px; }
+  .shipping input:not([type=checkbox]) { display: block; width: 100%; min-height: 42px; margin-top: 6px; padding: 10px 12px; border: 1px solid var(--a-line); border-radius: 8px; font: inherit; font-weight: 400; color: var(--a-ink); background: white; }
+  .shipping input:focus-visible { outline: 2px solid var(--a-accent); outline-offset: 2px; }
+  .shipping form { margin-top: 20px; }
+  .shipping__error { color: #a32e2e; }
+  dialog { width: min(600px, calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow: auto; padding: 24px; border: 1px solid #ccc; border-radius: 8px; color: #333; background: white; }
+  dialog::backdrop { background: rgb(0 0 0 / 40%); }
+  dialog form { margin: 0 !important; }
+  .shipping__check { line-height: 1.7; }
+  .shipping__check input { margin-right: 8px; }
+  [data-review] { white-space: pre-line; overflow-wrap: anywhere; }
+  .shipping__actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+  @media (max-width: 600px) { .shipping__fields { grid-template-columns: 1fr; } .shipping dl > div { grid-template-columns: 1fr; gap: 4px; } }
+</style>

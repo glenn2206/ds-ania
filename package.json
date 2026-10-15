@@ -10,6 +10,7 @@
     "start": "node app.mjs",
     "astro": "astro",
     "db:schema": "node scripts/db-schema.mjs",
+    "db:shipping": "node scripts/db-shipping.mjs",
     "db:seed": "node scripts/seed.mjs",
     "db:user": "node scripts/create-user.mjs",
     "snapshot": "node scripts/snapshot.mjs",

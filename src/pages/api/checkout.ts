@@ -19,6 +19,7 @@ import { getCatalog } from '../../lib/products';
 import { getRates, coordinates, ShippingError } from '../../lib/biteship';
 import { env } from '../../lib/env';
 import * as xendit from '../../lib/xendit';
+import { saveDelivery } from '../../lib/order-shipping';
 
 export const prerender = false;
 
@@ -113,6 +114,7 @@ export const POST: APIRoute = async ({ request }) => {
         [insertId, l.productId, l.slug, l.name, l.unit, l.qty, l.lineTotal],
       );
     }
+    if (sh.mode === 'delivery') await saveDelivery(t, insertId as number, code, sh);
     return insertId as number;
   });
 
