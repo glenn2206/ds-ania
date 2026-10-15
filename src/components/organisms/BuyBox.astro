@@ -43,26 +43,23 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
 
 <script>
   import { addItem, rupiah } from '../../lib/cart';
-  import { initAreaPicker, type DeliveryDestination } from '../../lib/area-picker';
+  import { initDeliveryPin, type DeliveryDestination, type DeliveryPin } from '../../lib/delivery-pin';
 
   // ongkir & alamat lewat endpoint server (/api/shipping) — token Biteship tak pernah ke browser
   type RateOption = { courier: string; service: string; price: number; etd: string };
   const getRates = (opts: {
-    destAreaId?: string;
-    destPostal?: number;
+    destination?: DeliveryPin;
     items: { name: string; [k: string]: unknown }[];
   }): Promise<{ options: RateOption[]; estimated: boolean }> =>
     fetch('/api/shipping', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        destAreaId: opts.destAreaId,
-        destPostal: opts.destPostal,
+        destination: opts.destination,
         items: opts.items.map((it) => ({ slug: it.name, qty: 1 })),
       }),
     })
-      .then((r) => r.json())
-      .catch(() => ({ options: [] as RateOption[], estimated: true }));
+      .then(async (r) => { const data = await r.json(); if (!r.ok) throw new Error(data.error || 'Delivery unavailable.'); return data; });
 
   document.querySelectorAll<HTMLElement>('[data-buybox]').forEach((box) => {
     if (box.dataset.soldout) return; // tak ada tombol beli untuk item sold out
@@ -72,6 +69,8 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
     const dateInput = $<HTMLInputElement>('[data-date]');
     const courierEl = $('[data-courier]');
     const coTot = $('[data-cotot]');
+    const checkDelivery = $<HTMLButtonElement>('[data-check-delivery]');
+    const rateStatus = $('[data-rate-status]');
 
     const t = new Date(); t.setDate(t.getDate() + 1);
     dateInput.value = dateInput.min =
@@ -87,13 +86,17 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
     };
 
     const loadRates = async () => {
-      if (mode === 'pickup' || (!dest.areaId && !dest.postal)) return;
+      if (mode === 'pickup') return;
+      rateStatus.hidden = false;
+      if (!dest.destination || !$<HTMLTextAreaElement>('[data-sendto]').value.trim()) { rateStatus.textContent = 'Choose a delivery pin and enter the full address first.'; return; }
       const request = ++rateRequest;
+      checkDelivery.disabled = true;
+      rateStatus.textContent = 'Checking Instant delivery...';
+      try {
       courierEl.hidden = false;
       courierEl.textContent = 'Checking delivery…';
       const res = await getRates({
-        destAreaId: dest.areaId,
-        destPostal: dest.postal,
+        destination: dest.destination,
         items: [{ name: slug, value: unit || 300000, weight: 1500, quantity: 1 }],
       });
       if (mode === 'pickup' || request !== rateRequest) return;
@@ -103,7 +106,14 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
         ? `Delivery: ${cheapest.courier} ${cheapest.service} — ${rupiah(ship)}${res.estimated ? ' (est.)' : ''}`
         : '';
       updateTotal();
+      rateStatus.textContent = cheapest ? '' : 'Instant delivery is unavailable for this pin. Choose pickup or contact ANIA.';
+      } catch (error) {
+        if (request !== rateRequest || mode === 'pickup') return;
+        ship = 0; courierEl.hidden = true; updateTotal();
+        rateStatus.textContent = (error as Error).message;
+      } finally { checkDelivery.disabled = false; }
     };
+    checkDelivery.addEventListener('click', loadRates);
 
     // toggle delivery / pickup
     box.querySelectorAll<HTMLElement>('[data-mode]').forEach((b) => {
@@ -114,15 +124,14 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
         b.setAttribute('aria-pressed', 'true');
         $('[data-city-row]').hidden = mode === 'pickup';
         $('[data-sendto-row]').hidden = mode === 'pickup';
-        if (b.dataset.mode === 'pickup') { ship = 0; courierEl.hidden = true; updateTotal(); }
-        else if (dest.areaId || dest.postal) loadRates();
+        rateRequest++; ship = 0; courierEl.hidden = true; rateStatus.hidden = true; updateTotal();
       });
     });
 
-    initAreaPicker($('[data-area-picker]'), (destination) => {
+    initDeliveryPin($('[data-pin-picker]'), (destination) => {
       rateRequest++;
       dest = destination; ship = 0; courierEl.hidden = true; updateTotal();
-      if (dest.areaId || dest.postal) loadRates();
+      rateStatus.hidden = true;
     });
 
     // add to cart

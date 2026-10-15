@@ -1,4 +1,4 @@
-export const guideUpdated = '13 Oktober 2026';
+export const guideUpdated = '15 Oktober 2026';
 
 export const guideGroups = [
   { id: 'akses', title: 'Mulai di sini', description: 'Login, menu, dan aturan penyimpanan.' },
@@ -170,6 +170,27 @@ export const guideSections: GuideSection[] = [
     intro: 'Untuk berhenti menjual sementara, gunakan draft. Hapus produk hanya jika penghapusan permanen memang sudah disetujui.',
     steps: ['Buka produk dan pastikan nama produknya benar.', 'Pilihan aman untuk nonaktif sementara: ubah Status ke draft dan klik Simpan perubahan.', 'Jika harus menghapus permanen, simpan salinan detail dan file foto terlebih dahulu.', 'Klik Hapus produk di bagian bawah editor. Baca nama produk pada konfirmasi.', 'Batalkan jika ragu. Setujui hanya jika data dan foto produk memang boleh dihapus permanen.', 'Setelah berhasil, CMS kembali ke Daftar Produk. Pastikan produk sudah tidak tampil di katalog pelanggan.'],
     notes: ['Tidak ada tombol Undo atau tempat sampah pemulihan pada CMS ini. Hapus produk juga menghapus foto produknya.', 'Jangan menghapus produk hanya untuk mengganti foto, stok, atau harga; gunakan editor.'],
+  },
+  {
+    id: 'instant-delivery', group: 'order', title: 'Pengiriman Instant dan pickup', route: '/cart', href: '/cart',
+    intro: 'Pengiriman online hanya menerima GoSend Instant atau Grab Instant yang tersedia dari Biteship. Pickup tetap tersedia tanpa ongkir.',
+    steps: [
+      'Pelanggan memilih Choose delivery pin, menggeser peta ke lokasi penerima, lalu menekan Use this pin. Angka latitude, longitude dapat diisi jika titiknya sudah diketahui.',
+      'Jika berada di alamat penerima, pelanggan dapat menekan Use my location / Gunakan lokasi saya lalu mengizinkan akses lokasi pada browser. Lokasi tidak diminta otomatis. Periksa pin dan tekan Use this pin untuk mengonfirmasi; alamat lengkap tetap diisi. Jika izin ditolak atau lokasi tidak ditemukan, pilih pin manual. Tombol ini tidak mengecek ongkir Biteship dan tidak melacak lokasi terus-menerus.',
+      'Lengkapi alamat jalan, nomor rumah/unit, dan petunjuk penerima. Pin tidak menggantikan alamat lengkap.',
+      'Klik Check Instant Delivery setelah lokasi dan keranjang sudah benar. Pilih kurir Instant yang tersedia; membuka peta dan mengetik alamat tidak memanggil Biteship.',
+      'Jika pin atau isi keranjang berubah, cek ongkir ulang. Jika tarif berubah saat checkout, pelanggan diminta mengecek lagi sebelum pembayaran dibuat.',
+      'Jika tidak ada kurir atau API bermasalah, pilih Pickup atau hubungi ANIA. Jangan menggunakan angka estimasi sebagai ongkir pasti.',
+      'Setelah pembayaran paid, admin memesan kurir secara manual. Cocokkan alamat toko, alamat penerima, pin pada catatan order, berat, ukuran, dan nominal ongkir sebelum booking.',
+    ],
+    result: 'Order delivery memakai layanan Instant dan tarif server yang tervalidasi. Order pickup memakai ongkir nol.',
+    notes: [
+      'Booking kurir belum otomatis. Status paid bukan bukti kurir sudah dipesan.',
+      'Asal ongkir Instant memakai cabang Tangerang: Bloomingfields CR6, The HOOD, Jl. Symphonia, Boulevard W No.001, Cijantra, Pagedangan, Kabupaten Tangerang, Banten 15336. Pin mengikuti plus code PJG5+2M: -6.2749375, 106.6091875. Pengadegan tidak lagi menjadi default asal ongkir. Pengelola teknis dapat menggantinya melalui BITESHIP_ORIGIN_LATITUDE dan BITESHIP_ORIGIN_LONGITUDE. Jika masih ada koordinat lama di Environment Variables cPanel, perbarui keduanya, simpan dan restart aplikasi.',
+      'Cache area 24 jam dan tarif 90 detik bersifat per proses server; restart mengosongkan cache. Cache tidak berlaku jika koordinat atau isi keranjang berbeda.',
+      'Batas keamanan: 20 pencarian area/menit dan 12 cek ongkir/menit per alamat koneksi; maksimal 30 panggilan provider/menit per proses. Ini bukan batas tagihan bulanan.',
+      'Berat per item saat ini 1.500 gram. Admin wajib memastikan ukuran dan berat nyata cocok, khususnya rangkaian besar yang mungkin tidak dapat dibawa motor.',
+    ],
   },
   {
     id: 'daftar-order', group: 'order', title: 'Lihat dan filter order', route: '/admin/orders', href: '/admin/orders',

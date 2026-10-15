@@ -1,5 +1,6 @@
 ---
 import Icon from '../atoms/Icon.astro';
+import { shippingOrigin } from '../../data/shipping-origin';
 interface Props { cart?: boolean }
 const { cart = false } = Astro.props;
 const prefix = cart ? 'cart-area' : 'product-area';
@@ -11,18 +12,29 @@ const prefix = cart ? 'cart-area' : 'product-area';
     <button type="button" class="buybox__mode is-active" data-mode="delivery" aria-pressed="true"><Icon name="truck-delivery" size={16} alt="" /> Delivery</button>
     <button type="button" class="buybox__mode" data-mode="pickup" aria-pressed="false"><Icon name="toko" size={16} alt="" /> Pickup</button>
   </div>
-  <div class="buybox__row" data-city-row data-area-picker>
-    <label for={`${prefix}-city`}>City / Regency:</label>
-    <span class="buybox__addrwrap">
-      <input id={`${prefix}-city`} type="text" data-area-city placeholder="Search city / regency" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls={`${prefix}-cities`} />
-      <ul id={`${prefix}-cities`} class="buybox__addrlist" data-area-cities role="listbox" hidden></ul>
-    </span>
-    <label for={`${prefix}-district`}>District / Subdistrict:</label>
-    <span class="buybox__addrwrap">
-      <input id={`${prefix}-district`} type="text" data-addr placeholder="Select a city first" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls={`${prefix}-districts`} disabled />
-      <ul id={`${prefix}-districts`} class="buybox__addrlist" data-addrlist role="listbox" hidden></ul>
-    </span>
-    <p class="buybox__area-status" data-area-status role="status" aria-live="polite" hidden></p>
+  <div class="buybox__row delivery-pin" data-city-row data-pin-picker data-origin-lat={shippingOrigin.latitude} data-origin-lng={shippingOrigin.longitude}>
+    <span>Instant Delivery</span>
+    <button type="button" class="cmp-btn-secondary" data-pin-open aria-expanded="false" aria-controls={`${prefix}-pin`}>Choose delivery pin</button>
+    <span data-pin-result role="status" aria-live="polite"></span>
+    <div id={`${prefix}-pin`} data-pin-panel hidden>
+      <button type="button" class="cmp-btn-secondary" data-pin-current>Use my location</button>
+      <p class="delivery-pin__location-status" data-pin-location-status role="status" aria-live="polite"></p>
+      <div class="delivery-pin__mapwrap">
+        <div class="delivery-pin__map" data-pin-map aria-label="Delivery location map"></div>
+        <span class="delivery-pin__cross" aria-hidden="true">+</span>
+      </div>
+      <label for={`${prefix}-coordinates`}>Latitude, longitude (optional)</label>
+      <div class="delivery-pin__coordinates">
+        <input id={`${prefix}-coordinates`} data-pin-coordinates placeholder="-6.240000, 106.850000" autocomplete="off" />
+        <button type="button" class="cmp-btn-secondary" data-pin-locate>Find</button>
+      </div>
+      <div class="delivery-pin__actions">
+        <button type="button" class="cmp-btn-secondary" data-pin-cancel>Cancel</button>
+        <button type="button" class="cmp-btn-primary" data-pin-confirm disabled>Use this pin</button>
+      </div>
+    </div>
+    <button type="button" class="cmp-btn-secondary" data-check-delivery>Check Instant Delivery</button>
+    <p class="buybox__area-status" data-rate-status role="status" aria-live="polite" hidden></p>
   </div>
   <div class="buybox__detail">
     <span class="buybox__dlabel">Detail Delivery:</span>
@@ -42,7 +54,20 @@ const prefix = cart ? 'cart-area' : 'product-area';
   </div>
   {cart ? (
     <label class="buybox__field" data-courierrow hidden>
-      <span>Courier:</span><select data-courier></select><span data-estnote hidden>Estimated delivery rate</span>
+      <span>Instant Courier:</span><select data-courier></select><span data-estnote hidden></span>
     </label>
   ) : <p class="buybox__courier" data-courier hidden></p>}
 </div>
+
+<style>
+  .delivery-pin [data-pin-panel] { min-width: 0; }
+  .delivery-pin__location-status { font-size: 12px; color: #525252; margin: 6px 0; overflow-wrap: anywhere; }
+  .delivery-pin__mapwrap { position: relative; margin: 8px 0 12px; }
+  .delivery-pin__map { height: 280px; width: 100%; border: 1px solid var(--hair); border-radius: 4px; z-index: 0; }
+  .delivery-pin__cross { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; pointer-events: none; font: 700 30px/1 sans-serif; color: #525252; text-shadow: 0 0 3px #fff; }
+  .delivery-pin__coordinates { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin: 6px 0 12px; }
+  .delivery-pin__coordinates input { min-width: 0; width: 100%; }
+  .delivery-pin__actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+  .delivery-pin [data-pin-result] { font-size: 12px; color: #525252; overflow-wrap: anywhere; }
+  .delivery-pin button { white-space: normal; min-height: 40px; }
+</style>

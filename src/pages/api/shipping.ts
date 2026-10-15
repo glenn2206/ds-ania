@@ -1,12 +1,13 @@
 /**
  * GET  /api/shipping?q=<teks>            → { areas: [{id,name,postal_code}] }   (autocomplete)
- * POST /api/shipping  { destAreaId?|destPostal?, items:[{slug,qty}] }
+ * POST /api/shipping  { destination:{latitude,longitude}, items:[{slug,qty}] }
  *                                        → { options:[{courier,service,price,etd}], estimated }
  *
  * Token Biteship dipakai HANYA di sini (server). Berat/nilai barang dihitung dari DB.
  */
 import type { APIRoute } from 'astro';
-import { searchAreas, getRates } from '../../lib/biteship';
+import { searchAreas, getRates, coordinates, ShippingError } from '../../lib/biteship';
+import { allowShippingRequest } from '../../lib/shipping-cache';
 import { getCatalog } from '../../lib/products';
 
 export const prerender = false;
@@ -16,34 +17,30 @@ const DEFAULT_WEIGHT = 1500; // gram / bouquet
 const json = (d: unknown, s = 200) =>
   new Response(JSON.stringify(d), { status: s, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ url, clientAddress }) => {
+  if (!allowShippingRequest(`search:${clientAddress}`)) return json({ error: 'Too many searches. Please wait a minute.' }, 429);
   const q = url.searchParams.get('q') || '';
-  return json({ areas: await searchAreas(q) });
+  try { return json({ areas: await searchAreas(q) }); }
+  catch (error) { return json({ error: error instanceof Error ? error.message : 'Address search unavailable.' }, error instanceof ShippingError ? error.status : 503); }
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, clientAddress }) => {
+  if (!allowShippingRequest(`rates:${clientAddress}`, 12)) return json({ error: 'Too many delivery checks. Please wait a minute.' }, 429);
   const body = await request.json().catch(() => ({}));
-  const destAreaId: string | undefined = body.destAreaId || undefined;
-  const destPostal: number | undefined = body.destPostal ? Number(body.destPostal) : undefined;
-  if (!destAreaId && !destPostal) return json({ error: 'destinasi kosong' }, 400);
+  if (!body || typeof body !== 'object') return json({ error: 'Invalid request.' }, 400);
+  if (!coordinates(body.destination)) return json({ error: 'Choose a delivery pin first.' }, 400);
 
   const wanted: { slug: string; qty: number }[] = Array.isArray(body.items) ? body.items : [];
+  if (!wanted.length || wanted.length > 50 || wanted.some(it => !it || !Number.isInteger(it.qty) || it.qty < 1 || it.qty > 100))
+    return json({ error: 'Invalid delivery items.' }, 400);
   const cat = await getCatalog();
   const bySlug = new Map([...cat.allProducts, ...cat.addons].map((p) => [p.slug, p]));
+  if (wanted.some(it => !bySlug.has(it.slug))) return json({ error: 'Product unavailable.' }, 400);
 
-  const items = wanted.length
-    ? wanted.map((it) => {
-        const p = bySlug.get(String(it.slug));
-        const qty = Math.max(1, Math.floor(Number(it.qty) || 1));
-        return {
-          name: p?.name || String(it.slug || 'item'),
-          value: typeof p?.price === 'number' ? p!.price : 300000,
-          weight: DEFAULT_WEIGHT,
-          quantity: qty,
-        };
-      })
-    : [{ name: 'bouquet', value: 300000, weight: DEFAULT_WEIGHT, quantity: 1 }];
+  if (wanted.some(it => typeof bySlug.get(it.slug)?.price !== 'number' || Number(bySlug.get(it.slug)?.price) <= 0))
+    return json({ error: 'Please contact ANIA for products priced by request.' }, 400);
+  const items = wanted.map(it => ({ name: it.slug, value: Number(bySlug.get(it.slug)!.price), weight: DEFAULT_WEIGHT, quantity: it.qty }));
 
-  const res = await getRates({ destAreaId, destPostal, items });
-  return json(res);
+  try { return json(await getRates({ destination: body.destination, items })); }
+  catch (error) { return json({ error: error instanceof Error ? error.message : 'Delivery unavailable.' }, error instanceof ShippingError ? error.status : 503); }
 };

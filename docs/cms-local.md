@@ -26,7 +26,9 @@ DB_PASS=postgres
 DB_NAME=ania
 SESSION_SECRET=<node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">
 UPLOADS_DIR=                       # kosong → ./uploads
-BITESHIP_TOKEN=<token test Biteship kamu>   # kosong → ongkir pakai estimasi lokal
+BITESHIP_TOKEN=<token test Biteship kamu>   # kosong -> delivery ditolak; Pickup tetap bisa
+BITESHIP_ORIGIN_LATITUDE=<latitude pin toko terverifikasi>
+BITESHIP_ORIGIN_LONGITUDE=<longitude pin toko terverifikasi>
 XENDIT_SECRET_KEY=<Secret Key TEST Xendit>  # kosong → checkout tetap bikin order (tanpa invoice)
 XENDIT_WEBHOOK_TOKEN=<bebas, mis. testtok123>
 ```

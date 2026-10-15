@@ -61,22 +61,20 @@ const WA_NUMBER = '6281211091885';
   import {
     getCart, setQty, removeItem, findProduct, unitPrice, seedIfFirstVisit, rupiah,
   } from '../../lib/cart';
-  import { initAreaPicker, type DeliveryDestination } from '../../lib/area-picker';
+  import { initDeliveryPin, type DeliveryDestination, type DeliveryPin } from '../../lib/delivery-pin';
 
-  interface RateOption { courier: string; service: string; price: number; etd: string }
+  interface RateOption { courier: string; service: string; price: number; etd: string; courierCode: string; serviceCode: string }
   // ongkir & alamat lewat endpoint server (/api/shipping) — token Biteship tidak ke browser
-  const getRates = (opts: { destAreaId?: string; destPostal?: number; items: { name: string; quantity: number }[] }): Promise<{ options: RateOption[]; estimated: boolean }> =>
+  const getRates = (opts: { destination?: DeliveryPin; items: { name: string; quantity: number }[] }): Promise<{ options: RateOption[]; estimated: boolean }> =>
     fetch('/api/shipping', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        destAreaId: opts.destAreaId,
-        destPostal: opts.destPostal,
+        destination: opts.destination,
         items: opts.items.map((it) => ({ slug: it.name, qty: it.quantity })),
       }),
     })
-      .then((r) => r.json())
-      .catch(() => ({ options: [] as RateOption[], estimated: true }));
+      .then(async (r) => { const data = await r.json(); if (!r.ok) throw new Error(data.error || 'Delivery unavailable.'); return data; });
 
   const root = document.querySelector<HTMLElement>('[data-cart]');
   if (root) {
@@ -92,6 +90,8 @@ const WA_NUMBER = '6281211091885';
     const courierSel = $<HTMLSelectElement>('[data-courier]');
     const courierRow = $('[data-courierrow]');
     const estNote = $('[data-estnote]');
+    const checkDelivery = $<HTMLButtonElement>('[data-check-delivery]');
+    const rateStatus = $('[data-rate-status]');
     const dateInput = $<HTMLInputElement>('[data-date]');
     const sendToInput = $<HTMLTextAreaElement>('[data-sendto]');
     let mode = 'delivery';
@@ -132,7 +132,7 @@ const WA_NUMBER = '6281211091885';
     let rateRequest = 0;
     try {
       const saved = JSON.parse(localStorage.getItem('ania:checkout-delivery') || '{}');
-      dest = { areaId: saved.areaId, postal: saved.postal, label: saved.label, cityLabel: saved.cityLabel, districtLabel: saved.districtLabel };
+      dest = { destination: saved.destination, label: saved.label };
       sendToInput.value = saved.address || '';
       if (saved.date >= iso) dateInput.value = saved.date;
       mode = saved.mode === 'pickup' ? 'pickup' : 'delivery';
@@ -186,25 +186,36 @@ const WA_NUMBER = '6281211091885';
     };
 
     const loadRates = async () => {
-      if (mode === 'pickup' || (!dest.areaId && !dest.postal)) return;
+      if (mode === 'pickup') return;
+      rateStatus.hidden = false;
+      if (!dest.destination || !sendToInput.value.trim()) { rateStatus.textContent = 'Choose a delivery pin and enter the full address first.'; return; }
       const request = ++rateRequest;
+      checkDelivery.disabled = true;
+      rateStatus.textContent = 'Checking Instant delivery...';
+      rates = []; renderTotals();
+      try {
       const cart = getCart();
       const items = cart.map((l) => ({ name: l.slug, quantity: l.qty }));
       courierSel.innerHTML = '<option>Loading…</option>';
       courierRow.hidden = false;
-      const res = await getRates({ destAreaId: dest.areaId, destPostal: dest.postal, items });
+      const res = await getRates({ destination: dest.destination, items });
       if (mode === 'pickup' || request !== rateRequest) return;
       rates = res.options;
       courierRow.hidden = !rates.length;
       estimated = res.estimated;
       estNote.hidden = !estimated;
-      courierSel.innerHTML = rates
-        .map((r) => `<option>${r.courier} · ${r.service} — ${rupiah(r.price)}${r.etd ? ` (${r.etd})` : ''}</option>`)
-        .join('');
+      courierSel.replaceChildren(...rates.map((r) => new Option(`${r.courier} · ${r.service} — ${rupiah(r.price)}${r.etd ? ` (${r.etd})` : ''}`)));
+      rateStatus.textContent = rates.length ? '' : 'Instant delivery is unavailable for this pin. Choose pickup or contact ANIA.';
       renderTotals();
+      } catch (error) {
+        if (request !== rateRequest || mode === 'pickup') return;
+        rates = []; courierRow.hidden = true; renderTotals();
+        rateStatus.textContent = (error as Error).message;
+      } finally { checkDelivery.disabled = false; }
     };
+    checkDelivery.addEventListener('click', loadRates);
 
-    initAreaPicker($('[data-area-picker]'), (destination) => {
+    initDeliveryPin($('[data-pin-picker]'), (destination) => {
       rateRequest++;
       dest = destination;
       rates = [];
@@ -213,7 +224,7 @@ const WA_NUMBER = '6281211091885';
       courierRow.hidden = true;
       saveDeliveryDraft();
       renderTotals();
-      if (dest.areaId || dest.postal) loadRates();
+      rateStatus.hidden = true;
     }, dest);
 
     courierSel.addEventListener('change', renderTotals);
@@ -232,9 +243,9 @@ const WA_NUMBER = '6281211091885';
     };
     root.querySelectorAll<HTMLElement>('[data-mode]').forEach((button) => button.addEventListener('click', () => {
       mode = button.dataset.mode || 'delivery';
+      rateRequest++; rates = []; rateStatus.hidden = true;
       renderMode();
       saveDeliveryDraft();
-      if (mode === 'delivery') loadRates();
     }));
 
     // --- checkout → buat order + invoice Xendit ---
@@ -295,7 +306,8 @@ const WA_NUMBER = '6281211091885';
       const name = (root.querySelector('[name="senderName"]') as HTMLInputElement).value.trim();
       const wa = (root.querySelector('[name="senderWa"]') as HTMLInputElement).value.trim();
       const email = (root.querySelector('[name="senderEmail"]') as HTMLInputElement).value.trim();
-      if (mode === 'delivery' && (!dest.label || !sendToInput.value.trim())) { note.hidden = false; note.textContent = 'Pilih kota dan lengkapi alamat penerima.'; return; }
+      if (mode === 'delivery' && (!dest.destination || !sendToInput.value.trim())) { note.hidden = false; note.textContent = 'Pilih pin dan lengkapi alamat penerima.'; return; }
+      if (mode === 'delivery' && (!rates.length || estimated)) { note.hidden = false; note.textContent = 'Cek ketersediaan Instant delivery terlebih dahulu.'; return; }
       if (!dateInput.checkValidity()) { dateInput.reportValidity(); return; }
       const invalidContact = contactInputs.find((input) => !input.checkValidity());
       if (invalidContact || !name || !wa) {
@@ -320,6 +332,7 @@ const WA_NUMBER = '6281211091885';
             customer: { name, phone: wa, email },
             shipping: {
               mode,
+              destination: mode === 'delivery' ? dest.destination : undefined,
               areaId: mode === 'delivery' ? dest.areaId : undefined,
               postal: mode === 'delivery' ? dest.postal : undefined,
               address: mode === 'delivery' ? sendToInput.value.trim() : '',
@@ -327,6 +340,8 @@ const WA_NUMBER = '6281211091885';
               date: dateInput.value,
               courier: mode === 'pickup' ? 'pickup' : chosen?.courier || '',
               service: mode === 'pickup' ? 'Pickup at ANIA' : chosen?.service || '',
+              courierCode: chosen?.courierCode,
+              serviceCode: chosen?.serviceCode,
               cost: deliveryCost() ?? 0,
             },
           }),
@@ -348,16 +363,16 @@ const WA_NUMBER = '6281211091885';
     });
 
     window.addEventListener('cart:change', () => {
+      rateRequest++; rates = []; courierRow.hidden = true; rateStatus.hidden = false;
+      rateStatus.textContent = 'Cart updated. Please check Instant delivery again.';
       renderItems();
       renderTotals();
-      if (dest.areaId || dest.postal) loadRates();
       refreshPrices();
     });
 
     renderItems();
     renderMode();
     refreshPrices();
-    if (mode === 'delivery') loadRates();
   }
 </script>
 

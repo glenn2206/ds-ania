@@ -72,7 +72,9 @@ Di bagian **Environment variables** app ini, tambahkan:
 | `DB_NAME` | `CPUSER_ania_dev` |
 | `SESSION_SECRET` | hasil `openssl rand -hex 32` |
 | `UPLOADS_DIR` | `/home/CPUSER/ania-uploads` |
-| `BITESHIP_TOKEN` | token Biteship (kosong = estimasi lokal) |
+| `BITESHIP_TOKEN` | token Biteship server-only; kosong/gagal = delivery ditolak, Pickup tetap tersedia |
+| `BITESHIP_ORIGIN_LATITUDE` | `-6.2749375`, pin pickup cabang Tangerang, The HOOD / Bloomingfields CR6 |
+| `BITESHIP_ORIGIN_LONGITUDE` | `106.6091875`, plus code PJG5+2M Cijantra |
 | `XENDIT_SECRET_KEY` | Secret Key Xendit |
 | `XENDIT_WEBHOOK_TOKEN` | token bebas (dipakai verifikasi webhook) |
 | `GITHUB_REPO` | `owner/nama-repo` *(opsional — tombol "Deploy ulang" di admin)* |

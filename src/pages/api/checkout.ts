@@ -4,19 +4,19 @@
  * Body: {
  *   items:   [{ slug, qty }],
  *   customer:{ name, phone, email? },
- *   shipping:{ areaId?, postal?, label?, address?, date?, courier?, service?, cost? }
+ *   shipping:{ mode, destination?:{latitude,longitude}, areaId?, postal?, label?, address?, date?, courierCode?, serviceCode?, cost? }
  *   note?: string
  * }
  * Resp: { code, invoiceUrl: string | null, total }
  *
- * Harga & stok SELALU dihitung ulang dari DB. Ongkir dicocokkan ke rate Biteship;
- * kalau tidak ketemu, pakai nilai dari klien (dibatasi >= 0).
+ * Harga/stok dari DB. Delivery wajib memakai quote Instant yang cocok di server.
+ * Pickup selalu gratis; kegagalan provider tidak boleh menjadi ongkir buatan klien.
  */
 import type { APIRoute } from 'astro';
 import crypto from 'node:crypto';
 import { tx } from '../../lib/db';
 import { getCatalog } from '../../lib/products';
-import { getRates } from '../../lib/biteship';
+import { getRates, coordinates, ShippingError } from '../../lib/biteship';
 import { env } from '../../lib/env';
 import * as xendit from '../../lib/xendit';
 
@@ -30,6 +30,12 @@ const genCode = () => 'ANIA-' + crypto.randomBytes(4).toString('hex').toUpperCas
 export const POST: APIRoute = async ({ request }) => {
   const body = await request.json().catch(() => null);
   if (!body) return json({ error: 'invalid json' }, 400);
+  if (!['delivery', 'pickup'].includes(body.shipping?.mode)) return json({ error: 'Choose delivery or pickup.' }, 400);
+  if (body.shipping.mode === 'delivery' && !coordinates(body.shipping.destination))
+    return json({ error: 'Choose a delivery pin before checking out.' }, 400);
+  if (!Array.isArray(body.items) || !body.items.length || body.items.length > 50 ||
+      body.items.some((item: any) => !item || typeof item.slug !== 'string' || !Number.isInteger(item.qty) || item.qty < 1 || item.qty > 100))
+    return json({ error: 'Invalid cart items.' }, 400);
 
   const name = String(body.customer?.name || '').trim();
   const phone = String(body.customer?.phone || '').trim();
@@ -64,25 +70,23 @@ export const POST: APIRoute = async ({ request }) => {
   const sh = body.shipping || {};
   const destAreaId: string | undefined = sh.areaId || undefined;
   const destPostal: number | undefined = sh.postal ? Number(sh.postal) : undefined;
-  let shippingCost = Math.max(0, Math.round(Number(sh.cost) || 0));
-  let courier = String(sh.courier || '').trim();
-  let service = String(sh.service || '').trim();
-  if (destAreaId || destPostal) {
+  let shippingCost = 0;
+  let courier = 'pickup';
+  let service = 'Pickup at ANIA';
+  if (sh.mode === 'delivery') {
     try {
       const rates = await getRates({
-        destAreaId,
-        destPostal,
+        destination: sh.destination,
         items: lines.map((l) => ({ name: l.slug, value: l.unit, weight: 1500, quantity: l.qty })),
       });
-      const match =
-        rates.options.find((o) => o.courier === courier && o.service === service) || rates.options[0];
-      if (match) {
-        shippingCost = match.price;
-        courier = match.courier;
-        service = match.service;
-      }
-    } catch {
-      /* pakai nilai dari klien */
+      const match = rates.options.find((o) => o.courierCode === sh.courierCode && o.serviceCode === sh.serviceCode);
+      if (!match || match.price !== sh.cost)
+        return json({ error: 'Instant delivery quote changed or is unavailable. Please check delivery again.' }, 409);
+      shippingCost = match.price;
+      courier = match.courier;
+      service = match.service;
+    } catch (error) {
+      return json({ error: error instanceof Error ? error.message : 'Delivery unavailable.' }, error instanceof ShippingError ? error.status : 503);
     }
   }
 
@@ -99,7 +103,7 @@ export const POST: APIRoute = async ({ request }) => {
         code, 'pending', name, phone, email,
         String(sh.label || sh.address || ''), destAreaId || null, destPostal ? String(destPostal) : null,
         courier || null, service || null, shippingCost, subtotal, total,
-        [sh.date ? `Terima: ${sh.date}` : '', body.note ? String(body.note) : ''].filter(Boolean).join(' · ') || null,
+        [sh.date ? `Terima: ${sh.date}` : '', sh.mode === 'delivery' ? `Pin: ${sh.destination.latitude},${sh.destination.longitude}` : '', body.note ? String(body.note) : ''].filter(Boolean).join(' · ') || null,
       ],
     );
     for (const l of lines) {

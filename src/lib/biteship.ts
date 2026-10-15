@@ -1,106 +1,95 @@
-/**
- * biteship.ts — ongkir & autocomplete alamat via Biteship.
- *
- * DIPAKAI DI SISI SERVER (endpoint /api/shipping). Token dari BITESHIP_TOKEN (server-only,
- * TIDAK ter-bundle ke browser). Klien memanggil /api/shipping, bukan Biteship langsung.
- *
- * Kompat lama: bila hanya PUBLIC_BITESHIP_TOKEN yang diisi, itu tetap dipakai sebagai
- * fallback supaya BuyBox versi client-side lama tidak langsung mati.
- */
 import { env } from './env';
+import { ShippingCache, allowShippingRequest } from './shipping-cache';
+import { shippingOrigin } from '../data/shipping-origin';
 
-const TOKEN = env('BITESHIP_TOKEN') || env('PUBLIC_BITESHIP_TOKEN');
 const BASE = 'https://api.biteship.com/v1';
-
-/** Titik asal = butik ANIA (default: Pesanggrahan, Jaksel 12250). Override via .env. */
-export const ORIGIN_AREA_ID =
-  env('BITESHIP_ORIGIN_AREA_ID') || env('PUBLIC_BITESHIP_ORIGIN_AREA_ID') ||
-  'IDNP6IDNC148IDND843IDZ12250';
-
+const areasCache = new ShippingCache<Area[]>(24 * 60 * 60_000);
+const ratesCache = new ShippingCache<RateResult>(90_000, 200);
+export class ShippingError extends Error {
+  constructor(message: string, public status = 503) { super(message); }
+}
+export interface Coordinates { latitude: number; longitude: number }
+export function coordinates(value: unknown): Coordinates | undefined {
+  if (!value || typeof value !== 'object') return;
+  const { latitude, longitude } = value as Coordinates;
+  if (typeof latitude !== 'number' || typeof longitude !== 'number' ||
+      !Number.isFinite(latitude) || !Number.isFinite(longitude) ||
+      latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return;
+  return { latitude, longitude };
+}
 export interface Area {
-  id: string;
-  name: string;
-  postal_code: number;
+  id: string; name: string; postal_code: number;
+  administrative_division_level_2_name?: string;
+  administrative_division_level_3_name?: string;
+  administrative_division_level_4_name?: string;
 }
-
-export async function searchAreas(input: string): Promise<Area[]> {
-  if (!TOKEN || input.trim().length < 3) return [];
-  try {
-    const r = await fetch(
-      `${BASE}/maps/areas?countries=ID&type=single&input=${encodeURIComponent(input)}`,
-      { headers: { Authorization: TOKEN } },
-    );
-    const j = await r.json();
-    return j.success && Array.isArray(j.areas) ? j.areas : [];
-  } catch {
-    return [];
-  }
-}
-
 export interface RateOption {
-  courier: string;
-  service: string;
-  price: number;
-  etd: string;
+  courier: string; service: string; price: number; etd: string;
+  courierCode: string; serviceCode: string;
 }
+export interface RateItem { name: string; value: number; weight: number; quantity: number }
+export interface RateResult { options: RateOption[]; estimated: false }
 
-export interface RateItem {
-  name: string;
-  value: number;
-  weight: number; // gram
-  quantity: number;
-}
-
-export async function getRates(opts: {
-  destAreaId?: string;
-  destPostal?: number;
-  items: RateItem[];
-}): Promise<{ options: RateOption[]; estimated: boolean }> {
-  if (!TOKEN) return { options: fallbackRates(opts), estimated: true };
+async function provider(endpoint: string, init?: RequestInit): Promise<any> {
+  const token = env('BITESHIP_TOKEN');
+  if (!token || !/^biteship_(live|test)\./.test(token))
+    throw new ShippingError('Delivery is not configured. Please choose pickup or contact ANIA.');
+  if (!allowShippingRequest('provider', 30))
+    throw new ShippingError('Too many delivery requests. Please wait a minute.', 429);
+  let response: Response;
   try {
-    const body: Record<string, unknown> = {
-      origin_area_id: ORIGIN_AREA_ID,
-      couriers: 'grab,gojek,jne,jnt,sicepat,anteraja,pos,ninja',
-      items: opts.items,
-    };
-    if (opts.destAreaId) body.destination_area_id = opts.destAreaId;
-    else if (opts.destPostal) body.destination_postal_code = opts.destPostal;
-
-    const r = await fetch(`${BASE}/rates/couriers`, {
-      method: 'POST',
-      headers: { Authorization: TOKEN, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+    response = await fetch(`${BASE}${endpoint}`, {
+      ...init, signal: AbortSignal.timeout(10_000),
+      headers: { Authorization: token, 'Content-Type': 'application/json' },
     });
-    const j = await r.json();
-
-    if (j.success && Array.isArray(j.pricing) && j.pricing.length) {
-      const options: RateOption[] = j.pricing
-        .map((p: any) => ({
-          courier: p.courier_name,
-          service: p.courier_service_name,
-          price: p.price,
-          etd: p.duration || p.shipment_duration_range || '',
-        }))
-        .sort((a: RateOption, b: RateOption) => a.price - b.price);
-      return { options, estimated: false };
-    }
-    return { options: fallbackRates(opts), estimated: true };
-  } catch {
-    return { options: fallbackRates(opts), estimated: true };
+  } catch { throw new ShippingError('Delivery service is unavailable. Please try again later.'); }
+  const data = await response.json().catch(() => null);
+  if (!response.ok || !data?.success) {
+    const message = String(data?.error || data?.message || '').toLowerCase();
+    const reason = /balance|saldo/.test(message) ? 'balance' :
+      [401, 403].includes(response.status) ? 'authentication' : 'provider';
+    console.warn('[biteship]', { status: response.status, reason });
+    throw new ShippingError('Delivery service is unavailable. Please choose pickup or contact ANIA.');
   }
+  return data;
 }
-
-/** Estimasi zona sederhana dari kode pos (dipakai kalau rates API tidak tersedia). */
-function fallbackRates(opts: { destPostal?: number; destAreaId?: string }): RateOption[] {
-  const p =
-    opts.destPostal ?? Number(String(opts.destAreaId || '').match(/IDZ(\d+)/)?.[1] ?? 0);
-  const dki = p >= 10000 && p < 20000;
-  const jabodetabek = dki || (p >= 16000 && p < 17800);
-  const jabar = p >= 40000 && p < 47000;
-  const base = jabodetabek ? 20000 : jabar ? 35000 : 55000;
-  return [
-    { courier: 'GoSend', service: 'Instant', price: base + 10000, etd: '1–3 hours' },
-    { courier: 'Grab', service: 'Same Day', price: base, etd: 'today' },
-    { courier: 'JNE', service: 'REG', price: Math.round(base * 0.7), etd: '2–3 days' },
-  ];
+export async function searchAreas(input: string): Promise<Area[]> {
+  const query = input.trim().replace(/\s+/g, ' ').toLowerCase();
+  if (query.length < 3) return [];
+  if (query.length > 80) throw new ShippingError('Location search is too long.', 400);
+  return areasCache.get(query, async () => {
+    const data = await provider(`/maps/areas?countries=ID&type=single&input=${encodeURIComponent(query)}`);
+    if (!Array.isArray(data.areas)) throw new ShippingError('Invalid delivery area response.');
+    return data.areas;
+  });
+}
+export async function getRates(opts: { destination?: Coordinates; items: RateItem[] }): Promise<RateResult> {
+  const destination = coordinates(opts.destination);
+  if (!destination) throw new ShippingError('Choose a delivery pin before checking Instant delivery.', 400);
+  const lat = env('BITESHIP_ORIGIN_LATITUDE', String(shippingOrigin.latitude));
+  const lng = env('BITESHIP_ORIGIN_LONGITUDE', String(shippingOrigin.longitude));
+  const origin = lat && lng ? coordinates({ latitude: Number(lat), longitude: Number(lng) }) : undefined;
+  if (!origin) throw new ShippingError('The store pickup pin is not configured. Please choose pickup or contact ANIA.');
+  if (!opts.items.length || opts.items.some(i => !Number.isFinite(i.weight) || i.weight <= 0 ||
+      !Number.isFinite(i.quantity) || i.quantity < 1 || !Number.isFinite(i.value) || i.value < 0))
+    throw new ShippingError('Invalid delivery items.', 400);
+  const items = [...opts.items].sort((a, b) => a.name.localeCompare(b.name));
+  const body = {
+    origin_latitude: origin.latitude, origin_longitude: origin.longitude,
+    destination_latitude: destination.latitude, destination_longitude: destination.longitude,
+    couriers: 'gojek,grab', items,
+  };
+  return ratesCache.get(JSON.stringify(body), async () => {
+    const data = await provider('/rates/couriers', { method: 'POST', body: JSON.stringify(body) });
+    if (!Array.isArray(data.pricing)) throw new ShippingError('Invalid delivery rate response.');
+    const options = data.pricing.filter((p: any) =>
+      ['gojek', 'grab'].includes(p.courier_code) && p.courier_service_code === 'instant' &&
+      Number.isFinite(p.price) && p.price > 0
+    ).map((p: any) => ({
+      courier: p.courier_name, service: p.courier_service_name,
+      courierCode: p.courier_code, serviceCode: p.courier_service_code,
+      price: p.price, etd: p.duration || p.shipment_duration_range || '',
+    })).sort((a: RateOption, b: RateOption) => a.price - b.price);
+    return { options, estimated: false as const };
+  });
 }
