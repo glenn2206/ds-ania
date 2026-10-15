@@ -1,8 +1,11 @@
+import { orderFlowGuide } from './order-flow-guide';
+
 export const guideUpdated = '16 Oktober 2026';
 
 export const guideGroups = [
   { id: 'akses', title: 'Mulai di sini', description: 'Login, menu, dan aturan penyimpanan.' },
   { id: 'produk', title: 'Kelola produk', description: 'Tambah, edit, harga, stok, diskon, dan foto.' },
+  { id: 'alur-order', title: 'Alur pelanggan sampai pesanan diterima', description: '15 tahap bergambar: checkout pelanggan, pembayaran, proses admin, dan penerimaan. Semua screenshot menggunakan simulasi lokal, bukan transaksi live.' },
   { id: 'order', title: 'Kelola order', description: 'Periksa pesanan dan perbarui status dengan aman.' },
   { id: 'pengaturan', title: 'Pengaturan situs', description: 'Promo, carousel beranda, dan video About.' },
   { id: 'bantuan', title: 'Pemeriksaan dan bantuan', description: 'Cek hasil perubahan dan atasi masalah umum.' },
@@ -171,6 +174,7 @@ export const guideSections: GuideSection[] = [
     steps: ['Buka produk dan pastikan nama produknya benar.', 'Pilihan aman untuk nonaktif sementara: ubah Status ke draft dan klik Simpan perubahan.', 'Jika harus menghapus permanen, simpan salinan detail dan file foto terlebih dahulu.', 'Klik Hapus produk di bagian bawah editor. Baca nama produk pada konfirmasi.', 'Batalkan jika ragu. Setujui hanya jika data dan foto produk memang boleh dihapus permanen.', 'Setelah berhasil, CMS kembali ke Daftar Produk. Pastikan produk sudah tidak tampil di katalog pelanggan.'],
     notes: ['Tidak ada tombol Undo atau tempat sampah pemulihan pada CMS ini. Hapus produk juga menghapus foto produknya.', 'Jangan menghapus produk hanya untuk mengganti foto, stok, atau harga; gunakan editor.'],
   },
+  ...orderFlowGuide,
   {
     id: 'instant-delivery', group: 'order', title: 'Pengiriman Instant dan pickup', route: '/cart', href: '/cart',
     intro: 'Pengiriman online hanya menerima GoSend Instant atau Grab Instant yang tersedia dari Biteship. Pickup tetap tersedia tanpa ongkir.',
