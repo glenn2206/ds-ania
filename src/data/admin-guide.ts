@@ -1,6 +1,6 @@
 import { orderFlowGuide } from './order-flow-guide';
 
-export const guideUpdated = '16 Oktober 2026';
+export const guideUpdated = '17 Oktober 2026';
 
 export const guideGroups = [
   { id: 'akses', title: 'Mulai di sini', description: 'Login, menu, dan aturan penyimpanan.' },
@@ -179,10 +179,13 @@ export const guideSections: GuideSection[] = [
     id: 'instant-delivery', group: 'order', title: 'Pengiriman Instant dan pickup', route: '/cart', href: '/cart',
     intro: 'Pengiriman online hanya menerima GoSend Instant atau Grab Instant yang tersedia dari Biteship. Pickup tetap tersedia tanpa ongkir.',
     steps: [
-      'Pelanggan memilih Choose delivery pin, menggeser peta ke lokasi penerima, lalu menekan Use this pin. Angka latitude, longitude dapat diisi jika titiknya sudah diketahui.',
+      'Pelanggan mengisi Full Delivery Address terlebih dahulu, lalu memilih Choose delivery pin, menggeser peta ke lokasi penerima, dan menekan Use this pin. Angka latitude, longitude yang valid langsung memindahkan peta tanpa wajib menekan Enter; Find tetap tersedia. Mengubah alamat membatalkan pin lama agar dikonfirmasi kembali.',
       'Jika berada di alamat penerima, pelanggan dapat menekan Use my location / Gunakan lokasi saya lalu mengizinkan akses lokasi pada browser. Lokasi tidak diminta otomatis. Periksa pin dan tekan Use this pin untuk mengonfirmasi; alamat lengkap tetap diisi. Jika izin ditolak atau lokasi tidak ditemukan, pilih pin manual. Tombol ini tidak mengecek ongkir Biteship dan tidak melacak lokasi terus-menerus.',
       'Lengkapi alamat jalan, nomor rumah/unit, dan petunjuk penerima. Pin tidak menggantikan alamat lengkap.',
-      'Klik Check Instant Delivery setelah lokasi dan keranjang sudah benar. Pilih kurir Instant yang tersedia; membuka peta dan mengetik alamat tidak memanggil Biteship.',
+      'Setelah mengisi alamat lengkap, buka Choose delivery pin lalu ketik nama jalan/tempat dan kota pada Search street or place, city. Tekan ikon cari di sebelah kolom (atau Enter); hasil muncul sebagai dropdown. Klik hasil atau pilih dengan panah atas/bawah dan Enter; Escape menutup dropdown. Use my location tersedia tepat di bawah kolom sebagai alternatif. Koreksi pin bila perlu, lalu tekan Use this pin. Pencarian tidak mengganti alamat lengkap/nomor unit/catatan penerima dan tidak langsung mengonfirmasi pin atau mengecek ongkir.',
+      'Pencarian alamat memakai layanan publik Photon/OpenStreetMap, tanpa API key atau langganan tambahan. Teks pencarian dikirim ke Photon: jangan masukkan nama penerima, telepon, atau catatan pribadi di kolom pencarian. Tidak ada pencarian otomatis per ketikan; hasil disimpan sementara di memori server maksimal 24 jam, dibatasi per IP dan antar-request. Layanan publik tidak menjamin uptime/ketepatan: bila tidak ditemukan atau dibatasi, gunakan jalan/landmark terdekat lalu sesuaikan pin manual, atau Use my location. Nomor rumah belum tentu terdata. Penambahan trafik besar perlu evaluasi penyedia/hosting sendiri; bukan layanan tanpa batas.',
+      'Khusus preview lokal tersedia pilihan Tangerang, Jakarta (demo), dan Bali (demo). Jakarta/Bali hanya contoh pusat kota, bukan alamat/pin toko; cek ongkir, checkout, dan booking tidak tersedia untuk kedua cabang demo. Pilihan demo tidak ditampilkan pada build production. Asal operasional tetap Tangerang.',
+      'Cek ongkir hanya pada halaman /cart (checkout akhir), bukan halaman detail produk. Klik Check Instant Delivery setelah lokasi dan keranjang sudah benar. Pilih kurir Instant yang tersedia; membuka peta dan mengetik alamat tidak memanggil Biteship. Server tetap memvalidasi tarif saat membuat invoice; cache menghindari panggilan ulang provider selama tarif masih berlaku.',
       'Jika pin atau isi keranjang berubah, cek ongkir ulang. Jika tarif berubah saat checkout, pelanggan diminta mengecek lagi sebelum pembayaran dibuat.',
       'Jika tidak ada kurir atau API bermasalah, pilih Pickup atau hubungi ANIA. Jangan menggunakan angka estimasi sebagai ongkir pasti.',
       'Setelah pembayaran Xendit terkonfirmasi, siapkan rangkaian. Buka detail order dan ikuti SOP Pesan Kurir Instant. Kurir hanya dipesan setelah admin meninjau tarif dan menyetujui booking.',
@@ -213,6 +216,9 @@ export const guideSections: GuideSection[] = [
     result: 'Booking tersimpan satu kali dengan Reference ID unik, ID Biteship, kontak penerima, admin pemesan, status terakhir, tarif aktual dan resi bila sudah tersedia.',
     notes: [
       'Pembayaran Xendit pelanggan sudah mencakup bunga dan ongkir. Pesan Kurir Instant adalah tindakan admin untuk membayar/memesan layanan dari saldo Biteship toko, bukan pembayaran kedua dari pelanggan. Dana Xendit tidak otomatis menjadi saldo Biteship.',
+      'Contoh saldo kurang: ongkir Rp60.000, saldo Biteship Rp10.000. Booking dapat ditolak dan kurir belum terpesan; order pelanggan tetap paid. Tidak ada pembatalan atau refund Xendit otomatis. Top up saldo Biteship melalui dashboard; top up tidak otomatis membuat booking.',
+      'Setelah saldo cukup, pastikan permintaan sebelumnya benar-benar ditolak dan tidak ada pengiriman terbentuk. Muat ulang order, cek tarif terbaru, lalu konfirmasi booking lagi. Jika creating/review, timeout, atau hasil tidak pasti, cari Reference ID di dashboard dan rekonsiliasi dahulu; jangan langsung pesan ulang.',
+      'Contoh selisih ongkir: pelanggan membayar Rp60.000, tarif saat booking Rp65.000. Selisih Rp5.000 harus ditinjau dan disetujui toko sebelum booking; sistem tidak otomatis menagih pelanggan lagi atau mengubah invoice yang sudah lunas.',
       'Kontak pickup default memakai nomor website 0821-1109-1885 sesuai persetujuan pengelola. Jika staf cabang memakai nomor berbeda, pengelola teknis dapat mengisi BITESHIP_ORIGIN_PHONE. Periksa nomor yang tampil pada dialog sebelum booking.',
       'booked berarti booking tercatat, bukan paket sudah diterima. Status kurir hanya diperbarui saat tombol Sinkronkan status Biteship diklik; belum ada sinkronisasi otomatis/webhook Biteship.',
       'Status fulfilled website tetap diatur admin setelah pesanan selesai. Mengubah status website tidak membatalkan kurir, mengembalikan saldo, atau memproses refund Xendit. Pembatalan pengiriman dilakukan lewat dashboard Biteship.',
@@ -223,6 +229,35 @@ export const guideSections: GuideSection[] = [
       'Latihan tanpa biaya: pengelola teknis menjalankan npm run demo:booking, lalu memberikan link order DEMO di port 4332. Gunakan hanya data DEMO dan pastikan dialog SANDBOX / SIMULASI. Pembayaran serta tarif pada demo bukan transaksi/provider nyata.',
     ],
     image: { file: '09-booking-instant.jpg', alt: 'Detail Pengiriman Instant pada order contoh lokal dengan alamat dan kontak fiktif', caption: 'DATA CONTOH LOKAL. Periksa penerima, asal, tujuan dan pembayaran sebelum memesan. Screenshot ini tidak membuat booking kurir.' },
+  },
+  {
+    id: 'lacak-pengiriman', group: 'order', title: 'Pantau pengiriman untuk admin dan pelanggan', route: '/admin/orders/{id}',
+    intro: 'Status pembayaran, status booking, dan status perjalanan kurir berbeda. Admin dapat mengambil status Biteship dari CMS setelah booking tercatat; halaman pelanggan saat ini belum menampilkan progres kurir secara langsung.',
+    steps: [
+      'Buka Order, klik kode pesanan, lalu cari bagian Pengiriman Instant. Cocokkan kode order, ID Biteship, dan resi. booked hanya berarti booking tercatat, bukan paket sudah diterima.',
+      'Klik Sinkronkan status Biteship saat perlu memeriksa perkembangan. Baca Status kurir terakhir dan waktu Diperbarui. Ini mengambil status terbaru tanpa membuat booking baru; belum ada polling atau webhook Biteship otomatis.',
+      'Jika tombol Lacak pengiriman muncul, buka tautan tersebut untuk melihat informasi pelacakan dari provider. Tombol hanya tampil jika Biteship mengembalikan tautan HTTPS; nomor resi atau tautan bisa belum tersedia di awal.',
+      'Untuk pelanggan, bagikan tautan lacak yang tersedia melalui kanal komunikasi resmi kepada pelanggan yang bersangkutan. Pelanggan dapat membuka tautan provider tanpa akses CMS. Jangan membagikan link admin, screenshot data pribadi, atau mengarang URL dari nomor resi.',
+      'Jika belum ada tautan, periksa dashboard Biteship dengan ID pengiriman atau resi dan sampaikan status yang sudah diverifikasi kepada pelanggan. Jangan menganggap link order website sudah menampilkan lokasi atau perjalanan kurir.',
+      'Pelanggan dapat membuka /order/{code} untuk melihat status pesanan: Menunggu pembayaran, Lunas - pesanan diproses, atau Selesai dikirim. Halaman ini belum memiliki tombol lacak Biteship, resi, status pickup/pengantaran, atau peta kurir.',
+      'Setelah status kurir delivered, periksa penerimaan sesuai prosedur toko. Pilih fulfilled dan Simpan status; setelah pelanggan refresh halaman order, status website menjadi Selesai dikirim.',
+    ],
+    fields: [
+      { name: 'paid (order)', description: 'Pembayaran pelanggan terkonfirmasi; bukan bukti kurir sudah dipesan.', example: 'Lunas - pesanan diproses' },
+      { name: 'booked (CMS)', description: 'Booking tersimpan dengan ID provider. Perjalanan mengikuti Status kurir terakhir.', example: 'Jangan membuat booking kedua' },
+      { name: 'confirmed (kurir)', description: 'Booking dikonfirmasi provider; belum berarti barang diterima.', example: 'Periksa pembaruan berikutnya' },
+      { name: 'picking_up (kurir)', description: 'Kurir menuju lokasi penjemputan.', example: 'Barang siap di titik pickup' },
+      { name: 'dropping_off (kurir)', description: 'Barang sedang diantar ke penerima.', example: 'Pantau penerimaan dan kendala' },
+      { name: 'delivered (kurir)', description: 'Provider melaporkan pengiriman selesai; admin memeriksa penerimaan.', example: 'Tidak otomatis mengubah order menjadi fulfilled' },
+      { name: 'fulfilled (order)', description: 'Admin sudah menutup pesanan setelah penerimaan terkonfirmasi.', example: 'Pelanggan melihat Selesai dikirim' },
+    ],
+    result: 'Admin mengetahui status pengiriman terakhir beserta waktunya. Pelanggan mendapat tautan lacak provider jika tersedia, atau pembaruan dari admin; status order website tidak disalahartikan sebagai tracking kurir.',
+    notes: [
+      'Membuka ulang detail order saja tidak mengambil status Biteship terbaru. Gunakan Sinkronkan status Biteship seperlunya; hindari klik berulang untuk menghemat panggilan API.',
+      'Jika pengiriman dibuat langsung di dashboard Biteship dan tidak terhubung dengan order CMS, statusnya tidak otomatis muncul di CMS. Pantau di dashboard; jangan membuat booking CMS kedua. Rekonsiliasi CMS hanya untuk booking terkait dengan Reference ID yang cocok, bukan memasukkan sembarang ID pengiriman.',
+      'Jika status tidak dikenal, gagal, dibatalkan, atau hasil sinkronisasi error, periksa dashboard dan koordinasikan penanganan. Jangan menandai fulfilled atau memesan ulang hanya karena status belum berubah. Pembatalan kurir tidak otomatis membatalkan atau refund pembayaran Xendit.',
+      'Foto pada bagian alur order adalah simulasi lokal. Status yang maju setiap klik di demo bukan perilaku live dan bukan bukti posisi kurir nyata.',
+    ],
   },
   {
     id: 'daftar-order', group: 'order', title: 'Lihat dan filter order', route: '/admin/orders', href: '/admin/orders',

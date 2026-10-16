@@ -16,6 +16,16 @@ const tracking = typeof result?.link === 'string' && result.link.startsWith('htt
 <section class="card shipping" data-admin-shipping data-order={order.id}>
   <h2>Pengiriman Instant</h2>
   <p class="shipping__notice">Ongkir sudah termasuk dalam total checkout pelanggan. Booking khusus admin setelah pembayaran terkonfirmasi dan rangkaian siap; tidak menagih pelanggan lagi.</p>
+  <aside class="shipping__balance" aria-label="Catatan saldo dan ongkir">
+    <p><strong>Siapkan saldo Biteship sebelum booking.</strong> Dana pembayaran pelanggan di Xendit tidak otomatis masuk ke saldo Biteship toko.</p>
+    <details>
+      <summary>Jika saldo kurang atau tarif ongkir berubah</summary>
+      <p>Contoh: ongkir Rp60.000, saldo Biteship Rp10.000. Booking dapat ditolak karena saldo tidak cukup; kurir belum terpesan. Order pelanggan tetap paid, tanpa pembatalan atau refund Xendit otomatis.</p>
+      <p>Top up saldo melalui dashboard Biteship. Setelah memastikan booking sebelumnya ditolak dan tidak ada pengiriman yang terbentuk, muat ulang order, cek tarif terbaru, lalu konfirmasi booking lagi. Top up tidak otomatis memesan kurir.</p>
+      <p>Jika status creating/review, timeout, atau hasil belum pasti, jangan langsung pesan ulang. Cocokkan Reference ID di dashboard dan ikuti rekonsiliasi agar tidak terpesan dua kali.</p>
+      <p>Jika pelanggan membayar ongkir Rp60.000 tetapi tarif terbaru Rp65.000, selisih Rp5.000 ditinjau dan disetujui toko sebelum booking. Sistem tidak otomatis menagih pelanggan lagi.</p>
+    </details>
+  </aside>
   {!shipment ? <p>Order pickup atau order lama tanpa data pin terstruktur. Booking CMS tidak tersedia; periksa pengiriman secara manual.</p> : <>
     <dl>
       <div><dt>Asal pickup</dt><dd>{details?.booking?.origin_contact_name || origin?.name}<br />{details?.booking?.origin_address || origin?.address}<br />Pin: {details?.booking?.origin_coordinate?.latitude ?? origin?.latitude}, {details?.booking?.origin_coordinate?.longitude ?? origin?.longitude}</dd></div>
@@ -55,6 +65,7 @@ const tracking = typeof result?.link === 'string' && result.link.startsWith('htt
       <h2 id="booking-title">Pesan Kurir Instant sekarang?</h2>
       <p data-review></p>
       <p><strong>Kurir akan diminta menjemput sekarang, bukan mengikuti tanggal permintaan secara otomatis. Tarif dapat berubah dan memakai saldo Biteship toko.</strong></p>
+      <p>Pastikan saldo Biteship cukup. Dana Xendit tidak otomatis menjadi saldo Biteship; selisih tarif tidak menagih pelanggan lagi secara otomatis.</p>
       <label class="shipping__check"><input type="checkbox" required /> Saya sudah memeriksa tanggal, kontak pickup, penerima, alamat, pin, serta berat 1.500 gram per item; rangkaian siap dan muat dibawa motor. Selisih ongkir disetujui toko.</label>
       <div class="shipping__actions">
         <button class="btn" type="button" data-close-dialog>Kembali</button>
@@ -145,6 +156,9 @@ const tracking = typeof result?.link === 'string' && result.link.startsWith('htt
   .shipping input:focus-visible { outline: 2px solid var(--a-accent); outline-offset: 2px; }
   .shipping form { margin-top: 20px; }
   .shipping__error { color: #a32e2e; }
+  .shipping__balance { margin: 16px 0 20px; padding-left: 14px; border-left: 3px solid var(--a-line); }
+  .shipping__balance p { margin: 10px 0; }
+  .shipping__balance summary { cursor: pointer; font-size: 13px; line-height: 1.6; }
   dialog { width: min(600px, calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow: auto; padding: 24px; border: 1px solid #ccc; border-radius: 8px; color: #333; background: white; }
   dialog::backdrop { background: rgb(0 0 0 / 40%); }
   dialog form { margin: 0 !important; }

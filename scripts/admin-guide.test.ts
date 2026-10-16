@@ -1,12 +1,38 @@
 import 'dotenv/config';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { stat } from 'node:fs/promises';
+import { stat, readFile } from 'node:fs/promises';
 import crypto from 'node:crypto';
 import { guideGroups, guideRoutes, guideSections } from '../src/data/admin-guide';
 
+test('admin booking explains separate balance, insufficient funds and safe retry', async () => {
+  const component = await readFile('src/components/admin/OrderShipping.astro', 'utf8');
+  assert.match(component, /aria-label="Catatan saldo dan ongkir"/);
+  assert.match(component, /Top up tidak otomatis memesan kurir/);
+  assert.match(component, /creating\/review/);
+  assert.match(component, /Rp60\.000/);
+  assert.match(component, /Rp65\.000/);
+  const notes = guideSections.find(section => section.id === 'pesan-kurir')!.notes!.join(' ');
+  assert.match(notes, /order pelanggan tetap paid/);
+  assert.match(notes, /top up tidak otomatis membuat booking/);
+  assert.match(notes, /rekonsiliasi dahulu/);
+  assert.match(notes, /tidak otomatis menagih pelanggan lagi/);
+});
+
+test('tracking guide distinguishes admin sync from customer order status', () => {
+  const section = guideSections.find(section => section.id === 'lacak-pengiriman')!;
+  assert.ok(section);
+  const text = [section.intro, ...section.steps, ...section.notes!].join(' ');
+  assert.match(text, /Sinkronkan status Biteship/);
+  assert.match(text, /belum memiliki tombol lacak Biteship/);
+  assert.match(text, /tautan HTTPS/);
+  assert.match(text, /tidak otomatis muncul di CMS/);
+  assert.match(text, /Reference ID yang cocok/);
+  assert.ok(section.fields!.some(field => field.name === 'delivered (kurir)' && field.example.includes('Tidak otomatis')));
+});
+
 test('SOP has complete steps, unique anchors, all groups and existing screenshots', async () => {
-  assert.equal(guideSections.length, 39);
+  assert.equal(guideSections.length, 40);
   assert.equal(new Set(guideSections.map(section => section.id)).size, guideSections.length);
   for (const group of guideGroups) assert.ok(guideSections.some(section => section.group === group.id));
   const screenshots = guideSections.flatMap(section => section.image ? [section.image] : []);

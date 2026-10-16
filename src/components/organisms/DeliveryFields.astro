@@ -1,6 +1,7 @@
 ---
 import Icon from '../atoms/Icon.astro';
 import { shippingOrigin } from '../../data/shipping-origin';
+import { checkoutBranches } from '../../data/checkout-branches';
 interface Props { cart?: boolean }
 const { cart = false } = Astro.props;
 const prefix = cart ? 'cart-area' : 'product-area';
@@ -8,16 +9,40 @@ const prefix = cart ? 'cart-area' : 'product-area';
 
 <div class="buybox__delivery delivery-fields" data-delivery hidden={cart}>
   <span class="buybox__dtitle">Delivery Information</span>
+  {cart && import.meta.env.DEV && <>
+    <label class="buybox__field">
+      <span>Cabang pickup (preview lokal)</span>
+      <select data-pickup-branch>{checkoutBranches.map(branch => <option value={branch.id}>{branch.name}</option>)}</select>
+    </label>
+    <p data-branch-status role="status">{checkoutBranches[0].address}</p>
+  </>}
   <div class="buybox__modes" role="group" aria-label="Fulfilment method">
     <button type="button" class="buybox__mode is-active" data-mode="delivery" aria-pressed="true"><Icon name="truck-delivery" size={16} alt="" /> Delivery</button>
     <button type="button" class="buybox__mode" data-mode="pickup" aria-pressed="false"><Icon name="toko" size={16} alt="" /> Pickup</button>
   </div>
+  <label class="buybox__field" data-sendto-row>
+    <span>Full Delivery Address:</span>
+    <textarea data-sendto rows="3" autocomplete="street-address" placeholder="Street, building, house / unit number, and delivery instructions" required></textarea>
+  </label>
   <div class="buybox__row delivery-pin" data-city-row data-pin-picker data-origin-lat={shippingOrigin.latitude} data-origin-lng={shippingOrigin.longitude}>
     <span>Instant Delivery</span>
     <button type="button" class="cmp-btn-secondary" data-pin-open aria-expanded="false" aria-controls={`${prefix}-pin`}>Choose delivery pin</button>
     <span data-pin-result role="status" aria-live="polite"></span>
     <div id={`${prefix}-pin`} data-pin-panel hidden>
-      <button type="button" class="cmp-btn-secondary" data-pin-current>Use my location</button>
+      <div class="delivery-pin__search" data-address-container>
+        <label for={`${prefix}-address-search`}>Search street or place, city</label>
+        <div class="delivery-pin__search-row">
+          <input id={`${prefix}-address-search`} data-address-query type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls={`${prefix}-address-results`} maxlength="160" autocomplete="off" placeholder="e.g. Jalan Sudirman, Jakarta" />
+          <button type="button" class="cmp-btn-secondary delivery-pin__search-button" data-address-search aria-label="Search address" title="Search address"><Icon name="search" size={18} alt="" /></button>
+        </div>
+        <ul id={`${prefix}-address-results`} class="delivery-pin__results" data-address-results hidden role="listbox" aria-label="Address search results"></ul>
+      </div>
+      <div class="delivery-pin__location-row">
+        <button type="button" class="delivery-pin__current" data-pin-current><Icon name="location" size={16} alt="" /><span>Use my location</span></button>
+        <small><a href="https://github.com/komoot/photon" target="_blank" rel="noopener noreferrer">Photon</a> / <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a></small>
+      </div>
+      <p class="delivery-pin__location-status">Search text is sent to Photon. Do not include names, phone numbers or delivery notes.</p>
+      <p class="delivery-pin__location-status" data-address-status role="status" aria-live="polite"></p>
       <p class="delivery-pin__location-status" data-pin-location-status role="status" aria-live="polite"></p>
       <div class="delivery-pin__mapwrap">
         <div class="delivery-pin__map" data-pin-map aria-label="Delivery location map"></div>
@@ -33,8 +58,10 @@ const prefix = cart ? 'cart-area' : 'product-area';
         <button type="button" class="cmp-btn-primary" data-pin-confirm disabled>Use this pin</button>
       </div>
     </div>
-    <button type="button" class="cmp-btn-secondary" data-check-delivery>Check Instant Delivery</button>
-    <p class="buybox__area-status" data-rate-status role="status" aria-live="polite" hidden></p>
+    {cart && <>
+      <button type="button" class="cmp-btn-secondary" data-check-delivery>Check Instant Delivery</button>
+      <p class="buybox__area-status" data-rate-status role="status" aria-live="polite" hidden></p>
+    </>}
   </div>
   <div class="buybox__detail">
     <span class="buybox__dlabel">Detail Delivery:</span>
@@ -42,10 +69,6 @@ const prefix = cart ? 'cart-area' : 'product-area';
       <label class="buybox__dcell"><b>Receive on:</b><input type="date" data-date required /></label>
     </div>
   </div>
-  <label class="buybox__field" data-sendto-row>
-    <span>Full Delivery Address:</span>
-    <textarea data-sendto rows="3" autocomplete="street-address" placeholder="Street, building, house / unit number, and delivery instructions" required></textarea>
-  </label>
   <p class="buybox__note">*Note: If you order D-1 after 3 PM, your order would be processed on the next day after 2 PM</p>
   <div class="buybox__sender" data-form>
     <label class="buybox__field"><span>Sender Name:</span><input type="text" name="senderName" placeholder="Name" autocomplete="name" required /></label>
@@ -62,6 +85,20 @@ const prefix = cart ? 'cart-area' : 'product-area';
 <style>
   .delivery-pin [data-pin-panel] { min-width: 0; }
   .delivery-pin__location-status { font-size: 12px; color: #525252; margin: 6px 0; overflow-wrap: anywhere; }
+  .delivery-pin [data-address-query] { display: block; width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid var(--hair); border-radius: 4px; font: inherit; color: #525252; background: #fff; }
+  .delivery-pin__search { position: relative; margin: 10px 0 0; min-width: 0; }
+  .delivery-pin__search > label { display: block; margin-bottom: 6px; }
+  .delivery-pin__search-row { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 8px; }
+  .delivery-pin .delivery-pin__search-button { width: 44px; height: 44px; padding: 0; display: grid; place-items: center; border-radius: 4px; }
+  .delivery-pin__results { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 1001; list-style: none; padding: 4px; margin: 0; max-height: min(240px, 40vh); overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--hair); border-radius: 4px; background: #fff; box-shadow: 0 6px 18px #00000012; }
+  .delivery-pin__results :global(li) { margin: 0; }
+  .delivery-pin__results :global(button) { display: block; width: 100%; text-align: left; padding: 10px; border: 0; border-radius: 2px; background: #fff; color: #525252; font: inherit; line-height: 1.5; overflow-wrap: anywhere; cursor: pointer; }
+  .delivery-pin__results :global(button:hover), .delivery-pin__results :global(button[aria-selected="true"]) { background: #f2f4ef; }
+  .delivery-pin__location-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin: 4px 0; }
+  .delivery-pin .delivery-pin__current { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 4px 0; border: 0; background: transparent; color: #525252; font: inherit; cursor: pointer; }
+  .delivery-pin__current:hover span { text-decoration: underline; }
+  .delivery-pin__current:disabled { opacity: .5; cursor: wait; }
+  .delivery-pin__location-row small { font-size: 10px; color: #525252; }
   .delivery-pin__mapwrap { position: relative; margin: 8px 0 12px; }
   .delivery-pin__map { height: 280px; width: 100%; border: 1px solid var(--hair); border-radius: 4px; z-index: 0; }
   .delivery-pin__cross { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; pointer-events: none; font: 700 30px/1 sans-serif; color: #525252; text-shadow: 0 0 3px #fff; }

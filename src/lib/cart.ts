@@ -45,12 +45,3 @@ export const unitPrice = (slug: string): number => {
 export const lineTotal = (l: CartLine): number => unitPrice(l.slug) * l.qty;
 
 export const subtotal = (): number => getCart().reduce((n, l) => n + lineTotal(l), 0);
-
-/** Isi contoh saat kunjungan pertama (belum pernah ada key) supaya cart tidak kosong. */
-export function seedIfFirstVisit() {
-  if (localStorage.getItem('ania:cart') !== null) return;
-  saveCart([
-    { slug: 'a-handful-flower-box', qty: 2 },
-    { slug: 'blush-amethyst-orchestra', qty: 1 },
-  ]);
-}

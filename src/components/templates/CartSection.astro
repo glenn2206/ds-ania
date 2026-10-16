@@ -59,9 +59,10 @@ const WA_NUMBER = '6281211091885';
 
 <script>
   import {
-    getCart, setQty, removeItem, findProduct, unitPrice, seedIfFirstVisit, rupiah,
+    getCart, setQty, removeItem, findProduct, unitPrice, rupiah,
   } from '../../lib/cart';
   import { initDeliveryPin, type DeliveryDestination, type DeliveryPin } from '../../lib/delivery-pin';
+  import { checkoutBranches } from '../../data/checkout-branches';
 
   interface RateOption { courier: string; service: string; price: number; etd: string; courierCode: string; serviceCode: string }
   // ongkir & alamat lewat endpoint server (/api/shipping) — token Biteship tidak ke browser
@@ -78,8 +79,6 @@ const WA_NUMBER = '6281211091885';
 
   const root = document.querySelector<HTMLElement>('[data-cart]');
   if (root) {
-    seedIfFirstVisit();
-
     const $ = <T extends Element = HTMLElement>(s: string) => root.querySelector<T>(s)!;
     const itemsEl = $('[data-items]');
     const emptyEl = $('[data-empty]');
@@ -92,6 +91,8 @@ const WA_NUMBER = '6281211091885';
     const estNote = $('[data-estnote]');
     const checkDelivery = $<HTMLButtonElement>('[data-check-delivery]');
     const rateStatus = $('[data-rate-status]');
+    const branchSelect = root.querySelector<HTMLSelectElement>('[data-pickup-branch]');
+    const previewBranch = () => checkoutBranches.find(branch => branch.id === branchSelect?.value)?.preview === true;
     const dateInput = $<HTMLInputElement>('[data-date]');
     const sendToInput = $<HTMLTextAreaElement>('[data-sendto]');
     let mode = 'delivery';
@@ -101,11 +102,13 @@ const WA_NUMBER = '6281211091885';
     let priced = new Map<string, PricedItem>();
     let pricingRequest = 0;
     let pricingReady = false;
+    const unavailableLines = () => getCart().filter(line => !priced.has(line.slug));
+    const unavailableMessage = () => `Remove unavailable products from your cart and add them again from Shop: ${unavailableLines().map(line => findProduct(line.slug)?.name || line.slug).join(', ')}`;
     const currentProduct = (slug: string) => {
       const live = priced.get(slug);
       return live ? { ...live, price: live.unitPrice > 0 ? live.unitPrice : null } : findProduct(slug);
     };
-    const currentUnit = (slug: string) => priced.get(slug)?.unitPrice ?? unitPrice(slug);
+    const currentUnit = (slug: string) => priced.get(slug)?.unitPrice ?? (pricingReady ? 0 : unitPrice(slug));
     const currentSubtotal = () => getCart().reduce((sum, line) => sum + currentUnit(line.slug) * line.qty, 0);
 
     try {
@@ -148,14 +151,15 @@ const WA_NUMBER = '6281211091885';
       itemsEl.innerHTML = '';
       cart.forEach((l) => {
         const p = currentProduct(l.slug);
-        if (!p) return;
+        const unavailable = pricingReady && !priced.has(l.slug);
         const node = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
-        (node.querySelector('.cart__thumb') as HTMLElement).style.backgroundImage = `url(${p.image})`;
-        node.querySelector('.cart__name')!.textContent = p.name;
-        node.querySelector('.cart__variant')!.textContent = p.pill;
+        if (p?.image) (node.querySelector('.cart__thumb') as HTMLElement).style.backgroundImage = `url(${p.image})`;
+        node.querySelector('.cart__name')!.textContent = p?.name || l.slug;
+        node.querySelector('.cart__variant')!.textContent = unavailable ? 'Product unavailable. Remove and add again from Shop.' : p?.pill || '';
+        (node.querySelector('.cart__stepper') as HTMLElement).hidden = unavailable;
         node.querySelector('[data-qty]')!.textContent = String(l.qty);
         node.querySelector('.cart__price')!.textContent =
-          typeof p.price === 'number' ? rupiah(currentUnit(l.slug) * l.qty) : (p.priceNote ? 'By request' : '—');
+          unavailable ? '—' : typeof p?.price === 'number' ? rupiah(currentUnit(l.slug) * l.qty) : (p?.priceNote ? 'By request' : '—');
         node.querySelector('[data-dec]')!.addEventListener('click', () => setQty(l.slug, l.qty - 1));
         node.querySelector('[data-inc]')!.addEventListener('click', () => setQty(l.slug, l.qty + 1));
         node.querySelector('[data-remove]')!.addEventListener('click', () => removeItem(l.slug));
@@ -188,12 +192,17 @@ const WA_NUMBER = '6281211091885';
     const loadRates = async () => {
       if (mode === 'pickup') return;
       rateStatus.hidden = false;
+      if (previewBranch()) { rateStatus.textContent = 'Cabang demo belum memiliki alamat/pin toko asli. Ongkir dan booking dinonaktifkan.'; return; }
       if (!dest.destination || !sendToInput.value.trim()) { rateStatus.textContent = 'Choose a delivery pin and enter the full address first.'; return; }
       const request = ++rateRequest;
       checkDelivery.disabled = true;
       rateStatus.textContent = 'Checking Instant delivery...';
       rates = []; renderTotals();
       try {
+      await refreshPrices();
+      if (request !== rateRequest || mode === 'pickup') return;
+      if (!pricingReady) { rateStatus.textContent = 'Product availability could not be checked. Please refresh and try again.'; return; }
+      if (unavailableLines().length) { rateStatus.textContent = unavailableMessage(); return; }
       const cart = getCart();
       const items = cart.map((l) => ({ name: l.slug, quantity: l.qty }));
       courierSel.innerHTML = '<option>Loading…</option>';
@@ -211,7 +220,7 @@ const WA_NUMBER = '6281211091885';
         if (request !== rateRequest || mode === 'pickup') return;
         rates = []; courierRow.hidden = true; renderTotals();
         rateStatus.textContent = (error as Error).message;
-      } finally { checkDelivery.disabled = false; }
+      } finally { checkDelivery.disabled = previewBranch(); }
     };
     checkDelivery.addEventListener('click', loadRates);
 
@@ -291,7 +300,11 @@ const WA_NUMBER = '6281211091885';
         priced = new Map(data.items.map((item: PricedItem) => [item.slug, item]));
         pricingReady = true;
         renderItems(); renderTotals();
-        checkoutBtn.disabled = false;
+        const missing = unavailableLines().length > 0;
+        const note = $('[data-checkoutnote]');
+        note.hidden = !missing;
+        note.textContent = missing ? unavailableMessage() : '';
+        checkoutBtn.disabled = missing || previewBranch();
       } catch (error) {
         if (requestId !== pricingRequest) return;
         const note = $('[data-checkoutnote]');
@@ -300,8 +313,10 @@ const WA_NUMBER = '6281211091885';
     };
     checkoutBtn.addEventListener('click', async () => {
       if (!pricingReady) return;
+      if (previewBranch()) return;
       const cart = getCart();
       if (!cart.length) return;
+      if (unavailableLines().length) return;
       const note = $('[data-checkoutnote]');
       const name = (root.querySelector('[name="senderName"]') as HTMLInputElement).value.trim();
       const wa = (root.querySelector('[name="senderWa"]') as HTMLInputElement).value.trim();
@@ -370,6 +385,17 @@ const WA_NUMBER = '6281211091885';
       refreshPrices();
     });
 
+    branchSelect?.addEventListener('change', () => {
+      const branch = checkoutBranches.find(branch => branch.id === branchSelect.value)!;
+      rateRequest++; rates = []; courierRow.hidden = true; rateStatus.hidden = true;
+      const picker = $('[data-pin-picker]');
+      picker.dataset.originLat = String(branch.latitude); picker.dataset.originLng = String(branch.longitude);
+      $('[data-branch-status]').textContent = branch.address + (branch.preview ? ' Ongkir dan checkout dinonaktifkan untuk cabang demo.' : '');
+      checkDelivery.disabled = branch.preview;
+      checkoutBtn.disabled = !pricingReady || unavailableLines().length > 0 || branch.preview;
+      renderTotals();
+    });
+
     renderItems();
     renderMode();
     refreshPrices();
@@ -377,6 +403,7 @@ const WA_NUMBER = '6281211091885';
 </script>
 
 <style>
+  .cart :global([hidden]) { display: none !important; }
   .cart { width: 100%; padding: var(--sec-y) var(--gutter); }
   .cart__grid {
     display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(320px, 1fr); gap: 40px;

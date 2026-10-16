@@ -16,8 +16,8 @@ const stages = [
   {
     key: 'alamat', title: 'Pelanggan mengisi alamat dan kontak', route: '/product/{slug}', file: '03-customer-delivery.jpg',
     intro: 'Pin tidak menggantikan alamat tertulis. Isi alamat lengkap agar kurir mengetahui gedung, unit, rumah, serta petunjuk tujuan yang benar.',
-    steps: ['Isi Receive on dan Full Delivery Address dengan tanggal serta alamat lengkap.', 'Isi Sender Name dan Sender WhatsApp yang aktif. Sender Email bersifat opsional.', 'Klik Check Instant Delivery, periksa ongkir, lalu klik Check Out Now untuk masuk ke keranjang.'],
-    result: 'Data pengiriman terisi dan biaya Instant terlihat.',
+    steps: ['Isi Full Delivery Address terlebih dahulu, lalu pilih dan konfirmasi pin tujuan serta tanggal Receive on.', 'Isi Sender Name dan Sender WhatsApp yang aktif. Sender Email bersifat opsional.', 'Klik Check Out Now untuk masuk ke keranjang. Ongkir tidak dihitung di halaman produk; pilih kurir dan cek tarif pada checkout akhir.'],
+    result: 'Data pengiriman terbawa ke keranjang; ongkir diperiksa di checkout akhir.',
   },
   {
     key: 'checkout', title: 'Pelanggan memeriksa keranjang dan checkout', route: '/cart', file: '04-customer-cart.jpg',
@@ -96,6 +96,6 @@ const stages = [
 export const orderFlowGuide: GuideSection[] = stages.map((stage, index) => ({
   id: `alur-${stage.key}`, group: 'alur-order', title: stage.title,
   route: stage.route, intro: stage.intro, steps: stage.steps, result: stage.result,
-  image: { file: stage.file, alt: stage.title, caption: 'SIMULASI LOKAL - data fiktif. Bukan bukti pembayaran atau pengiriman live. ' + stage.title + '.' },
+  image: { file: stage.file, alt: stage.title, caption: 'SIMULASI LOKAL - data fiktif. Bukan bukti pembayaran atau pengiriman live. ' + stage.title + '. Foto direkam sebelum pembaruan urutan alamat/pin; ikuti langkah teks terbaru: alamat dahulu, lalu pin, ongkir hanya di keranjang.' },
   notes: index === 0 ? ['Seluruh 15 foto memakai order contoh yang sama. Tidak ada uang dipindahkan, saldo dipotong, atau kurir nyata dipesan.', 'Latihan memverifikasi alur internal, bukan key live, aktivasi API, saldo, tarif aktual, ketersediaan driver, maupun bukti serah-terima nyata.'] : undefined,
 }));
