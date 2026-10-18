@@ -4,19 +4,24 @@
  *      { promo: { enabled: boolean, text: string, cta: string, href: string } }
  */
 import { withAdmin, jsonResponse } from '../../../lib/admin';
-import { getPromo, savePromo, getMedia, saveMedia, readMedia } from '../../../lib/settings';
+import { getPromo, savePromo, getMedia, saveMedia, readMedia, getCheckoutEnabled, saveCheckoutEnabled } from '../../../lib/settings';
 
 export const prerender = false;
 
 export const GET = withAdmin(async () => {
-  return jsonResponse({ promo: await getPromo(), media: await getMedia() });
+  return jsonResponse({ promo: await getPromo(), media: await getMedia(), checkout: { enabled: await getCheckoutEnabled() } });
 });
 
 export const PUT = withAdmin(async ({ request }) => {
-  const body = (await request.json().catch(() => ({}))) as { promo?: Record<string, unknown>; media?: Record<string, unknown> };
+  const body = (await request.json().catch(() => ({}))) as { promo?: Record<string, unknown>; media?: Record<string, unknown>; checkout?: { enabled?: unknown } };
+  if (body.checkout) {
+    if (typeof body.checkout.enabled !== 'boolean') return jsonResponse({ error: 'Status checkout tidak valid.' }, 400);
+    await saveCheckoutEnabled(body.checkout.enabled);
+    return jsonResponse({ ok: true });
+  }
   if (body.media) {
     let media;
-    try { media = readMedia(body.media); }
+    try { media = readMedia({ ...await getMedia(), ...body.media }); }
     catch (err) { return jsonResponse({ error: (err as Error).message }, 400); }
     await saveMedia(media);
     return jsonResponse({ ok: true, media });

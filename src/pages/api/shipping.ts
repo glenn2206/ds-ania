@@ -9,6 +9,7 @@ import type { APIRoute } from 'astro';
 import { searchAreas, getRates, coordinates, ShippingError } from '../../lib/biteship';
 import { allowShippingRequest } from '../../lib/shipping-cache';
 import { getCatalog } from '../../lib/products';
+import { getCheckoutEnabled } from '../../lib/settings';
 
 export const prerender = false;
 
@@ -25,6 +26,7 @@ export const GET: APIRoute = async ({ url, clientAddress }) => {
 };
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
+  if (!await getCheckoutEnabled()) return json({ error: 'Checkout sedang dinonaktifkan. Hubungi ANIA melalui WhatsApp.' }, 503);
   if (!allowShippingRequest(`rates:${clientAddress}`, 12)) return json({ error: 'Too many delivery checks. Please wait a minute.' }, 429);
   const body = await request.json().catch(() => ({}));
   if (!body || typeof body !== 'object') return json({ error: 'Invalid request.' }, 400);

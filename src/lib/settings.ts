@@ -72,6 +72,7 @@ export async function savePromo(p: PromoSettings): Promise<void> {
 export interface MediaSettings {
   heroSlides: string[];
   aboutVideo: string;
+  occasionCover: string;
 }
 
 export function safeMediaUrl(value: string): boolean {
@@ -85,11 +86,14 @@ export function readMedia(input: Record<string, unknown>): MediaSettings {
     throw new Error('Carousel membutuhkan 1 sampai 10 URL gambar.');
   const slides = input.heroSlides.map((url) => String(url).trim());
   const aboutVideo = String(input.aboutVideo ?? '').trim();
+  const occasionCover = String(input.occasionCover ?? '/assets/scene-holding-yellow-bouquet.jpg').trim();
+  if (!safeMediaUrl(occasionCover) || !/\.(jpg|jpeg|png|webp)(?:[?#]|$)/i.test(occasionCover))
+    throw new Error('Cover Occasion harus berupa foto JPG, PNG, atau WebP.');
   if (slides.some((url) => !safeMediaUrl(url)) || (aboutVideo && !safeMediaUrl(aboutVideo)))
     throw new Error('Gunakan path /assets/... atau URL HTTPS lengkap.');
   if (aboutVideo && !/\.(mp4|webm)(?:[?#]|$)/i.test(aboutVideo))
     throw new Error('Video harus link langsung file MP4 atau WebM.');
-  return { heroSlides: slides, aboutVideo };
+  return { heroSlides: slides, aboutVideo, occasionCover };
 }
 
 export async function writeSetting(t: Querier, key: string, value: string) {
@@ -98,7 +102,7 @@ export async function writeSetting(t: Querier, key: string, value: string) {
 }
 
 export async function getMedia(): Promise<MediaSettings> {
-  const defaults = { heroSlides: [...heroSlides], aboutVideo: '' };
+  const defaults = { heroSlides: [...heroSlides], aboutVideo: '', occasionCover: '/assets/scene-holding-yellow-bouquet.jpg' };
   if (!isConfigured()) return defaults;
   try {
     const rows = await q('SELECT svalue FROM site_settings WHERE skey = ?', ['site_media']);
@@ -108,4 +112,15 @@ export async function getMedia(): Promise<MediaSettings> {
 
 export async function saveMedia(media: MediaSettings) {
   await tx((t) => writeSetting(t, 'site_media', JSON.stringify(media)));
+}
+
+export async function getCheckoutEnabled(): Promise<boolean> {
+  if (!isConfigured()) return false;
+  try {
+    const rows = await q('SELECT svalue FROM site_settings WHERE skey=?', ['checkout_enabled']);
+    return rows.length > 0 && rows[0].svalue === '1';
+  } catch { return false; }
+}
+export async function saveCheckoutEnabled(enabled: boolean) {
+  await tx(t => writeSetting(t, 'checkout_enabled', enabled ? '1' : '0'));
 }

@@ -1,0 +1,52 @@
+---
+import { q, one } from '../../lib/db';
+import { emailConfigured } from '../../lib/order-email';
+import { refundsEnabled } from '../../lib/order-refund';
+interface Props { order: Record<string, any> }
+const { order } = Astro.props;
+const emails = await q('SELECT event, recipient_kind, state, sent_at, updated_at FROM order_emails WHERE order_id=? ORDER BY id', [order.id]);
+const refund = await one('SELECT * FROM order_refunds WHERE order_id=?', [order.id]);
+---
+<section class="card" data-order-followup data-id={order.id}>
+  <h2>Email konfirmasi</h2>
+  <p>SMTP: {emailConfigured() ? 'aktif' : 'belum aktif / konfigurasi belum lengkap'}</p>
+  <p class="hint">Email customer hanya tersedia jika email diisi saat checkout. Sent berarti diterima server SMTP, bukan jaminan masuk inbox. Review berarti hasil tidak pasti; periksa inbox/dashboard SMTP dahulu sebelum kirim ulang agar tidak duplikat.</p>
+  <table class="admin-table"><thead><tr><th>Peristiwa</th><th>Penerima</th><th>Status</th></tr></thead><tbody>
+    {emails.map(row => <tr><td>{row.event}</td><td>{row.recipient_kind === 'shop' ? 'ANIA' : 'Customer'}</td><td>{row.state}</td></tr>)}
+  </tbody></table>
+  <button type="button" class="btn" data-email-send disabled={!emailConfigured() || !emails.some(row => ['pending', 'review'].includes(row.state) || (row.state === 'sending' && Date.now() - new Date(row.updated_at).getTime() > 300_000))}>Kirim email tertunda / ulangi setelah diperiksa</button>
+  <p role="status" data-email-message></p>
+  <h2 id="refund">Refund Xendit</h2>
+  <p>Refund API: {refundsEnabled() ? 'aktif' : 'belum diaktifkan'}</p>
+  <p class="hint">Refund penuh termasuk ongkir: Rp {Number(order.total).toLocaleString('id-ID')}. Tidak otomatis membatalkan kurir. Metode pembayaran harus mendukung refund dan key memerlukan izin yang sesuai. Permintaan pending/review belum berarti dana kembali; sinkronkan sampai berhasil. Bila hasil tidak pasti, periksa dashboard berdasarkan reference ID dan jangan buat refund kedua.</p>
+  {refund ? <p>Status: <b>{refund.state}</b><br />Reference: {refund.reference_id}<br />ID Xendit: {refund.refund_id || 'Belum tercatat, periksa dashboard Xendit.'}</p> : <>
+    <label class="field">Ketik kode order untuk menyetujui refund penuh<input data-refund-confirm autocomplete="off" placeholder={order.code} /></label>
+    <button type="button" class="btn btn--danger" data-refund-create disabled={!refundsEnabled() || !['paid', 'fulfilled', 'refund_requested'].includes(order.status)}>Proses refund penuh Xendit</button>
+  </>}
+  {refund?.refund_id && <button type="button" class="btn" data-refund-sync disabled={!refundsEnabled()}>Sinkronkan status refund</button>}
+  <p role="status" data-refund-message></p>
+</section>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-order-followup]').forEach(root => {
+    const run = async (kind: 'emails' | 'refund', body: unknown, button: HTMLButtonElement) => {
+      button.disabled = true;
+      const message = root.querySelector<HTMLElement>(kind === 'emails' ? '[data-email-message]' : '[data-refund-message]')!;
+      try {
+        const response = await fetch(`/api/admin/orders/${root.dataset.id}/${kind}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Gagal.');
+        window.location.reload();
+      } catch (error) { message.textContent = error instanceof Error ? error.message : 'Periksa status sebelum mencoba lagi.'; }
+      finally { button.disabled = false; }
+    };
+    root.querySelector<HTMLButtonElement>('[data-email-send]')?.addEventListener('click', event => {
+      if (window.confirm('Sudah memeriksa inbox/dashboard SMTP? Email review mungkin sudah diterima. Lanjut kirim tertunda/ulangi?'))
+        void run('emails', { confirm: true }, event.currentTarget as HTMLButtonElement);
+    });
+    root.querySelector<HTMLButtonElement>('[data-refund-create]')?.addEventListener('click', event => {
+      if (window.confirm('Ini mengirim refund uang nyata melalui Xendit sebesar total order termasuk ongkir. Kurir tidak dibatalkan otomatis. Lanjutkan?'))
+        void run('refund', { action: 'create', confirmation: root.querySelector<HTMLInputElement>('[data-refund-confirm]')!.value.trim() }, event.currentTarget as HTMLButtonElement);
+    });
+    root.querySelector<HTMLButtonElement>('[data-refund-sync]')?.addEventListener('click', event => void run('refund', { action: 'sync' }, event.currentTarget as HTMLButtonElement));
+  });
+</script>

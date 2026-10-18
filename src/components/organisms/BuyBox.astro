@@ -7,6 +7,8 @@ import Pill from '../atoms/Pill.astro';
 import Swatch from '../atoms/Swatch.astro';
 import DeliveryFields from './DeliveryFields.astro';
 import type { CatalogItem } from '../../data/catalog';
+import { getCheckoutEnabled } from '../../lib/settings';
+const checkoutEnabled = await getCheckoutEnabled();
 
 interface Props {
   item: CatalogItem;
@@ -34,7 +36,7 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
   ) : (
     <>
       <button class="cmp-btn-secondary buybox__add" type="button" data-add>Add to Cart</button>
-      <button class="cmp-btn-primary buybox__checkout" type="button" data-checkout>
+      <button class="cmp-btn-primary buybox__checkout" type="button" data-checkout disabled={!checkoutEnabled}>
         Check Out Now — <span data-cotot>{priceLabel}</span>
       </button>
     </>

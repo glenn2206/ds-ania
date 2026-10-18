@@ -20,6 +20,8 @@ import { getRates, coordinates, ShippingError } from '../../lib/biteship';
 import { env } from '../../lib/env';
 import * as xendit from '../../lib/xendit';
 import { saveDelivery } from '../../lib/order-shipping';
+import { validEmail, queueOrderEmails, scheduleOrderEmails } from '../../lib/order-email';
+import { getCheckoutEnabled } from '../../lib/settings';
 
 export const prerender = false;
 
@@ -29,6 +31,7 @@ const json = (d: unknown, s = 200) =>
 const genCode = () => 'ANIA-' + crypto.randomBytes(4).toString('hex').toUpperCase().slice(0, 6);
 
 export const POST: APIRoute = async ({ request }) => {
+  if (!await getCheckoutEnabled()) return json({ error: 'Checkout sedang dinonaktifkan. Hubungi ANIA melalui WhatsApp.' }, 503);
   const body = await request.json().catch(() => null);
   if (!body) return json({ error: 'invalid json' }, 400);
   if (!['delivery', 'pickup'].includes(body.shipping?.mode)) return json({ error: 'Choose delivery or pickup.' }, 400);
@@ -41,6 +44,7 @@ export const POST: APIRoute = async ({ request }) => {
   const name = String(body.customer?.name || '').trim();
   const phone = String(body.customer?.phone || '').trim();
   const email = String(body.customer?.email || '').trim() || null;
+  if (email && !validEmail(email)) return json({ error: 'Email tidak valid.' }, 400);
   if (!name || !phone) return json({ error: 'Nama & WhatsApp wajib.' }, 400);
   if (body.shipping?.mode === 'delivery' && !String(body.shipping.address || '').trim())
     return json({ error: 'Alamat lengkap penerima wajib.' }, 400);
@@ -115,12 +119,13 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
     if (sh.mode === 'delivery') await saveDelivery(t, insertId as number, code, sh);
+    await queueOrderEmails(t, insertId as number, 'placed', email);
     return insertId as number;
   });
 
   // invoice Xendit (opsional)
   let invoiceUrl: string | null = null;
-  if (xendit.isConfigured()) {
+  if (xendit.isConfigured() && await getCheckoutEnabled()) {
     const siteUrl = env('PUBLIC_SITE_URL', new URL(request.url).origin).replace(/\/$/, '');
     try {
       const inv = await xendit.createInvoice({
@@ -148,5 +153,6 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
+  scheduleOrderEmails(orderId);
   return json({ code, invoiceUrl, total });
 };

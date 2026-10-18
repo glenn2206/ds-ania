@@ -32,7 +32,7 @@ test('tracking guide distinguishes admin sync from customer order status', () =>
 });
 
 test('SOP has complete steps, unique anchors, all groups and existing screenshots', async () => {
-  assert.equal(guideSections.length, 40);
+  assert.equal(guideSections.length, 44);
   assert.equal(new Set(guideSections.map(section => section.id)).size, guideSections.length);
   for (const group of guideGroups) assert.ok(guideSections.some(section => section.group === group.id));
   const screenshots = guideSections.flatMap(section => section.image ? [section.image] : []);
@@ -52,7 +52,7 @@ test('SOP has complete steps, unique anchors, all groups and existing screenshot
 });
 
 test('SOP route and download require login and include all sections and images', async () => {
-  const base = 'http://127.0.0.1:4331';
+  const base = process.env.UAT_BASE_URL || 'http://127.0.0.1:4331';
   for (const pathname of ['/admin/panduan', '/admin/panduan/unduh']) {
     const unauthenticated = await fetch(base + pathname, { redirect: 'manual' });
     assert.equal(unauthenticated.status, 302);

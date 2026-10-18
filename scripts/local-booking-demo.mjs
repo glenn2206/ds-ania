@@ -24,7 +24,11 @@ let cleaned = false;
 async function cleanup() {
   if (cleaned) return;
   cleaned = true;
-  for (const id of fixtureIds) await db.query('DELETE FROM orders WHERE id=$1', [id]);
+  for (const id of fixtureIds) {
+    await db.query('DELETE FROM order_emails WHERE order_id=$1', [id]);
+    await db.query('DELETE FROM order_refunds WHERE order_id=$1', [id]);
+    await db.query('DELETE FROM orders WHERE id=$1', [id]);
+  }
   if (customerProductId) await db.query('DELETE FROM products WHERE id=$1', [customerProductId]);
   if (productId) await db.query('DELETE FROM products WHERE id=$1', [productId]);
   if (paymentPortal) await paymentPortal.close();
@@ -41,6 +45,7 @@ await new Promise((resolve, reject) => {
 await db.connect();
 try {
   await db.query(await readFile(new URL('../db/shipping.pg.sql', import.meta.url), 'utf8'));
+  await db.query(await readFile(new URL('../db/mom.pg.sql', import.meta.url), 'utf8'));
   const suffix = crypto.randomBytes(4).toString('hex').toUpperCase();
   productId = (await db.query("INSERT INTO products(slug,name,status,price,stock) VALUES($1,'LOCAL MOCK bouquet - not for sale','draft',100000,10) RETURNING id", ['local-mock-' + suffix.toLowerCase()])).rows[0].id;
   const source = (await db.query("SELECT * FROM products WHERE slug='a-handful-flower-box' LIMIT 1")).rows[0];
@@ -59,6 +64,7 @@ try {
   const callbackToken = crypto.randomBytes(32).toString('hex');
   paymentPortal = await localPaymentPortal({ port: port + 1, appBase: base, db, productId: customerProductId, token: callbackToken, onOrder: id => fixtureIds.push(id) });
   const childEnv = { ...process.env, ANIA_LOCAL_BOOKING_DEMO: '1', NODE_ENV: 'development',
+    ORDER_EMAIL_ENABLED: 'false', XENDIT_REFUNDS_ENABLED: 'false',
     PUBLIC_SITE_URL: base, BITESHIP_BOOKING_ENABLED: 'true', BITESHIP_TOKEN: 'biteship_test.local-demo-no-network',
     BITESHIP_ORIGIN_PHONE: '088888888888', XENDIT_SECRET_KEY: 'local-demo-payments-disabled', XENDIT_WEBHOOK_TOKEN: callbackToken,
     LOCAL_PAYMENT_PORTAL: paymentPortal.origin, LOCAL_PAYMENT_TOKEN: callbackToken,

@@ -27,7 +27,9 @@ test('discount applies once, preserves original price and marks sale cards', () 
 
 test('media validates slide count, URL protocols and direct video files', () => {
   const input = { heroSlides: ['/assets/test.jpg', 'https://example.com/photo.jpg'], aboutVideo: 'https://example.com/video.mp4' };
-  assert.deepEqual(readMedia(input), input);
+  assert.deepEqual(readMedia(input), { ...input, occasionCover: '/assets/scene-holding-yellow-bouquet.jpg' });
+  assert.equal(readMedia({ ...input, occasionCover: '/uploads/cover.jpg' }).occasionCover, '/uploads/cover.jpg');
+  assert.throws(() => readMedia({ ...input, occasionCover: 'javascript:alert(1)' }));
   for (const url of ['javascript:alert(1)', '//evil.example/a.jpg', '/\\evil/a.jpg', 'http://example.com/a.jpg'])
     assert.equal(safeMediaUrl(url), false);
   assert.throws(() => readMedia({ heroSlides: [] }));

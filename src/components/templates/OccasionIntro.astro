@@ -5,10 +5,12 @@
  */
 import Button from '../atoms/Button.astro';
 import { intro } from '../../data/occasions';
+import { getMedia } from '../../lib/settings';
+const media = await getMedia();
 ---
 
 <section class="ointro">
-  <div class="ointro__media" style={`background-image:url(${intro.image})`}></div>
+  <div class="ointro__media"><img src={media.occasionCover} alt="ANIA flower bouquet for special occasions" /></div>
   <div class="ointro__body">
     <span class="ointro__eyebrow">{intro.eyebrow}</span>
     <h1 class="type-h1 ointro__title">{intro.title}</h1>
@@ -34,6 +36,7 @@ import { intro } from '../../data/occasions';
     background: var(--img-placeholder) center/cover no-repeat;   /* placeholder bg gambar — distandarkan ke var(--img-placeholder) */
     box-shadow: 0 24px 60px -30px rgba(60, 50, 20, 0.4);
   }
+  .ointro__media img { display: block; width: 100%; height: 100%; aspect-ratio: 530 / 580; object-fit: cover; border-radius: inherit; }
   .ointro__body {
     display: flex;
     flex-direction: column;

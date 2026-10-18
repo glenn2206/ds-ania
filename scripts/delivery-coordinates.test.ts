@@ -16,8 +16,8 @@ test('mock branches stay local and cannot quote or checkout', async () => {
   const cart = await readFile('src/components/templates/CartSection.astro', 'utf8');
   assert.match(fields, /cart && import\.meta\.env\.DEV/);
   assert.match(cart, /if \(previewBranch\(\)\) return;/);
-  assert.match(cart, /checkoutBtn\.disabled = missing \|\| previewBranch\(\)/);
-  assert.match(cart, /checkDelivery\.disabled = previewBranch\(\)/);
+  assert.match(cart, /checkoutBtn\.disabled = !checkoutEnabled \|\| missing \|\| previewBranch\(\)/);
+  assert.match(cart, /checkDelivery\.disabled = !checkoutEnabled \|\| previewBranch\(\)/);
 });
 
 test('invalid or incomplete coordinates are rejected', () => {

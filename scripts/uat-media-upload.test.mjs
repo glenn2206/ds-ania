@@ -36,6 +36,10 @@ try {
   const videoResponse = await upload('video', [new File([video], 'transport-test.mp4', { type: 'video/mp4' })]);
   assert.equal(videoResponse.status, 200);
   uploaded.push(...(await videoResponse.json()).urls);
+  const coverResponse = await upload('occasion', [new File([buffer], 'occasion.png', { type: 'image/png' })]);
+  assert.equal(coverResponse.status, 200);
+  uploaded.push(...(await coverResponse.json()).urls);
+  assert.equal((await upload('occasion', [new File([buffer], 'a.png'), new File([buffer], 'b.png')])).status, 400);
   const videoUrl = base + uploaded[1];
   const head = await fetch(videoUrl, { method: 'HEAD' });
   assert.equal(head.status, 200);
@@ -47,14 +51,15 @@ try {
   assert.equal(range.headers.get('content-range'), `bytes 4-7/${video.length}`);
   const suffix = await fetch(videoUrl, { headers: { Range: 'bytes=-10' } });
   assert.equal(suffix.status, 206);
-  assert.equal((await suffix.arrayBuffer()).byteLength, 10);
+  assert.equal((await suffix.arrayBuffer()).byteLength, 10, `Suffix range: ${suffix.headers.get('content-range')}; length: ${suffix.headers.get('content-length')}`);
   for (const value of ['bytes=999999-', 'bytes=-0', 'bytes=8-2', 'bytes=1-2,4-5']) {
     assert.equal((await fetch(videoUrl, { headers: { Range: value } })).status, 416);
   }
-  const saved = await fetch(base + '/api/admin/settings', { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ media: { heroSlides: [uploaded[0]], aboutVideo: uploaded[1] } }) });
+  const saved = await fetch(base + '/api/admin/settings', { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ media: { heroSlides: [uploaded[0]], aboutVideo: uploaded[1], occasionCover: uploaded[2] } }) });
   assert.equal(saved.status, 200);
   assert.ok((await (await fetch(base + '/')).text()).includes(uploaded[0]));
   assert.ok((await (await fetch(base + '/about')).text()).includes(uploaded[1]));
+  assert.ok((await (await fetch(base + '/occasions')).text()).includes(uploaded[2]));
   console.log('PASS: upload auth/validation, image conversion, save/render, video HEAD and byte ranges.');
 } finally {
   const restored = await fetch(base + '/api/admin/settings', { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ media: original }) });

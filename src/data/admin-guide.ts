@@ -1,6 +1,6 @@
 import { orderFlowGuide } from './order-flow-guide';
 
-export const guideUpdated = '17 Oktober 2026';
+export const guideUpdated = '19 Oktober 2026';
 
 export const guideGroups = [
   { id: 'akses', title: 'Mulai di sini', description: 'Login, menu, dan aturan penyimpanan.' },
@@ -37,6 +37,29 @@ export interface GuideSection {
 }
 
 export const guideSections: GuideSection[] = [
+  {
+    id: 'kesiapan-checkout', group: 'pengaturan', title: 'Aktifkan / nonaktifkan checkout', route: '/admin/settings',
+    intro: 'Toggle kesiapan checkout menghentikan transaksi baru, bukan membatalkan order lama.',
+    notes: ['Default checkout nonaktif bila setting belum ada atau database tidak tersedia. Pengelola harus mengaktifkan secara eksplisit. Saat nonaktif, tombol checkout produk/keranjang dan tautan bayar di halaman order disembunyikan/dinonaktifkan.', 'Toggle tidak menonaktifkan invoice Xendit lama yang URL-nya sudah dibagikan. Periksa dan kedaluwarsakan invoice pending melalui dashboard Xendit bila ingin menutup pembayaran lama juga.'],
+    steps: ['Buka Pengaturan situs, bagian Kesiapan checkout.', 'Centang Checkout aktif jika toko siap menerima pesanan. Hapus centang saat belum siap, lalu klik Simpan kesiapan checkout.', 'Saat nonaktif, server menolak checkout baru dan cek ongkir. Invoice yang sudah dibuat, webhook pembayaran, dan pengelolaan order lama tetap berjalan.', 'Cakupan yang direncanakan Jabodetabek dan Bali. Origin operasional masih Tangerang. Bali belum siap sampai alamat/pin/kontak cabang dan alur kurir diverifikasi; pilihan demo tidak boleh dipakai untuk booking nyata.'],
+  },
+  {
+    id: 'cover-occasion', group: 'pengaturan', title: 'Ganti cover Occasion', route: '/admin/settings',
+    intro: 'Cover halaman For Occasions sekarang terhubung langsung ke media CMS.',
+    steps: ['Buka Pengaturan, bagian media, lalu Cover Occasion.', 'Klik Ganti cover Occasion dan pilih satu JPG/PNG/WebP maksimal 12 MB.', 'Tunggu upload selesai, lalu klik Simpan media.', 'Buka /occasions dan refresh. Cover mengikuti tanpa build/deploy ulang. Mengubah foto produk tidak mengganti cover halaman ini.'],
+  },
+  {
+    id: 'followup-order', group: 'order', title: 'WhatsApp, Cancelled, dan refund', route: '/admin/orders',
+    intro: 'Gunakan menu Aksi pada tabel order untuk follow up dan membuka kontrol order yang sesuai.',
+    steps: ['Klik Aksi lalu WhatsApp pelanggan. Chat terbuka dengan kode order; periksa pesan dan kirim sendiri. Nomor tidak valid tidak diberi link.', 'Ubah status / Cancelled membuka detail order. Cancelled hanya mengubah catatan; tidak membatalkan invoice atau kurir otomatis.', 'Refund Xendit membuka bagian refund pada detail. Hanya untuk order lunas dengan invoice Xendit; mode awal API masih nonaktif.', 'Setelah pengelola memverifikasi izin key/channel dan mengaktifkan XENDIT_REFUNDS_ENABLED, ketik kode order lalu klik Proses refund penuh Xendit. Nilai mencakup total order dan ongkir. Konfirmasi ini benar-benar mengirim permintaan uang kembali.', 'Booking kurir creating/review/booked harus direkonsiliasi dahulu. Tidak ada pembatalan kurir otomatis.', 'Pending berarti menunggu hasil. Klik Sinkronkan status refund. Refunded hanya ditandai setelah Xendit mengembalikan SUCCEEDED. Failed belum berarti dana kembali.', 'Review atau tidak ada ID: periksa dashboard Xendit menggunakan reference ID. Sistem menolak proses kedua dan tidak mencoba ulang otomatis untuk mencegah refund ganda. Hubungi pengelola bila perlu rekonsiliasi.'],
+    notes: ['Versi awal mendukung refund penuh satu kali, bukan sebagian. Dukungan refund berbeda per metode pembayaran; penolakan/hasil tidak pasti harus ditangani lewat dashboard/support Xendit.', 'Jangan mengubah status refund secara manual menjadi paid/fulfilled. Sinkronkan hasil provider.', 'Refund tidak mengembalikan stok otomatis. Rekonsiliasi stok secara manual sesuai kondisi rangkaian.'],
+  },
+  {
+    id: 'email-konfirmasi', group: 'order', title: 'Email konfirmasi order dan pembayaran', route: '/admin/orders/{id}',
+    intro: 'Aplikasi menyiapkan email terpisah saat order dibuat dan saat webhook mengonfirmasi lunas.',
+    notes: ['Email dicoba di latar belakang agar tidak memperlambat checkout/webhook. Setelah restart, pending perlu diproses melalui tombol admin. Untuk sending yang macet lebih dari 5 menit, periksa inbox/dashboard SMTP sebelum mencoba ulang; email mungkin sudah terkirim.'],
+    steps: ['Pelanggan yang mengisi email mendapat konfirmasi; salinan ANIA memakai ORDER_EMAIL_TO (team@myania.com). Bila email customer kosong, hanya notifikasi ANIA yang disiapkan.', 'Email order dibuat bukan bukti pembayaran. Email pembayaran hanya disiapkan setelah webhook Xendit menandai paid.', 'Pada detail order lihat Email konfirmasi: pending menunggu, sending sedang diproses, sent diterima server SMTP, review perlu pemeriksaan manual. Sent bukan jaminan masuk inbox; cek spam dan pengaturan domain.', 'Pengelola mengisi SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM, ORDER_EMAIL_TO lalu memverifikasi SPF/DKIM/mailbox. Aktifkan ORDER_EMAIL_ENABLED=true hanya setelah siap. Password disimpan server-side, bukan di panduan/CMS browser.', 'Bila SMTP belum aktif, email tetap pending. Klik Kirim email tertunda setelah konfigurasi siap. Untuk review, periksa inbox/dashboard SMTP dahulu karena email mungkin sudah terkirim walaupun respons timeout.', 'Order lama sebelum fitur ini tidak otomatis dikirimi email. Webhook duplikat tidak membuat email paid duplikat. Pengujian lokal menggunakan transport mock; pengiriman inbox nyata masih harus diverifikasi setelah kredensial diisi.'],
+  },
   {
     id: 'login', group: 'akses', title: 'Masuk ke admin', route: '/admin/login',
     intro: 'Gunakan akun admin yang diberikan pengelola situs. Password tidak dicantumkan di panduan agar tidak ikut tersebar saat panduan dibagikan.',

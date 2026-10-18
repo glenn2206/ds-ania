@@ -312,6 +312,23 @@ const searchText = (c: CatalogItem) =>
     });
     toggleBtn?.addEventListener('click', toggleSide);
     root.querySelector('[data-side-overlay]')?.addEventListener('click', collapse);
+    root.addEventListener('pointerover', (event) => {
+      if (!root.classList.contains('is-expanded')) return;
+      if (event.pointerType === 'touch' || !window.matchMedia('(hover: hover)').matches) return;
+      if ((event.target as Element).closest('[data-cell]')) collapse();
+    });
+    // The overlay receives the pointer before the product underneath it.
+    root.querySelector('[data-side-overlay]')?.addEventListener('pointermove', (raw) => {
+      if (!root.classList.contains('is-expanded')) return;
+      const event = raw as PointerEvent;
+      if (event.pointerType !== 'mouse' || !window.matchMedia('(hover: hover)').matches) return;
+      const overProduct = [...root.querySelectorAll<HTMLElement>('[data-cell]')].some(cell => {
+        if (cell.hidden) return false;
+        const rect = cell.getBoundingClientRect();
+        return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+      });
+      if (overProduct) collapse();
+    });
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && root.classList.contains('is-expanded')) collapse();

@@ -7,7 +7,7 @@
 export const prerender = false;
 import Admin from '../../layouts/Admin.astro';
 import { getSession } from '../../lib/session';
-import { getPromo, getMedia } from '../../lib/settings';
+import { getPromo, getMedia, getCheckoutEnabled } from '../../lib/settings';
 import MediaEditor from '../../components/admin/MediaEditor';
 
 const session = getSession(Astro.cookies);
@@ -15,10 +15,18 @@ if (!session) return Astro.redirect('/admin/login');
 
 const promo = await getPromo();
 const media = await getMedia();
+const checkoutEnabled = await getCheckoutEnabled();
 ---
 
 <Admin title="Pengaturan — ANIA CMS" active="settings" user={session.uname}>
   <h1 class="admin-h">Pengaturan situs</h1>
+  <section class="card">
+    <h2>Kesiapan checkout</h2>
+    <label><input id="checkout-enabled" type="checkbox" checked={checkoutEnabled} /> Checkout aktif</label>
+    <p class="hint">Nonaktifkan untuk menghentikan checkout baru dan cek ongkir. Order lama, pembayaran yang sudah dibuat, dan CMS tetap berjalan. Asal Instant saat ini Tangerang; Bali belum siap operasional dan koordinat demo tidak dipakai.</p>
+    <button type="button" class="btn btn--primary" id="save-checkout">Simpan kesiapan checkout</button>
+    <p id="checkout-message" role="status"></p>
+  </section>
 
   <div class="card">
     <h2>Bar promo (di atas navbar)</h2>
@@ -134,3 +142,15 @@ const media = await getMedia();
     });
   </script>
 </Admin>
+<script>
+  document.getElementById('save-checkout')?.addEventListener('click', async () => {
+    const button = document.getElementById('save-checkout') as HTMLButtonElement;
+    const message = document.getElementById('checkout-message')!;
+    button.disabled = true;
+    try {
+      const response = await fetch('/api/admin/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ checkout: { enabled: (document.getElementById('checkout-enabled') as HTMLInputElement).checked } }) });
+      message.textContent = response.ok ? 'Kesiapan checkout tersimpan.' : 'Gagal menyimpan.';
+    } catch { message.textContent = 'Koneksi gagal. Coba lagi.'; }
+    finally { button.disabled = false; }
+  });
+</script>

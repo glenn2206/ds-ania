@@ -2,6 +2,8 @@
 export const prerender = false;
 import Site from '../../layouts/Site.astro';
 import { one, q } from '../../lib/db';
+import { getCheckoutEnabled } from '../../lib/settings';
+const checkoutEnabled = await getCheckoutEnabled();
 
 const code = String(Astro.params.code || '');
 const order = await one('SELECT * FROM orders WHERE code = ?', [code]);
@@ -20,6 +22,8 @@ const STATUS: Record<string, { label: string; tone: string }> = {
   expired: { label: 'Kedaluwarsa', tone: '#a23b2e' },
   failed: { label: 'Pembayaran gagal', tone: '#a23b2e' },
   cancelled: { label: 'Dibatalkan', tone: '#a23b2e' },
+  refund_requested: { label: 'Refund sedang ditinjau/diproses', tone: '#555' },
+  refunded: { label: 'Refund berhasil', tone: '#555' },
 };
 const st = order ? STATUS[order.status] ?? { label: order.status, tone: '#555' } : null;
 ---
@@ -37,7 +41,7 @@ const st = order ? STATUS[order.status] ?? { label: order.status, tone: '#555' }
         <p style="letter-spacing:.12em;text-transform:uppercase;font-size:12px;color:var(--dim)">Order {order.code}</p>
         <h1 class="type-h2" style="margin:.2em 0 .1em">{st!.label}</h1>
         <p style="color:{st!.tone};font-weight:600;margin:0 0 24px">
-          {order.status === 'pending' && order.xendit_invoice_url
+          {checkoutEnabled && order.status === 'pending' && order.xendit_invoice_url
             ? <a class="cmp-btn-primary" href={order.xendit_invoice_url}>Bayar sekarang</a>
             : null}
         </p>

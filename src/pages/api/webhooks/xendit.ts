@@ -10,6 +10,7 @@ import type { APIRoute } from 'astro';
 import { tx } from '../../../lib/db';
 import { verifyCallbackToken } from '../../../lib/xendit';
 import { invalidateCatalog } from '../../../lib/products';
+import { queueOrderEmails, scheduleOrderEmails } from '../../../lib/order-email';
 
 export const prerender = false;
 
@@ -29,7 +30,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   const result = await tx(async (t) => {
     // Serialize callbacks for the same order before checking status or deducting stock.
-    const [order] = await t.q('SELECT id, status FROM orders WHERE code = ? FOR UPDATE', [externalId]);
+    const [order] = await t.q('SELECT id, status, customer_email FROM orders WHERE code = ? FOR UPDATE', [externalId]);
     if (!order) return { ignored: 'unknown order' };
     if (order.status !== 'pending') return { ignored: `already ${order.status}` };
 
@@ -47,7 +48,8 @@ export const POST: APIRoute = async ({ request }) => {
           it.product_id,
         ]);
       }
-      return { applied: 'paid' };
+      await queueOrderEmails(t, order.id, 'paid', order.customer_email);
+      return { applied: 'paid', orderId: Number(order.id) };
     }
 
     if (status === 'EXPIRED') {
@@ -57,6 +59,9 @@ export const POST: APIRoute = async ({ request }) => {
 
     return { ignored: status };
   });
-  if (result.applied === 'paid') invalidateCatalog();
+  if (result.applied === 'paid') {
+    invalidateCatalog();
+    if ('orderId' in result) scheduleOrderEmails(result.orderId!);
+  }
   return ok(result);
 };

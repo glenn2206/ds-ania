@@ -3,6 +3,7 @@ export const prerender = false;
 import Admin from '../../../layouts/Admin.astro';
 import { getSession } from '../../../lib/session';
 import { q } from '../../../lib/db';
+import { customerWhatsApp, orderStatuses, orderStatusLabel } from '../../../lib/order-status';
 
 const session = getSession(Astro.cookies);
 if (!session) return Astro.redirect('/admin/login');
@@ -15,11 +16,11 @@ if (status) {
   params.push(status);
 }
 const rows = await q(
-  `SELECT id, code, status, customer_name, total, created_at FROM orders ${where} ORDER BY id DESC LIMIT 200`,
+  `SELECT id, code, status, customer_name, customer_phone, total, created_at FROM orders ${where} ORDER BY id DESC LIMIT 200`,
   params,
 );
 const rp = (n: unknown) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
-const TABS = ['', 'pending', 'paid', 'fulfilled', 'expired', 'cancelled'];
+const TABS = ['', ...orderStatuses, 'refunded'];
 const tagClass = (s: string) =>
   s === 'paid' || s === 'fulfilled' ? 'tag tag--ok' : s === 'pending' ? 'tag tag--draft' : 'tag tag--warn';
 ---
@@ -29,24 +30,35 @@ const tagClass = (s: string) =>
   <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
     {TABS.map((t) => (
       <a class={`btn btn--sm${status === t ? ' btn--primary' : ''}`} href={t ? `/admin/orders?status=${t}` : '/admin/orders'}>
-        {t || 'Semua'}
+        {t ? orderStatusLabel(t) : 'Semua'}
       </a>
     ))}
   </div>
 
   <table class="admin-table">
-    <thead><tr><th>Kode</th><th>Pelanggan</th><th>Total</th><th>Status</th><th>Tanggal</th></tr></thead>
+    <thead><tr><th>Kode</th><th>Pelanggan</th><th>Total</th><th>Status</th><th>Tanggal</th><th>Aksi</th></tr></thead>
     <tbody>
       {rows.map((r) => (
         <tr>
           <td><a href={`/admin/orders/${r.id}`}>{r.code}</a></td>
           <td>{r.customer_name}</td>
           <td>{rp(r.total)}</td>
-          <td><span class={tagClass(r.status)}>{r.status}</span></td>
+          <td><span class={tagClass(r.status)}>{orderStatusLabel(r.status)}</span></td>
           <td>{new Date(r.created_at).toLocaleString('id-ID')}</td>
+          <td><details class="order-actions"><summary class="btn btn--sm">Aksi</summary><div>
+            <a href={`/admin/orders/${r.id}`}>Detail order</a>
+            {customerWhatsApp(r.customer_phone || '', r.code) && <a href={customerWhatsApp(r.customer_phone, r.code)} target="_blank" rel="noopener noreferrer">WhatsApp pelanggan</a>}
+            <a href={`/admin/orders/${r.id}#status`}>Ubah status / Cancelled</a>
+            <a href={`/admin/orders/${r.id}#refund`}>Refund Xendit</a>
+          </div></details></td>
         </tr>
       ))}
     </tbody>
   </table>
   {rows.length === 0 && <p style="color:var(--a-muted);margin-top:16px">Belum ada order.</p>}
 </Admin>
+<style>
+  .order-actions { position: relative; }
+  .order-actions > div { min-width: 200px; padding: 8px; border: 1px solid var(--a-border, #ddd); border-radius: 4px; background: #fff; }
+  .order-actions a { display: block; padding: 8px; }
+</style>

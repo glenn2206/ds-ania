@@ -11,9 +11,10 @@ export const POST = withAdmin(async ({ request }) => {
   if (Number(request.headers.get('content-length')) > 125 * 1024 * 1024) return jsonResponse({ error: 'Upload terlalu besar.' }, 413);
   const form = await request.formData();
   const video = form.get('kind') === 'video';
-  if (!video && form.get('kind') !== 'hero') return jsonResponse({ error: 'Jenis media tidak valid.' }, 400);
+  const occasion = form.get('kind') === 'occasion';
+  if (!video && !occasion && form.get('kind') !== 'hero') return jsonResponse({ error: 'Jenis media tidak valid.' }, 400);
   const files = form.getAll('files');
-  if (!files.length || files.length > (video ? 1 : 10)) return jsonResponse({ error: 'Jumlah file tidak valid.' }, 400);
+  if (!files.length || files.length > (video || occasion ? 1 : 10)) return jsonResponse({ error: 'Jumlah file tidak valid.' }, 400);
   const outputs: { filename: string; buffer: Buffer }[] = [];
   try {
     for (const file of files) {

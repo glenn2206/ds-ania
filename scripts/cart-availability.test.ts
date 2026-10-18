@@ -19,12 +19,14 @@ test('pricing excludes stale lines without hiding valid products in a mixed cart
   assert.equal(data.subtotal, product.price);
 });
 
-test('shipping rejects stale product before any provider request', async () => {
+test('paused shipping rejects even a stale cart before any provider request', async () => {
   const response = await shipping({ clientAddress: 'cart-regression-local', request: new Request('http://localhost/api/shipping', {
     method: 'POST', body: JSON.stringify({ destination: { latitude: -6.28, longitude: 106.62 }, items: [{ slug: 'nonexistent-cart-regression-product', qty: 1 }] }),
   }) } as any);
-  assert.equal(response.status, 400);
-  assert.equal((await response.json()).error, 'Product unavailable.');
+  assert.equal(response.status, 503);
+  assert.match((await response.json()).error, /Checkout sedang dinonaktifkan/);
+  const source = await readFile('src/pages/api/shipping.ts', 'utf8');
+  assert.ok(source.indexOf("error: 'Product unavailable.'") < source.indexOf('json(await getRates'));
 });
 
 test('cart has no auto-seeding, renders unknown lines and gates delivery on live pricing', async () => {
@@ -37,5 +39,5 @@ test('cart has no auto-seeding, renders unknown lines and gates delivery on live
   const rates = source.slice(source.indexOf('const loadRates'), source.indexOf("checkDelivery.addEventListener"));
   assert.ok(rates.indexOf('await refreshPrices()') < rates.indexOf('await getRates('));
   assert.ok(rates.indexOf('if (unavailableLines().length)') < rates.indexOf('await getRates('));
-  assert.ok(source.includes('checkoutBtn.disabled = missing'));
+  assert.ok(source.includes('checkoutBtn.disabled = !checkoutEnabled || missing'));
 });
