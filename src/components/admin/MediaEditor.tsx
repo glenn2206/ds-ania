@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react';
 import type { MediaSettings } from '../../lib/settings';
+import type { ChooseTile } from '../../data/choose';
 
-export default function MediaEditor({ media }: { media: MediaSettings }) {
+export default function MediaEditor({ media, occasionTiles = [] }: { media: MediaSettings; occasionTiles?: ChooseTile[] }) {
   const [slides, setSlides] = useState(media.heroSlides);
   const [video, setVideo] = useState(media.aboutVideo);
   const [occasionCover, setOccasionCover] = useState(media.occasionCover);
+  const [occasionImages, setOccasionImages] = useState(media.occasionImages);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState(false);
@@ -12,7 +14,7 @@ export default function MediaEditor({ media }: { media: MediaSettings }) {
   const videoInput = useRef<HTMLInputElement>(null);
   const coverInput = useRef<HTMLInputElement>(null);
 
-  async function upload(files: File[], kind: 'hero' | 'video' | 'occasion') {
+  async function upload(files: File[], kind: 'hero' | 'video' | 'occasion', occasionKey?: string) {
     if (!files.length || busy) return;
     setError(false);
     if (kind === 'hero' && slides.length + files.length > 10) { setError(true); setMessage('Carousel maksimal 10 foto.'); return; }
@@ -24,6 +26,7 @@ export default function MediaEditor({ media }: { media: MediaSettings }) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Upload gagal.');
       if (kind === 'hero') setSlides(current => [...current, ...result.urls]);
+      else if (kind === 'occasion' && occasionKey) setOccasionImages(current => ({ ...current, [occasionKey]: result.urls[0] }));
       else if (kind === 'occasion') setOccasionCover(result.urls[0]);
       else setVideo(result.urls[0]);
       setMessage('Upload selesai. Klik Simpan media untuk menerapkan.');
@@ -34,7 +37,7 @@ export default function MediaEditor({ media }: { media: MediaSettings }) {
   async function save() {
     setBusy(true); setError(false); setMessage('Menyimpan...');
     try {
-      const response = await fetch('/api/admin/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ media: { heroSlides: slides, aboutVideo: video, occasionCover } }) });
+      const response = await fetch('/api/admin/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ media: { heroSlides: slides, aboutVideo: video, occasionCover, occasionImages } }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Gagal menyimpan.');
       setMessage('Media tersimpan.');
@@ -47,7 +50,7 @@ export default function MediaEditor({ media }: { media: MediaSettings }) {
   }
 
   return <section className="card media-editor" aria-busy={busy}>
-    <h2>Carousel beranda, cover Occasion &amp; video About</h2>
+    <h2>Carousel beranda, foto Occasion &amp; video About</h2>
     {message && <div role="status" className={`flash flash--${error ? 'err' : 'ok'}`}>{message}</div>}
     <h3>Carousel beranda ({slides.length}/10)</h3>
     <div className="imgs">
@@ -63,7 +66,21 @@ export default function MediaEditor({ media }: { media: MediaSettings }) {
     <input ref={photosInput} type="file" hidden multiple accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={event => upload(Array.from(event.target.files || []), 'hero')} />
     <button type="button" className="imgs__drop media-editor__drop" disabled={busy || slides.length === 10} onClick={() => photosInput.current?.click()} onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); if (slides.length < 10) upload(Array.from(event.dataTransfer.files), 'hero'); }}>+ Upload foto carousel</button>
     <p className="hint">JPG, PNG, WebP. Maksimal 12 MB per foto.</p>
-    <h3>Cover Occasion</h3>
+    <h3>Foto kartu Occasions di beranda</h3>
+    <p className="hint">Foto Anniversary, Birthday, Get Well Soon, dan kartu lainnya di tab Occasions. Terpisah dari hero halaman Occasion.</p>
+    <div className="imgs">
+      {occasionTiles.map(tile => {
+        const key = new URLSearchParams(tile.href.split('?')[1]).get('occasion')!;
+        return <div className="imgs__cell" key={key}>
+          <img src={occasionImages[key] || tile.image} alt={tile.label} />
+          <label className="btn">Ganti foto {tile.label}
+            <input type="file" hidden accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={event => { upload(Array.from(event.target.files || []), 'occasion', key); event.target.value = ''; }} />
+          </label>
+        </div>;
+      })}
+    </div>
+    <p className="hint">JPG, PNG, WebP, maksimal 12 MB per foto. Setelah upload, klik Simpan media. Foto mengikuti kartu yang sama walaupun urutan katalog berubah.</p>
+    <h3>Hero halaman Occasion (terpisah)</h3>
     <div className="imgs"><div className="imgs__cell"><img src={occasionCover} alt="Cover Occasion" /></div></div>
     <input ref={coverInput} type="file" hidden accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={event => upload(Array.from(event.target.files || []), 'occasion')} />
     <button type="button" className="btn" disabled={busy} onClick={() => coverInput.current?.click()}>Ganti cover Occasion</button>

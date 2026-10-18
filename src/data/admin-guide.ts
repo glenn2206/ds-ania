@@ -44,9 +44,9 @@ export const guideSections: GuideSection[] = [
     steps: ['Buka Pengaturan situs, bagian Kesiapan checkout.', 'Centang Checkout aktif jika toko siap menerima pesanan. Hapus centang saat belum siap, lalu klik Simpan kesiapan checkout.', 'Saat nonaktif, server menolak checkout baru dan cek ongkir. Invoice yang sudah dibuat, webhook pembayaran, dan pengelolaan order lama tetap berjalan.', 'Cakupan yang direncanakan Jabodetabek dan Bali. Origin operasional masih Tangerang. Bali belum siap sampai alamat/pin/kontak cabang dan alur kurir diverifikasi; pilihan demo tidak boleh dipakai untuk booking nyata.'],
   },
   {
-    id: 'cover-occasion', group: 'pengaturan', title: 'Ganti cover Occasion', route: '/admin/settings',
-    intro: 'Cover halaman For Occasions sekarang terhubung langsung ke media CMS.',
-    steps: ['Buka Pengaturan, bagian media, lalu Cover Occasion.', 'Klik Ganti cover Occasion dan pilih satu JPG/PNG/WebP maksimal 12 MB.', 'Tunggu upload selesai, lalu klik Simpan media.', 'Buka /occasions dan refresh. Cover mengikuti tanpa build/deploy ulang. Mengubah foto produk tidak mengganti cover halaman ini.'],
+    id: 'cover-occasion', group: 'pengaturan', title: 'Ganti foto kartu Occasions dan hero', route: '/admin/settings',
+    intro: 'Foto kartu Anniversary, Birthday, Get Well Soon, dan Occasion lainnya di beranda dapat diganti satu per satu. Hero halaman Occasion diatur terpisah.',
+    steps: ['Buka Pengaturan, bagian Foto kartu Occasions di beranda.', 'Klik Ganti foto pada nama kartu yang ingin diubah. Pilih JPG/PNG/WebP maksimal 12 MB.', 'Tunggu upload selesai, lalu klik Simpan media.', 'Buka beranda dan tab Occasions, lalu refresh. Foto baru mengikuti kartu tersebut tanpa deploy ulang, termasuk ketika urutan katalog berubah.', 'Untuk gambar besar di /occasions, gunakan Hero halaman Occasion (terpisah). Mengubah hero tidak mengganti foto kartu di beranda.'],
   },
   {
     id: 'followup-order', group: 'order', title: 'WhatsApp, Cancelled, dan refund', route: '/admin/orders',

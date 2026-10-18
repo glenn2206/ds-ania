@@ -10,6 +10,7 @@ import Icon from '../atoms/Icon.astro';
 import { chooseTabs, chooseTilesFrom, chooseHeadingLead } from '../../data/choose';
 import { getCatalog } from '../../lib/products';
 import { buildFacets } from '../../lib/facets';
+import { getMedia } from '../../lib/settings';
 
 interface Props {
   activeTab?: (typeof chooseTabs)[number];
@@ -17,7 +18,8 @@ interface Props {
 const { activeTab = 'Occasions' } = Astro.props;
 
 const cat = await getCatalog();
-const chooseTiles = chooseTilesFrom(buildFacets([...cat.allProducts, ...cat.addons]));
+const media = await getMedia();
+const chooseTiles = chooseTilesFrom(buildFacets([...cat.allProducts, ...cat.addons]), media.occasionImages);
 // Figma: 3 tile per tab
 const base = chooseTabs.flatMap((tab) => chooseTiles[tab].map((t) => ({ ...t, tab })));
 ---
@@ -47,7 +49,7 @@ const base = chooseTabs.flatMap((tab) => chooseTiles[tab].map((t) => ({ ...t, ta
     {
       base.map((t) => (
         <a class="choose__tile" href={t.href} data-tab={t.tab} aria-label={t.label} hidden>
-          <span class="choose__tileimg" style={`background-image:url(${t.image})`} />
+          <span class="choose__tileimg" style={`background-image:url(${JSON.stringify(t.image)})`} />
           <span class="choose__tilelabel">
             <span>{t.label}</span>
             <Icon name="arrow-right-black" size={18} alt="" />

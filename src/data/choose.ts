@@ -44,10 +44,10 @@ const img = (i: number) => `/assets/${POOL[i % POOL.length]}`;
 const PARAM: Record<ChooseTab, string> = { Occasions: 'occasion', Category: 'cat', Flower: 'flower' };
 
 /** rakit tile per tab dari facet katalog — hanya yang ADA produknya */
-export function chooseTilesFrom(facets: Facets): Record<ChooseTab, ChooseTile[]> {
+export function chooseTilesFrom(facets: Facets, occasionImages: Record<string, string> = {}): Record<ChooseTab, ChooseTile[]> {
   const make = (tab: ChooseTab, facetList: { label: string; value: string }[], offset: number): ChooseTile[] =>
     facetList.map((f, i) => ({
-      image: img(i + offset),
+      image: (tab === 'Occasions' && Object.prototype.hasOwnProperty.call(occasionImages, f.value) ? occasionImages[f.value] : '') || img(i + offset),
       label: f.label,
       href: `/shop?${PARAM[tab]}=${encodeURIComponent(f.value)}`,
     }));

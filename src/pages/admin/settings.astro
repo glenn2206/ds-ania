@@ -9,12 +9,17 @@ import Admin from '../../layouts/Admin.astro';
 import { getSession } from '../../lib/session';
 import { getPromo, getMedia, getCheckoutEnabled } from '../../lib/settings';
 import MediaEditor from '../../components/admin/MediaEditor';
+import { getCatalog } from '../../lib/products';
+import { buildFacets } from '../../lib/facets';
+import { chooseTilesFrom } from '../../data/choose';
 
 const session = getSession(Astro.cookies);
 if (!session) return Astro.redirect('/admin/login');
 
 const promo = await getPromo();
 const media = await getMedia();
+const catalog = await getCatalog();
+const occasionTiles = chooseTilesFrom(buildFacets([...catalog.allProducts, ...catalog.addons]), media.occasionImages).Occasions;
 const checkoutEnabled = await getCheckoutEnabled();
 ---
 
@@ -66,7 +71,7 @@ const checkoutEnabled = await getCheckoutEnabled();
     </div>
   </div>
 
-  <MediaEditor client:load media={media} />
+  <MediaEditor client:load media={media} occasionTiles={occasionTiles} />
 
   <p style="color:var(--a-muted);font-size:13px">
     Perubahan tampil di halaman dinamis (Beranda, Shop, Produk, About) dalam ±60 detik.

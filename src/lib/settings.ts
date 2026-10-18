@@ -73,6 +73,7 @@ export interface MediaSettings {
   heroSlides: string[];
   aboutVideo: string;
   occasionCover: string;
+  occasionImages: Record<string, string>;
 }
 
 export function safeMediaUrl(value: string): boolean {
@@ -87,13 +88,25 @@ export function readMedia(input: Record<string, unknown>): MediaSettings {
   const slides = input.heroSlides.map((url) => String(url).trim());
   const aboutVideo = String(input.aboutVideo ?? '').trim();
   const occasionCover = String(input.occasionCover ?? '/assets/scene-holding-yellow-bouquet.jpg').trim();
+  const occasionImages: Record<string, string> = {};
+  if (input.occasionImages !== undefined) {
+    if (!input.occasionImages || typeof input.occasionImages !== 'object' || Array.isArray(input.occasionImages))
+      throw new Error('Foto kartu Occasion tidak valid.');
+    const entries = Object.entries(input.occasionImages);
+    if (entries.length > 100) throw new Error('Maksimal 100 foto kartu Occasion.');
+    for (const [key, value] of entries) {
+      if (!key.trim() || key.length > 100 || typeof value !== 'string' || !safeMediaUrl(value.trim()) || !/\.(jpg|jpeg|png|webp)(?:[?#]|$)/i.test(value.trim()))
+        throw new Error('Foto kartu Occasion harus berupa JPG, PNG, atau WebP.');
+      Object.defineProperty(occasionImages, key, { value: value.trim(), enumerable: true });
+    }
+  }
   if (!safeMediaUrl(occasionCover) || !/\.(jpg|jpeg|png|webp)(?:[?#]|$)/i.test(occasionCover))
     throw new Error('Cover Occasion harus berupa foto JPG, PNG, atau WebP.');
   if (slides.some((url) => !safeMediaUrl(url)) || (aboutVideo && !safeMediaUrl(aboutVideo)))
     throw new Error('Gunakan path /assets/... atau URL HTTPS lengkap.');
   if (aboutVideo && !/\.(mp4|webm)(?:[?#]|$)/i.test(aboutVideo))
     throw new Error('Video harus link langsung file MP4 atau WebM.');
-  return { heroSlides: slides, aboutVideo, occasionCover };
+  return { heroSlides: slides, aboutVideo, occasionCover, occasionImages };
 }
 
 export async function writeSetting(t: Querier, key: string, value: string) {
@@ -102,7 +115,7 @@ export async function writeSetting(t: Querier, key: string, value: string) {
 }
 
 export async function getMedia(): Promise<MediaSettings> {
-  const defaults = { heroSlides: [...heroSlides], aboutVideo: '', occasionCover: '/assets/scene-holding-yellow-bouquet.jpg' };
+  const defaults = { heroSlides: [...heroSlides], aboutVideo: '', occasionCover: '/assets/scene-holding-yellow-bouquet.jpg', occasionImages: {} };
   if (!isConfigured()) return defaults;
   try {
     const rows = await q('SELECT svalue FROM site_settings WHERE skey = ?', ['site_media']);
