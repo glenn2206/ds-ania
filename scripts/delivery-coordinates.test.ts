@@ -10,14 +10,15 @@ test('coordinates accept Jakarta and Bali pins without requiring Enter', () => {
   assert.deepEqual(parseDeliveryCoordinates('0, 0'), { latitude: 0, longitude: 0 });
 });
 
-test('mock branches stay local and cannot quote or checkout', async () => {
-  assert.deepEqual(checkoutBranches.filter(branch => branch.preview).map(branch => branch.id), ['jakarta-demo', 'bali-demo']);
+test('production branches expose active pickup points and disable coming-soon branch', async () => {
+  assert.deepEqual(checkoutBranches.filter(branch => branch.active).map(branch => branch.id), ['jakarta', 'bali']);
+  assert.deepEqual(checkoutBranches.filter(branch => !branch.active).map(branch => branch.id), ['tangerang']);
   const fields = await readFile('src/components/organisms/DeliveryFields.astro', 'utf8');
   const cart = await readFile('src/components/templates/CartSection.astro', 'utf8');
-  assert.match(fields, /cart && import\.meta\.env\.DEV/);
-  assert.match(cart, /if \(previewBranch\(\)\) return;/);
-  assert.match(cart, /checkoutBtn\.disabled = !checkoutEnabled \|\| missing \|\| previewBranch\(\)/);
-  assert.match(cart, /checkDelivery\.disabled = !checkoutEnabled \|\| previewBranch\(\)/);
+  assert.match(fields, /disabled=\{!branch.active\}/);
+  assert.match(cart, /branchId: branch.id/);
+  assert.match(cart, /checkoutBtn\.disabled = !checkoutEnabled \|\| missing/);
+  assert.match(cart, /checkDelivery\.disabled = !checkoutEnabled/);
 });
 
 test('invalid or incomplete coordinates are rejected', () => {

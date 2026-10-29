@@ -47,6 +47,7 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
   import { addItem, rupiah } from '../../lib/cart';
   import { initDeliveryPin, type DeliveryDestination } from '../../lib/delivery-pin';
   import { deliveryToday } from '../../lib/delivery-policy';
+  import { initBranchPicker } from '../../lib/branch-picker';
 
   document.querySelectorAll<HTMLElement>('[data-buybox]').forEach((box) => {
     if (box.dataset.soldout) return; // tak ada tombol beli untuk item sold out
@@ -60,6 +61,7 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
 
     let dest: DeliveryDestination = {};
     let mode = 'delivery';
+    const branches = initBranchPicker(box, { mode }, () => {});
 
     const updateTotal = () => {
       coTot.textContent = unit ? rupiah(unit) : 'By request';
@@ -69,6 +71,7 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
     box.querySelectorAll<HTMLElement>('[data-mode]').forEach((b) => {
       b.addEventListener('click', () => {
         mode = b.dataset.mode || 'delivery';
+        branches.setMode(mode);
         box.querySelectorAll('[data-mode]').forEach((x) => { x.classList.remove('is-active'); x.setAttribute('aria-pressed', 'false'); });
         b.classList.add('is-active');
         b.setAttribute('aria-pressed', 'true');
@@ -80,11 +83,14 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
 
     initDeliveryPin($('[data-pin-picker]'), (destination) => {
       dest = destination;
+      branches.setDestination(dest.destination);
     });
 
     // add to cart
     const addBtn = $('[data-add]');
+    const saveDelivery = () => localStorage.setItem('ania:checkout-delivery', JSON.stringify({ ...dest, ...branches.draft(), mode, date: dateInput.value, address: $<HTMLTextAreaElement>('[data-sendto]').value }));
     addBtn.addEventListener('click', () => {
+      saveDelivery();
       addItem(slug, 1);
       const o = addBtn.textContent;
       addBtn.textContent = 'Added ✓';
@@ -95,7 +101,7 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
     $('[data-checkout]').addEventListener('click', () => {
       const contact = Object.fromEntries(Array.from(box.querySelectorAll<HTMLInputElement>('[data-form] input')).map((input) => [input.name, input.value.trim()]));
       localStorage.setItem('ania:checkout-contact', JSON.stringify(contact));
-      localStorage.setItem('ania:checkout-delivery', JSON.stringify({ ...dest, mode, date: dateInput.value, address: $<HTMLTextAreaElement>('[data-sendto]').value }));
+      saveDelivery();
       addItem(slug, 1);
       window.location.href = '/cart';
     });

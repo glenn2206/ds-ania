@@ -10,6 +10,7 @@ import { searchAreas, getRates, coordinates, ShippingError } from '../../lib/bit
 import { allowShippingRequest } from '../../lib/shipping-cache';
 import { getCatalog } from '../../lib/products';
 import { getCheckoutEnabled } from '../../lib/settings';
+import { BranchError } from '../../data/checkout-branches';
 
 export const prerender = false;
 
@@ -43,6 +44,6 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     return json({ error: 'Please contact ANIA for products priced by request.' }, 400);
   const items = wanted.map(it => ({ name: it.slug, value: Number(bySlug.get(it.slug)!.price), weight: DEFAULT_WEIGHT, quantity: it.qty }));
 
-  try { return json(await getRates({ destination: body.destination, items })); }
-  catch (error) { return json({ error: error instanceof Error ? error.message : 'Delivery unavailable.' }, error instanceof ShippingError ? error.status : 503); }
+  try { return json(await getRates({ branchId: body.branchId, destination: body.destination, items })); }
+  catch (error) { return json({ error: error instanceof Error ? error.message : 'Delivery unavailable.' }, error instanceof ShippingError || error instanceof BranchError ? error.status : 503); }
 };

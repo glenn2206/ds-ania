@@ -1,6 +1,6 @@
 import { env } from './env';
 import { ShippingCache, allowShippingRequest } from './shipping-cache';
-import { shippingOrigin } from '../data/shipping-origin';
+import { activeBranch, resolveBranch } from '../data/checkout-branches';
 import { isInstantService } from './delivery-policy';
 
 const BASE = 'https://api.biteship.com/v1';
@@ -64,18 +64,14 @@ export async function searchAreas(input: string): Promise<Area[]> {
     return data.areas;
   });
 }
-export function getShippingOrigin() {
-  const point = coordinates({ latitude: Number(env('BITESHIP_ORIGIN_LATITUDE', String(shippingOrigin.latitude))), longitude: Number(env('BITESHIP_ORIGIN_LONGITUDE', String(shippingOrigin.longitude))) });
-  if (!point) throw new ShippingError('The store pickup pin is not configured. Please choose pickup or contact ANIA.');
-  return { ...point, name: env('BITESHIP_ORIGIN_NAME', shippingOrigin.name), address: env('BITESHIP_ORIGIN_ADDRESS', shippingOrigin.address) };
+export function getShippingOrigin(branchId: unknown) {
+  // Global legacy origin env must not override the branch paid for by the customer.
+  return activeBranch(branchId);
 }
-export async function getRates(opts: { destination?: Coordinates; items: RateItem[]; fresh?: boolean }): Promise<RateResult> {
+export async function getRates(opts: { branchId?: string; destination?: Coordinates; items: RateItem[]; fresh?: boolean }): Promise<RateResult> {
   const destination = coordinates(opts.destination);
   if (!destination) throw new ShippingError('Choose a delivery pin before checking Instant delivery.', 400);
-  const lat = env('BITESHIP_ORIGIN_LATITUDE', String(shippingOrigin.latitude));
-  const lng = env('BITESHIP_ORIGIN_LONGITUDE', String(shippingOrigin.longitude));
-  const origin = lat && lng ? coordinates({ latitude: Number(lat), longitude: Number(lng) }) : undefined;
-  if (!origin) throw new ShippingError('The store pickup pin is not configured. Please choose pickup or contact ANIA.');
+  const origin = resolveBranch(opts.branchId, destination);
   if (!opts.items.length || opts.items.some(i => !Number.isFinite(i.weight) || i.weight <= 0 ||
       !Number.isFinite(i.quantity) || i.quantity < 1 || !Number.isFinite(i.value) || i.value < 0))
     throw new ShippingError('Invalid delivery items.', 400);

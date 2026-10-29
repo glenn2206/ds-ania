@@ -37,8 +37,17 @@ function readQuote(token: unknown) {
 export function deliverySnapshot(shipping: any) {
   const pin = coordinates(shipping.destination);
   if (!pin || !isInstantService(shipping.courierCode, shipping.serviceCode)) fail('Data Instant tidak valid.', 400);
+  const branch = getShippingOrigin(shipping.branchId);
   return { destination: pin, address: String(shipping.label || shipping.address || '').trim(),
-    courier: shipping.courierCode, service: 'instant', date: String(shipping.date || ''), weight: 1500 };
+    branch, courier: shipping.courierCode, service: 'instant', date: String(shipping.date || ''), weight: 1500 };
+}
+function snapshotOrigin(snapshot: any) {
+  if (!snapshot?.branch?.id) fail('Order lama belum menyimpan cabang pickup. Periksa asal secara manual; jangan booking otomatis.');
+  let branch;
+  try { branch = getShippingOrigin(snapshot.branch.id); }
+  catch { return fail('Cabang pickup order tidak aktif. Konfirmasi asal dengan pelanggan sebelum booking.'); }
+  if (digest(snapshot.branch) !== digest(branch)) fail('Data cabang pickup berubah. Periksa manual sebelum booking.');
+  return branch;
 }
 export async function saveDelivery(t: Querier, orderId: number, code: string, shipping: any) {
   await t.q('INSERT INTO order_shipments (order_id,snapshot,reference_id) VALUES (?,?,?)',
@@ -71,7 +80,7 @@ export function shippingService(deps = { tx, getRates, bookingRequest }) {
       const name = String(recipient.name || '').trim();
       const phone = String(recipient.phone || '').replace(/[\s()+-]/g, '');
       if (!name || name.length > 200 || !/^(0|62)\d{8,13}$/.test(phone)) fail('Nama dan nomor WhatsApp penerima harus valid.', 400);
-      const origin = getShippingOrigin();
+      const origin = snapshotOrigin(snapshot);
       const originPhone = pickupPhone();
       if (!/^(0|62)\d{8,13}$/.test(originPhone)) fail('Nomor kontak pickup BITESHIP_ORIGIN_PHONE belum valid.', 503);
       const items = await readItems(t, id);
@@ -84,9 +93,9 @@ export function shippingService(deps = { tx, getRates, bookingRequest }) {
         delivery_type: 'now', reference_id: shipment.reference_id, order_note: `Order ${order.code}. Bunga, tangani dengan hati-hati.`,
         items: items.map(i => ({ name: i.name, value: Number(i.unit_price), quantity: Number(i.qty), weight: 1500 })),
       };
-      return { payload, source: source(shipment, items), date: snapshot.date, paidShipping: Number(order.shipping_cost), mode: mode() };
+      return { branchId: origin.id, payload, source: source(shipment, items), date: snapshot.date, paidShipping: Number(order.shipping_cost), mode: mode() };
     });
-    const rates = await deps.getRates({ destination: input.payload.destination_coordinate, items: input.payload.items, fresh: true });
+    const rates = await deps.getRates({ branchId: input.branchId, destination: input.payload.destination_coordinate, items: input.payload.items, fresh: true });
     const option = rates.options.find(o => o.courierCode === input.payload.courier_company && o.serviceCode === 'instant');
     if (!option) return fail('Kurir Instant pilihan pelanggan tidak tersedia. Jangan ganti layanan tanpa konfirmasi.');
     const expires = Date.now() + 90_000;
@@ -101,7 +110,8 @@ export function shippingService(deps = { tx, getRates, bookingRequest }) {
       eligible(order, shipment);
       const items = await readItems(t, id);
       if (quote.expires < Date.now()) fail('Tarif kedaluwarsa. Klik cek tarif lagi.');
-      const origin = getShippingOrigin();
+      const origin = snapshotOrigin(parse(shipment.snapshot));
+      if (quote.branchId !== origin.id) fail('Cabang order berubah. Periksa ulang tarif.');
       if (digest(quote.payload.origin_coordinate) !== digest({ latitude: origin.latitude, longitude: origin.longitude }) ||
           quote.payload.origin_address !== origin.address || quote.payload.origin_contact_name !== origin.name ||
           quote.payload.origin_contact_phone !== pickupPhone()) fail('Konfigurasi pickup berubah. Periksa tarif lagi.');

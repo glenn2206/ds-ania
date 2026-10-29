@@ -53,7 +53,7 @@ test('Xendit surfaces provider failures and rejects unauthenticated callbacks', 
 
 test('Biteship only returns Instant, sends coordinates and reuses successful quotes', async () => {
   const original = globalThis.fetch;
-  const input = { destination: { latitude: -6.24, longitude: 106.84 }, items: [{ name: 'Bouquet', value: 950000, weight: 1500, quantity: 1 }] };
+  const input = { branchId: 'jakarta', destination: { latitude: -6.24, longitude: 106.84 }, items: [{ name: 'Bouquet', value: 950000, weight: 1500, quantity: 1 }] };
   let calls = 0;
   try {
     globalThis.fetch = async (url, options) => {
@@ -61,7 +61,7 @@ test('Biteship only returns Instant, sends coordinates and reuses successful quo
       calls++;
       const body = JSON.parse(String(options?.body));
       assert.ok([-6.24, -6.23].includes(body.destination_latitude));
-      assert.equal(body.origin_latitude, -6.25);
+      assert.equal(body.origin_latitude, -6.1984118);
       assert.equal(body.couriers, 'gojek,grab');
       assert.equal(body.origin_area_id, undefined);
       return Response.json({ success: true, pricing: [
@@ -81,14 +81,15 @@ test('Biteship only returns Instant, sends coordinates and reuses successful quo
     await assert.rejects(biteship.getRates({ items: input.items }), /delivery pin/);
     const savedOrigin = process.env.BITESHIP_ORIGIN_LATITUDE;
     process.env.BITESHIP_ORIGIN_LATITUDE = 'invalid';
-    await assert.rejects(biteship.getRates(input), /pickup pin is not configured/);
+    await biteship.getRates(input); // Legacy global overrides cannot change the chosen branch.
+    await assert.rejects(biteship.getRates({ ...input, branchId: 'tangerang' }), /active pickup branch/);
     process.env.BITESHIP_ORIGIN_LATITUDE = savedOrigin;
   } finally { globalThis.fetch = original; }
 });
 
 test('Biteship provider failure never becomes an empty search or fabricated quote', async () => {
   const original = globalThis.fetch;
-  const input = { destination: { latitude: -6.21, longitude: 106.82 }, items: [{ name: 'Flower', value: 10000, weight: 1500, quantity: 1 }] };
+  const input = { branchId: 'jakarta', destination: { latitude: -6.21, longitude: 106.82 }, items: [{ name: 'Flower', value: 10000, weight: 1500, quantity: 1 }] };
   try {
     globalThis.fetch = async () => Response.json({ success: false, error: 'Insufficient balance' }, { status: 400 });
     await assert.rejects(biteship.getRates(input), /unavailable/);
@@ -111,14 +112,14 @@ test('no Instant option never falls back to regular, same-day or another courier
     { courier_code: 'jne', courier_service_code: 'instant', price: 10000 },
   ] });
   try {
-    const result = await biteship.getRates({ destination: { latitude: -6.28, longitude: 106.61 },
+    const result = await biteship.getRates({ branchId: 'jakarta', destination: { latitude: -6.28, longitude: 106.61 },
       items: [{ name: 'Test bouquet', value: 10000, weight: 1500, quantity: 1 }], fresh: true });
     assert.deepEqual(result.options, []);
     assert.equal(result.estimated, false);
   } finally { globalThis.fetch = original; }
 });
 
-test('default Instant pickup uses the confirmed Tangerang branch', async () => {
+test('automatic Instant origin excludes coming-soon Tangerang', async () => {
   const original = globalThis.fetch;
   const savedLat = process.env.BITESHIP_ORIGIN_LATITUDE;
   const savedLng = process.env.BITESHIP_ORIGIN_LONGITUDE;
@@ -128,12 +129,12 @@ test('default Instant pickup uses the confirmed Tangerang branch', async () => {
   globalThis.fetch = async (_url, options) => {
     calls++;
     const body = JSON.parse(String(options?.body));
-    assert.equal(body.origin_latitude, -6.2749375);
-    assert.equal(body.origin_longitude, 106.6091875);
+    assert.equal(body.origin_latitude, -6.1984118);
+    assert.equal(body.origin_longitude, 106.7677326);
     return Response.json({ success: true, pricing: [] });
   };
   try {
-    await biteship.getRates({ destination: { latitude: -6.28, longitude: 106.61 }, items: [{ name: 'Bouquet', value: 950000, weight: 1500, quantity: 1 }] });
+    await biteship.getRates({ branchId: 'auto', destination: { latitude: -6.28, longitude: 106.61 }, items: [{ name: 'Bouquet', value: 950000, weight: 1500, quantity: 1 }] });
     assert.equal(calls, 1);
   } finally {
     globalThis.fetch = original;

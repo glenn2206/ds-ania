@@ -5,6 +5,7 @@ import crypto from 'node:crypto';
 import { tx, q, end } from '../src/lib/db';
 import { saveDelivery, shippingService } from '../src/lib/order-shipping';
 import { BookingError, bookingRequest } from '../src/lib/biteship';
+import { activeBranch } from '../src/data/checkout-branches';
 
 assert.ok(['localhost', '127.0.0.1'].includes(process.env.DB_HOST || '127.0.0.1'), 'Local DB only');
 process.env.BITESHIP_BOOKING_ENABLED = 'true';
@@ -12,7 +13,7 @@ process.env.BITESHIP_TOKEN = 'biteship_test.unit-test-only';
 process.env.BITESHIP_ORIGIN_PHONE = '088888888888';
 process.env.SESSION_SECRET = 'unit-test-booking-signature-not-for-production';
 const recipient = { name: 'Fictional recipient', phone: '088888888888' };
-const shipping = { mode: 'delivery', destination: { latitude: -6.28, longitude: 106.62 }, address: 'Fictional UAT destination', courierCode: 'grab', serviceCode: 'instant' };
+const shipping = { mode: 'delivery', branchId: 'jakarta', destination: { latitude: -6.28, longitude: 106.62 }, address: 'Fictional UAT destination', courierCode: 'grab', serviceCode: 'instant' };
 const created: number[] = [];
 let calls = 0;
 let lastPayload: any;
@@ -145,6 +146,29 @@ test('changed pickup and invalid recipient are rejected before creating a courie
   try { await assert.rejects(service.book(id, quote.token, 'test'), /pickup berubah/); }
   finally { process.env.BITESHIP_ORIGIN_PHONE = phone; }
   assert.equal(calls, start);
+});
+
+test('stored Bali origin is used for quote and booking; legacy/inactive/tampered origin blocks booking', async () => {
+  const id = await fixture();
+  const [row] = await q('SELECT snapshot FROM order_shipments WHERE order_id=?', [id]);
+  const snapshot = JSON.parse(row.snapshot);
+  const put = async (branch: unknown) => q('UPDATE order_shipments SET snapshot=? WHERE order_id=?', [JSON.stringify({ ...snapshot, branch }), id]);
+  const start = calls;
+  await put(undefined);
+  await assert.rejects(service.quote(id, recipient), /lama belum menyimpan cabang/);
+  await put({ id: 'tangerang' });
+  await assert.rejects(service.quote(id, recipient), /tidak aktif/);
+  await put({ ...activeBranch('bali'), latitude: 0 });
+  await assert.rejects(service.quote(id, recipient), /Data cabang pickup berubah/);
+  await put(activeBranch('bali'));
+  const quote = await service.quote(id, recipient);
+  assert.equal(quote.branchId, 'bali');
+  assert.deepEqual(quote.payload.origin_coordinate, { latitude: -8.6754898, longitude: 115.1862615 });
+  assert.equal(calls, start);
+  reply = async (_url, body) => success(body);
+  await service.book(id, quote.token, 'test');
+  assert.equal(lastPayload.origin_address, activeBranch('bali').address);
+  await q('UPDATE order_shipments SET provider_id=NULL WHERE order_id=?', [id]);
 });
 
 test('empty pickup override uses the approved website number without booking', async () => {

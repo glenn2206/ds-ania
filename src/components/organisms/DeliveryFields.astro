@@ -9,17 +9,19 @@ const prefix = cart ? 'cart-area' : 'product-area';
 
 <div class="buybox__delivery delivery-fields" data-delivery hidden={cart}>
   <span class="buybox__dtitle">Delivery Information</span>
-  {cart && import.meta.env.DEV && <>
-    <label class="buybox__field">
-      <span>Cabang pickup (preview lokal)</span>
-      <select data-pickup-branch>{checkoutBranches.map(branch => <option value={branch.id}>{branch.name}</option>)}</select>
-    </label>
-    <p data-branch-status role="status">{checkoutBranches[0].address}</p>
-  </>}
   <div class="buybox__modes" role="group" aria-label="Fulfilment method">
     <button type="button" class="buybox__mode is-active" data-mode="delivery" aria-pressed="true"><Icon name="truck-delivery" size={16} alt="" /> Instant Delivery</button>
     <button type="button" class="buybox__mode" data-mode="pickup" aria-pressed="false"><Icon name="toko" size={16} alt="" /> Pickup</button>
   </div>
+  <label class="buybox__field">
+    <span data-branch-label>Dispatch branch</span>
+    <select data-pickup-branch>
+      <option value="auto">Automatic — nearest active branch</option>
+      {checkoutBranches.map(branch => <option value={branch.id} disabled={!branch.active}>{branch.name}{!branch.active ? ' — Coming soon' : ''}</option>)}
+    </select>
+  </label>
+  <p class="delivery-branch" data-branch-status role="status" aria-live="polite">Choose your delivery pin to suggest the nearest active branch.</p>
+  <a class="delivery-branch" data-branch-map hidden target="_blank" rel="noopener noreferrer">View branch on Google Maps</a>
   <label class="buybox__field" data-sendto-row>
     <span>Full Delivery Address:</span>
     <textarea data-sendto rows="3" autocomplete="street-address" placeholder="Street, building, house / unit number, and delivery instructions" required></textarea>
@@ -83,6 +85,7 @@ const prefix = cart ? 'cart-area' : 'product-area';
 </div>
 
 <style>
+  .delivery-branch { font-size: 12px; line-height: 1.6; color: #525252; overflow-wrap: anywhere; margin: 4px 0 10px; }
   .delivery-pin [data-pin-panel] { min-width: 0; }
   .delivery-pin__location-status { font-size: 12px; color: #525252; margin: 6px 0; overflow-wrap: anywhere; }
   .delivery-pin [data-address-query] { display: block; width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid var(--hair); border-radius: 4px; font: inherit; color: #525252; background: #fff; }

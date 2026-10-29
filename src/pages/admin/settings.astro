@@ -28,7 +28,7 @@ const checkoutEnabled = await getCheckoutEnabled();
   <section class="card">
     <h2>Kesiapan checkout</h2>
     <label><input id="checkout-enabled" type="checkbox" checked={checkoutEnabled} /> Checkout aktif</label>
-    <p class="hint">Nonaktifkan untuk menghentikan checkout baru dan cek ongkir. Order lama, pembayaran yang sudah dibuat, dan CMS tetap berjalan. Asal Instant saat ini Tangerang; Bali belum siap operasional dan koordinat demo tidak dipakai.</p>
+    <p class="hint">Nonaktifkan untuk menghentikan checkout baru dan cek ongkir. Order lama, pembayaran yang sudah dibuat, dan CMS tetap berjalan. Pickup tersedia di Jakarta dan Bali; Tangerang coming soon. Instant menyarankan cabang aktif terdekat dari pin tujuan, dan pelanggan dapat memilih cabang lain. Mengubah cabang tidak mengaktifkan checkout.</p>
     <button type="button" class="btn btn--primary" id="save-checkout">Simpan kesiapan checkout</button>
     <p id="checkout-message" role="status"></p>
   </section>

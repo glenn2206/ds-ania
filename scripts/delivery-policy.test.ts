@@ -19,7 +19,7 @@ test('delivery date uses Jakarta today, including around midnight', () => {
 });
 
 test('shipment snapshots reject non-Instant delivery', () => {
-  const input = { destination: { latitude: -6.28, longitude: 106.61 }, address: 'Test', courierCode: 'grab', serviceCode: 'instant' };
+  const input = { branchId: 'jakarta', destination: { latitude: -6.28, longitude: 106.61 }, address: 'Test', courierCode: 'grab', serviceCode: 'instant' };
   assert.equal(deliverySnapshot(input).service, 'instant');
   assert.throws(() => deliverySnapshot({ ...input, serviceCode: 'same_day' }));
   assert.throws(() => deliverySnapshot({ ...input, courierCode: 'jne' }));

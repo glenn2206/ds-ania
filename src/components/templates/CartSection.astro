@@ -5,7 +5,6 @@
  * Kiri: daftar item + info & form pengiriman. Kanan: Continue Shopping + Cart Totals.
  */
 import DeliveryFields from '../organisms/DeliveryFields.astro';
-import { office } from '../../data/contact';
 import { getCheckoutEnabled } from '../../lib/settings';
 const checkoutEnabled = await getCheckoutEnabled();
 
@@ -13,7 +12,7 @@ const checkoutEnabled = await getCheckoutEnabled();
 const WA_NUMBER = '6281211091885';
 ---
 
-<section class="cart" data-cart data-checkout-enabled={String(checkoutEnabled)} data-wa={WA_NUMBER} data-pickup-address={office.address.join(', ')}>
+<section class="cart" data-cart data-checkout-enabled={String(checkoutEnabled)} data-wa={WA_NUMBER}>
   {!checkoutEnabled && <p role="status" class="cart__paused">Checkout sementara belum tersedia. Belum ada pembayaran online yang dapat dilakukan melalui situs ini.</p>}
   <div class="cart__grid">
     <!-- ============ KIRI ============ -->
@@ -65,17 +64,18 @@ const WA_NUMBER = '6281211091885';
     getCart, setQty, removeItem, findProduct, unitPrice, rupiah,
   } from '../../lib/cart';
   import { initDeliveryPin, type DeliveryDestination, type DeliveryPin } from '../../lib/delivery-pin';
-  import { checkoutBranches } from '../../data/checkout-branches';
+  import { initBranchPicker } from '../../lib/branch-picker';
   import { deliveryToday } from '../../lib/delivery-policy';
 
   interface RateOption { courier: string; service: string; price: number; etd: string; courierCode: string; serviceCode: string }
   // ongkir & alamat lewat endpoint server (/api/shipping) — token Biteship tidak ke browser
-  const getRates = (opts: { destination?: DeliveryPin; items: { name: string; quantity: number }[] }): Promise<{ options: RateOption[]; estimated: boolean }> =>
+  const getRates = (opts: { branchId: string; destination?: DeliveryPin; items: { name: string; quantity: number }[] }): Promise<{ options: RateOption[]; estimated: boolean }> =>
     fetch('/api/shipping', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         destination: opts.destination,
+        branchId: opts.branchId,
         items: opts.items.map((it) => ({ slug: it.name, qty: it.quantity })),
       }),
     })
@@ -95,8 +95,6 @@ const WA_NUMBER = '6281211091885';
     const estNote = $('[data-estnote]');
     const checkDelivery = $<HTMLButtonElement>('[data-check-delivery]');
     const rateStatus = $('[data-rate-status]');
-    const branchSelect = root.querySelector<HTMLSelectElement>('[data-pickup-branch]');
-    const previewBranch = () => checkoutBranches.find(branch => branch.id === branchSelect?.value)?.preview === true;
     const checkoutEnabled = root.dataset.checkoutEnabled === 'true';
     checkDelivery.disabled = !checkoutEnabled;
     const dateInput = $<HTMLInputElement>('[data-date]');
@@ -137,15 +135,21 @@ const WA_NUMBER = '6281211091885';
     let rates: RateOption[] = [];
     let estimated = false;
     let rateRequest = 0;
+    let savedBranches: { branchChoice?: string; pickupBranchId?: string } = {};
     try {
       const saved = JSON.parse(localStorage.getItem('ania:checkout-delivery') || '{}');
+      savedBranches = saved;
       dest = { destination: saved.destination, label: saved.label };
       sendToInput.value = saved.address || '';
       if (saved.date >= iso) dateInput.value = saved.date;
       mode = saved.mode === 'pickup' ? 'pickup' : 'delivery';
     } catch {}
+    const branches = initBranchPicker(root, { mode, destination: dest.destination, ...savedBranches }, () => {
+      rateRequest++; rates = []; courierRow.hidden = true; rateStatus.hidden = true;
+      renderTotals(); saveDeliveryDraft();
+    });
     const saveDeliveryDraft = () => {
-      localStorage.setItem('ania:checkout-delivery', JSON.stringify({ ...dest, mode, date: dateInput.value, address: sendToInput.value }));
+      localStorage.setItem('ania:checkout-delivery', JSON.stringify({ ...dest, ...branches.draft(), mode, date: dateInput.value, address: sendToInput.value }));
     };
     dateInput.addEventListener('change', saveDeliveryDraft);
     sendToInput.addEventListener('input', saveDeliveryDraft);
@@ -197,8 +201,9 @@ const WA_NUMBER = '6281211091885';
       if (!checkoutEnabled) return;
       if (mode === 'pickup') return;
       rateStatus.hidden = false;
-      if (previewBranch()) { rateStatus.textContent = 'Cabang demo belum memiliki alamat/pin toko asli. Ongkir dan booking dinonaktifkan.'; return; }
       if (!dest.destination || !sendToInput.value.trim()) { rateStatus.textContent = 'Choose a delivery pin and enter the full address first.'; return; }
+      const branch = branches.current();
+      if (!branch) { rateStatus.textContent = 'Choose an active dispatch branch first.'; return; }
       const request = ++rateRequest;
       checkDelivery.disabled = true;
       rateStatus.textContent = 'Checking Instant delivery...';
@@ -212,7 +217,7 @@ const WA_NUMBER = '6281211091885';
       const items = cart.map((l) => ({ name: l.slug, quantity: l.qty }));
       courierSel.innerHTML = '<option>Loading…</option>';
       courierRow.hidden = false;
-      const res = await getRates({ destination: dest.destination, items });
+      const res = await getRates({ branchId: branch.id, destination: dest.destination, items });
       if (mode === 'pickup' || request !== rateRequest) return;
       rates = res.options;
       courierRow.hidden = !rates.length;
@@ -225,13 +230,14 @@ const WA_NUMBER = '6281211091885';
         if (request !== rateRequest || mode === 'pickup') return;
         rates = []; courierRow.hidden = true; renderTotals();
         rateStatus.textContent = (error as Error).message;
-      } finally { checkDelivery.disabled = !checkoutEnabled || previewBranch(); }
+      } finally { checkDelivery.disabled = !checkoutEnabled; }
     };
     checkDelivery.addEventListener('click', loadRates);
 
     initDeliveryPin($('[data-pin-picker]'), (destination) => {
       rateRequest++;
       dest = destination;
+      branches.setDestination(dest.destination);
       rates = [];
       estimated = false;
       estNote.hidden = true;
@@ -257,6 +263,7 @@ const WA_NUMBER = '6281211091885';
     };
     root.querySelectorAll<HTMLElement>('[data-mode]').forEach((button) => button.addEventListener('click', () => {
       mode = button.dataset.mode || 'delivery';
+      branches.setMode(mode);
       rateRequest++; rates = []; rateStatus.hidden = true;
       renderMode();
       saveDeliveryDraft();
@@ -286,7 +293,8 @@ const WA_NUMBER = '6281211091885';
         `Total: ${rupiah(total)}`,
         '',
         `Metode: ${mode === 'pickup' ? 'Pickup' : 'Delivery'}`,
-        `Kirim ke: ${mode === 'pickup' ? root.dataset.pickupAddress : [sendToInput.value, dest.label].filter(Boolean).join(', ')}`,
+        `Cabang: ${branches.current()?.name || '-'}`,
+        `Kirim ke: ${mode === 'pickup' ? branches.current()?.address : [sendToInput.value, dest.label].filter(Boolean).join(', ')}`,
         `Tanggal terima: ${dateInput.value}`,
       ].join('\n');
       window.open(`https://wa.me/${root.dataset.wa}?text=${encodeURIComponent(msg)}`, '_blank');
@@ -309,7 +317,7 @@ const WA_NUMBER = '6281211091885';
         const note = $('[data-checkoutnote]');
         note.hidden = !missing;
         note.textContent = missing ? unavailableMessage() : '';
-        checkoutBtn.disabled = !checkoutEnabled || missing || previewBranch();
+        checkoutBtn.disabled = !checkoutEnabled || missing;
       } catch (error) {
         if (requestId !== pricingRequest) return;
         const note = $('[data-checkoutnote]');
@@ -319,7 +327,8 @@ const WA_NUMBER = '6281211091885';
     checkoutBtn.addEventListener('click', async () => {
       if (!checkoutEnabled) return;
       if (!pricingReady) return;
-      if (previewBranch()) return;
+      const branch = branches.current();
+      if (!branch) return;
       const cart = getCart();
       if (!cart.length) return;
       if (unavailableLines().length) return;
@@ -353,11 +362,12 @@ const WA_NUMBER = '6281211091885';
             customer: { name, phone: wa, email },
             shipping: {
               mode,
+              branchId: branch.id,
               destination: mode === 'delivery' ? dest.destination : undefined,
               areaId: mode === 'delivery' ? dest.areaId : undefined,
               postal: mode === 'delivery' ? dest.postal : undefined,
               address: mode === 'delivery' ? sendToInput.value.trim() : '',
-              label: mode === 'pickup' ? root.dataset.pickupAddress : [sendToInput.value.trim(), dest.label].filter(Boolean).join(', '),
+              label: mode === 'pickup' ? branch.address : [sendToInput.value.trim(), dest.label].filter(Boolean).join(', '),
               date: dateInput.value,
               courier: mode === 'pickup' ? 'pickup' : chosen?.courier || '',
               service: mode === 'pickup' ? 'Pickup at ANIA' : chosen?.service || '',
@@ -389,17 +399,6 @@ const WA_NUMBER = '6281211091885';
       renderItems();
       renderTotals();
       refreshPrices();
-    });
-
-    branchSelect?.addEventListener('change', () => {
-      const branch = checkoutBranches.find(branch => branch.id === branchSelect.value)!;
-      rateRequest++; rates = []; courierRow.hidden = true; rateStatus.hidden = true;
-      const picker = $('[data-pin-picker]');
-      picker.dataset.originLat = String(branch.latitude); picker.dataset.originLng = String(branch.longitude);
-      $('[data-branch-status]').textContent = branch.address + (branch.preview ? ' Ongkir dan checkout dinonaktifkan untuk cabang demo.' : '');
-      checkDelivery.disabled = !checkoutEnabled || branch.preview;
-      checkoutBtn.disabled = !checkoutEnabled || !pricingReady || unavailableLines().length > 0 || branch.preview;
-      renderTotals();
     });
 
     renderItems();

@@ -23,6 +23,7 @@ import { saveDelivery } from '../../lib/order-shipping';
 import { validEmail, queueOrderEmails, scheduleOrderEmails } from '../../lib/order-email';
 import { getCheckoutEnabled } from '../../lib/settings';
 import { isInstantService } from '../../lib/delivery-policy';
+import { resolveBranch, BranchError } from '../../data/checkout-branches';
 
 export const prerender = false;
 
@@ -40,6 +41,11 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: 'Delivery is only available via Grab or Gojek Instant.' }, 400);
   if (body.shipping.mode === 'delivery' && !coordinates(body.shipping.destination))
     return json({ error: 'Choose a delivery pin before checking out.' }, 400);
+  let branch;
+  try { branch = resolveBranch(body.shipping.branchId, body.shipping.mode === 'delivery' ? body.shipping.destination : undefined); }
+  catch (error) { return json({ error: error instanceof Error ? error.message : 'Choose a pickup branch.' }, 400); }
+  // Canonical ID and origin come from the server, never client-supplied addresses/pins.
+  body.shipping.branchId = branch.id;
   if (!Array.isArray(body.items) || !body.items.length || body.items.length > 50 ||
       body.items.some((item: any) => !item || typeof item.slug !== 'string' || !Number.isInteger(item.qty) || item.qty < 1 || item.qty > 100))
     return json({ error: 'Invalid cart items.' }, 400);
@@ -80,10 +86,11 @@ export const POST: APIRoute = async ({ request }) => {
   const destPostal: number | undefined = sh.postal ? Number(sh.postal) : undefined;
   let shippingCost = 0;
   let courier = 'pickup';
-  let service = 'Pickup at ANIA';
+  let service = `Pickup at ${branch.name}`;
   if (sh.mode === 'delivery') {
     try {
       const rates = await getRates({
+        branchId: branch.id,
         destination: sh.destination,
         items: lines.map((l) => ({ name: l.slug, value: l.unit, weight: 1500, quantity: l.qty })),
       });
@@ -94,7 +101,7 @@ export const POST: APIRoute = async ({ request }) => {
       courier = match.courier;
       service = match.service;
     } catch (error) {
-      return json({ error: error instanceof Error ? error.message : 'Delivery unavailable.' }, error instanceof ShippingError ? error.status : 503);
+      return json({ error: error instanceof Error ? error.message : 'Delivery unavailable.' }, error instanceof ShippingError || error instanceof BranchError ? error.status : 503);
     }
   }
 
@@ -109,9 +116,9 @@ export const POST: APIRoute = async ({ request }) => {
        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         code, 'pending', name, phone, email,
-        String(sh.label || sh.address || ''), destAreaId || null, destPostal ? String(destPostal) : null,
+        sh.mode === 'pickup' ? branch.address : String(sh.label || sh.address || ''), destAreaId || null, destPostal ? String(destPostal) : null,
         courier || null, service || null, shippingCost, subtotal, total,
-        [sh.date ? `Terima: ${sh.date}` : '', sh.mode === 'delivery' ? `Pin: ${sh.destination.latitude},${sh.destination.longitude}` : '', body.note ? String(body.note) : ''].filter(Boolean).join(' · ') || null,
+        [`Cabang: ${branch.name}`, sh.date ? `Terima: ${sh.date}` : '', sh.mode === 'delivery' ? `Pin: ${sh.destination.latitude},${sh.destination.longitude}` : '', body.note ? String(body.note) : ''].filter(Boolean).join(' · ') || null,
       ],
     );
     for (const l of lines) {

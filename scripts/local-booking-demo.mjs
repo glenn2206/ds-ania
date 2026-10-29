@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import pg from 'pg';
 import { localPaymentPortal } from './local-payment-portal.mjs';
+import { tsImport } from 'tsx/esm/api';
+const { activeBranch } = await tsImport('../src/data/checkout-branches.ts', import.meta.url);
 
 assert.ok(['localhost', '127.0.0.1'].includes(process.env.DB_HOST || '127.0.0.1'), 'Demo requires a local DB');
 assert.ok(!process.env.DB_CLIENT || process.env.DB_CLIENT === 'pg', 'This demo fixture uses local PostgreSQL');
@@ -59,7 +61,7 @@ try {
     const id = (await db.query("INSERT INTO orders(code,customer_name,customer_phone,ship_address,courier,courier_service,shipping_cost,subtotal,total,xendit_invoice_id) VALUES($1,'DEMO - bukan pelanggan nyata','088888888888','ALAMAT FIKTIF untuk simulasi lokal','Grab','Instant',30000,100000,130000,$2) RETURNING id", [code, invoice])).rows[0].id;
     fixtureIds.push(id);
     await db.query('INSERT INTO order_items(order_id,product_id,slug,name,unit_price,qty,line_total) VALUES($1,$2,$3,$4,100000,1,100000)', [id, productId, 'local-mock-' + suffix.toLowerCase(), 'DEMO bouquet - bukan pesanan nyata']);
-    await db.query('INSERT INTO order_shipments(order_id,snapshot,reference_id) VALUES($1,$2,$3)', [id, JSON.stringify({ destination: { latitude: -6.28, longitude: 106.62 }, address: 'ALAMAT FIKTIF untuk simulasi lokal', courier: 'grab', service: 'instant', date: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }), weight: 1500 }), `ANIA-SHIP-${id}-${code}`]);
+    await db.query('INSERT INTO order_shipments(order_id,snapshot,reference_id) VALUES($1,$2,$3)', [id, JSON.stringify({ branch: activeBranch('jakarta'), destination: { latitude: -6.28, longitude: 106.62 }, address: 'ALAMAT FIKTIF untuk simulasi lokal', courier: 'grab', service: 'instant', date: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }), weight: 1500 }), `ANIA-SHIP-${id}-${code}`]);
   }
   const callbackToken = crypto.randomBytes(32).toString('hex');
   paymentPortal = await localPaymentPortal({ port: port + 1, appBase: base, db, productId: customerProductId, token: callbackToken, onOrder: id => fixtureIds.push(id) });

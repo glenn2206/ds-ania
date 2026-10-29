@@ -6,9 +6,10 @@ let details: any = null;
 let result: any = null;
 try { details = JSON.parse(shipment?.snapshot || 'null'); result = JSON.parse(shipment?.provider_data || 'null'); } catch {}
 let origin: ReturnType<typeof getShippingOrigin> | null = null;
-try { origin = getShippingOrigin(); } catch {}
+try { origin = getShippingOrigin(details?.branch?.id); } catch {}
 const eligible = order.status === 'paid' && order.paid_at && order.xendit_invoice_id;
-const canBook = bookingEnabled() && eligible && ['ready', 'rejected'].includes(shipment?.state);
+const branchMatches = origin && JSON.stringify(details?.branch) === JSON.stringify(origin);
+const canBook = bookingEnabled() && eligible && branchMatches && ['ready', 'rejected'].includes(shipment?.state);
 const needsReview = ['creating', 'review'].includes(shipment?.state);
 const rp = (n: number) => 'Rp ' + Number(n).toLocaleString('id-ID');
 const tracking = typeof result?.link === 'string' && result.link.startsWith('https://') ? result.link : null;
@@ -27,6 +28,7 @@ const tracking = typeof result?.link === 'string' && result.link.startsWith('htt
     </details>
   </aside>
   {!shipment ? <p>Order pickup atau order lama tanpa data pin terstruktur. Booking CMS tidak tersedia; periksa pengiriman secara manual.</p> : <>
+    {!branchMatches && !result && <p class="shipping__error">Cabang pickup belum tersimpan, tidak aktif, atau datanya berubah. Order lama tidak otomatis dipindahkan ke Jakarta/Bali; periksa asal secara manual sebelum booking.</p>}
     <dl>
       <div><dt>Asal pickup</dt><dd>{details?.booking?.origin_contact_name || origin?.name}<br />{details?.booking?.origin_address || origin?.address}<br />Pin: {details?.booking?.origin_coordinate?.latitude ?? origin?.latitude}, {details?.booking?.origin_coordinate?.longitude ?? origin?.longitude}</dd></div>
       <div><dt>Tujuan</dt><dd>{details?.address}<br />Pin: {details?.destination?.latitude}, {details?.destination?.longitude}</dd></div>
