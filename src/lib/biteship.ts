@@ -1,6 +1,7 @@
 import { env } from './env';
 import { ShippingCache, allowShippingRequest } from './shipping-cache';
 import { shippingOrigin } from '../data/shipping-origin';
+import { isInstantService } from './delivery-policy';
 
 const BASE = 'https://api.biteship.com/v1';
 const areasCache = new ShippingCache<Area[]>(24 * 60 * 60_000);
@@ -88,7 +89,7 @@ export async function getRates(opts: { destination?: Coordinates; items: RateIte
     const data = await provider('/rates/couriers', { method: 'POST', body: JSON.stringify(body) });
     if (!Array.isArray(data.pricing)) throw new ShippingError('Invalid delivery rate response.');
     const options = data.pricing.filter((p: any) =>
-      ['gojek', 'grab'].includes(p.courier_code) && p.courier_service_code === 'instant' &&
+      isInstantService(p.courier_code, p.courier_service_code) &&
       Number.isFinite(p.price) && p.price > 0
     ).map((p: any) => ({
       courier: p.courier_name, service: p.courier_service_name,

@@ -22,6 +22,7 @@ import * as xendit from '../../lib/xendit';
 import { saveDelivery } from '../../lib/order-shipping';
 import { validEmail, queueOrderEmails, scheduleOrderEmails } from '../../lib/order-email';
 import { getCheckoutEnabled } from '../../lib/settings';
+import { isInstantService } from '../../lib/delivery-policy';
 
 export const prerender = false;
 
@@ -35,6 +36,8 @@ export const POST: APIRoute = async ({ request }) => {
   const body = await request.json().catch(() => null);
   if (!body) return json({ error: 'invalid json' }, 400);
   if (!['delivery', 'pickup'].includes(body.shipping?.mode)) return json({ error: 'Choose delivery or pickup.' }, 400);
+  if (body.shipping.mode === 'delivery' && !isInstantService(body.shipping.courierCode, body.shipping.serviceCode))
+    return json({ error: 'Delivery is only available via Grab or Gojek Instant.' }, 400);
   if (body.shipping.mode === 'delivery' && !coordinates(body.shipping.destination))
     return json({ error: 'Choose a delivery pin before checking out.' }, 400);
   if (!Array.isArray(body.items) || !body.items.length || body.items.length > 50 ||

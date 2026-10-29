@@ -66,6 +66,7 @@ const WA_NUMBER = '6281211091885';
   } from '../../lib/cart';
   import { initDeliveryPin, type DeliveryDestination, type DeliveryPin } from '../../lib/delivery-pin';
   import { checkoutBranches } from '../../data/checkout-branches';
+  import { deliveryToday } from '../../lib/delivery-policy';
 
   interface RateOption { courier: string; service: string; price: number; etd: string; courierCode: string; serviceCode: string }
   // ongkir & alamat lewat endpoint server (/api/shipping) — token Biteship tidak ke browser
@@ -129,9 +130,7 @@ const WA_NUMBER = '6281211091885';
     };
     contactInputs.forEach((input) => input.addEventListener('input', saveContactDraft));
 
-    // default tanggal = besok (waktu lokal)
-    const t = new Date(); t.setDate(t.getDate() + 1);
-    const iso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+    const iso = deliveryToday();
     dateInput.min = iso; dateInput.value = iso;
 
     let dest: DeliveryDestination = {};

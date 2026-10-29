@@ -38,10 +38,5 @@ export const careInstructions = [
   },
 ];
 
-/** Add-on extras (index.html "Add On Cute Extras to Your Bouquet!"). */
-export const addonExtras = [
-  { slug: 'addon-plush-doll', image: '/assets/bouquet-rouge-elegance.jpg', title: 'Plush Doll', price: 'Rp 50,000' },
-  { slug: 'addon-balloon', image: '/assets/bouquet-rose-allure.jpg', title: 'Balloon', price: 'Rp 100,000' },
-  { slug: 'addon-cake', image: '/assets/bouquet-vibrant-longevity.jpg', title: 'Cake', price: 'Rp 300,000' },
-  { slug: 'addon-chocolate', image: '/assets/bouquet-blush-amethyst.jpg', title: 'Chocolate', price: 'Rp 125,000' },
-];
+/** Snapshot fallback; public SSR pages use the current CMS catalog. */
+export { addons as addonExtras } from './home';

@@ -5,14 +5,15 @@ import CareInstructions from '../../components/templates/CareInstructions.astro'
 import ProductCard from '../../components/organisms/ProductCard.astro';
 import OccasionCard from '../../components/organisms/OccasionCard.astro';
 import { toProduct } from '../../data/shop';
-import { addonExtras } from '../../data/care';
+import { toHomeAddons } from '../../data/home';
 import { getCatalog, getProductBySlug } from '../../lib/products';
 
 const { slug } = Astro.params;
 const item = await getProductBySlug(slug ?? '');
 if (!item) return new Response('Produk tidak ditemukan', { status: 404 });
 const images = (item.gallery?.length ? item.gallery : [item.image, item.image2].filter(Boolean)) as string[];
-const { premiumWrapped } = await getCatalog();
+const { premiumWrapped, addons } = await getCatalog();
+const addonExtras = toHomeAddons(addons.filter(addon => addon.slug !== item.slug), 4);
 const others = premiumWrapped.filter((product) => product.slug !== item.slug);
 const start = Math.max(0, premiumWrapped.findIndex((product) => product.slug === item.slug));
 const related = [...others.slice(start), ...others.slice(0, start)].slice(0, 24);

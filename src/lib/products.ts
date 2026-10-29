@@ -11,6 +11,7 @@
 import { q, isConfigured } from './db';
 import { getDiscounts, applyDiscount } from './discounts';
 import { getAllImageAlts } from './image-alt';
+import { isCustomerVisibleProduct } from '../data/customer-visibility';
 import {
   buildCatalog,
   toItem,
@@ -109,6 +110,7 @@ async function fetchCatalog(): Promise<Catalog> {
     // gunakan transform yang sama, tapi foto CMS disajikan dari /uploads/
     const all = rawList
       .slice()
+      .filter(isCustomerVisibleProduct)
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .map((r, i) => {
         const item = toItem(r, i, '/uploads/');
@@ -188,7 +190,7 @@ export async function getLiveState(slugs?: string[]): Promise<Record<string, Liv
     return out;
   }
   let sql =
-    "SELECT slug, price, price_note, stock, status FROM products WHERE status = 'published'";
+    "SELECT slug, name, category, price, price_note, stock, status FROM products WHERE status = 'published'";
   const params: any[] = [];
   if (slugs && slugs.length) {
     sql += ` AND slug IN (${slugs.map(() => '?').join(',')})`;
@@ -196,6 +198,7 @@ export async function getLiveState(slugs?: string[]): Promise<Record<string, Liv
   }
   const rows = await q(sql, params);
   for (const r of rows) {
+    if (!isCustomerVisibleProduct({ category: String(r.category), name: String(r.name), slug: String(r.slug) })) continue;
     const stock = r.stock == null ? null : Number(r.stock);
     out[r.slug] = {
       price: r.price == null ? null : Number(r.price),

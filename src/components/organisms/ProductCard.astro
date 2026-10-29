@@ -48,7 +48,7 @@ const {
     {state === 'hover' && !slug && <Button variant="secondary-onwhite">Add to Cart</Button>}
     {
       slug && (
-        <button class="cmp-btn-secondary cmp-btn-secondary--onwhite pcard__add" type="button" data-add={slug}>
+        <button class="cmp-btn-secondary cmp-btn-secondary--onwhite pcard__add" type="button" data-product-add={slug}>
           Add to Cart
         </button>
       )
@@ -117,9 +117,9 @@ const {
 
 <script>
   import { addItem } from '../../lib/cart';
-  document.querySelectorAll<HTMLButtonElement>('[data-add]').forEach((btn) => {
+  document.querySelectorAll<HTMLButtonElement>('[data-product-add]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      addItem(btn.dataset.add!, 1);
+      addItem(btn.dataset.productAdd!, 1);
       const orig = btn.textContent;
       btn.textContent = 'Added ✓';
       btn.classList.add('is-added');

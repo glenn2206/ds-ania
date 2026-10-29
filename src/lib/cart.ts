@@ -16,6 +16,7 @@ export const findProduct = (slug: string): CatalogItem | undefined =>
   purchasable.find((p) => p.slug === slug);
 
 export function addItem(slug: string, qty = 1) {
+  if (typeof slug !== 'string' || !slug.trim() || !Number.isSafeInteger(qty) || qty < 1) return;
   const lines = getCart();
   const l = lines.find((x) => x.slug === slug);
   if (l) l.qty += qty;

@@ -46,6 +46,7 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
 <script>
   import { addItem, rupiah } from '../../lib/cart';
   import { initDeliveryPin, type DeliveryDestination } from '../../lib/delivery-pin';
+  import { deliveryToday } from '../../lib/delivery-policy';
 
   document.querySelectorAll<HTMLElement>('[data-buybox]').forEach((box) => {
     if (box.dataset.soldout) return; // tak ada tombol beli untuk item sold out
@@ -55,9 +56,7 @@ const swatchImages = item.image2 ? [item.image, item.image2] : [item.image];
     const dateInput = $<HTMLInputElement>('[data-date]');
     const coTot = $('[data-cotot]');
 
-    const t = new Date(); t.setDate(t.getDate() + 1);
-    dateInput.value = dateInput.min =
-      `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+    dateInput.value = dateInput.min = deliveryToday();
 
     let dest: DeliveryDestination = {};
     let mode = 'delivery';

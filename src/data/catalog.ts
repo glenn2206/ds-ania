@@ -13,6 +13,7 @@
  * Untuk data live pakai `getCatalog()` dari src/lib/products.ts.
  */
 import raw from './products.generated.json';
+import { isCustomerVisibleProduct } from './customer-visibility';
 
 export interface CatalogItem {
   /** id baris DB — hanya ada pada data live (getCatalog), undefined pada snapshot */
@@ -105,7 +106,7 @@ export function toItem(r: RawProduct, i: number, imgPrefix = '/assets/products/'
     flowers: r.flowers || '—',
     price: typeof r.price === 'number' ? r.price : null,
     description: r.description,
-    image: imgs[0] ?? pool(i),
+    image: imgs[0] ?? (r.category === 'accessory' ? '/assets-svg/product-photo-unavailable.svg' : pool(i)),
     imageAlt: r.imageAlts?.[0]?.trim() || r.name,
     imageAlts: imgs.map((_, index) => r.imageAlts?.[index]?.trim() || r.name),
     images: r.images ?? [],
@@ -127,6 +128,7 @@ export function toItem(r: RawProduct, i: number, imgPrefix = '/assets/products/'
 export function buildCatalog(rows: RawProduct[]) {
   const all = rows
     .slice()
+    .filter(isCustomerVisibleProduct)
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .map((r, i) => toItem(r, i));
   const premiumWrapped = all.filter((c) => c.category === 'premium-wrapped');

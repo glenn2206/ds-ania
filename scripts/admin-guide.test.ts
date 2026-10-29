@@ -32,7 +32,7 @@ test('tracking guide distinguishes admin sync from customer order status', () =>
 });
 
 test('SOP has complete steps, unique anchors, all groups and existing screenshots', async () => {
-  assert.equal(guideSections.length, 44);
+  assert.equal(guideSections.length, 45);
   assert.equal(new Set(guideSections.map(section => section.id)).size, guideSections.length);
   for (const group of guideGroups) assert.ok(guideSections.some(section => section.group === group.id));
   const screenshots = guideSections.flatMap(section => section.image ? [section.image] : []);
@@ -49,6 +49,13 @@ test('SOP has complete steps, unique anchors, all groups and existing screenshot
     assert.ok(image.alt && image.caption);
   }
   assert.ok(guideRoutes.some(([, route]) => route === '/admin/panduan'));
+  const quickGuide = guideSections.find(section => section.id === 'panduan-checkout-dan-foto')!;
+  assert.ok(quickGuide);
+  const quickText = [...quickGuide.steps, ...quickGuide.notes!].join(' ');
+  assert.match(quickText, /Grab\/Gojek Instant/);
+  assert.match(quickText, /Kesiapan checkout/);
+  assert.match(quickText, /Foto kartu Occasions di beranda/);
+  assert.match(quickText, /tidak membatalkan invoice Xendit lama/);
 });
 
 test('SOP route and download require login and include all sections and images', async () => {

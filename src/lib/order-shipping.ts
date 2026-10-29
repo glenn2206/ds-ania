@@ -3,6 +3,7 @@ import { tx, type Querier } from './db';
 import { env } from './env';
 import { office } from '../data/contact';
 import { BookingError, bookingRequest, coordinates, getRates, getShippingOrigin } from './biteship';
+import { isInstantService } from './delivery-policy';
 
 export class OrderShippingError extends Error {
   constructor(message: string, public status = 409) { super(message); }
@@ -35,7 +36,7 @@ function readQuote(token: unknown) {
 }
 export function deliverySnapshot(shipping: any) {
   const pin = coordinates(shipping.destination);
-  if (!pin || !['gojek', 'grab'].includes(shipping.courierCode) || shipping.serviceCode !== 'instant') fail('Data Instant tidak valid.', 400);
+  if (!pin || !isInstantService(shipping.courierCode, shipping.serviceCode)) fail('Data Instant tidak valid.', 400);
   return { destination: pin, address: String(shipping.label || shipping.address || '').trim(),
     courier: shipping.courierCode, service: 'instant', date: String(shipping.date || ''), weight: 1500 };
 }

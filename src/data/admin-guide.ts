@@ -38,6 +38,22 @@ export interface GuideSection {
 
 export const guideSections: GuideSection[] = [
   {
+    id: 'panduan-checkout-dan-foto', group: 'bantuan', title: 'Panduan pengiriman Instant, checkout OFF, dan foto Occasions', route: '/admin/settings',
+    intro: 'Tiga hal ini mempunyai pengaturan yang berbeda. Jangan mengaktifkan pembayaran hanya untuk menghilangkan pemberitahuan checkout.',
+    steps: [
+      'Pengiriman: di detail produk pilih Instant Delivery atau Pickup. Pengiriman hanya memakai Grab/Gojek Instant. Di keranjang, isi alamat lengkap, pilih pin, lalu klik Check Instant Delivery dan pilih kurir yang tersedia. Kalender mengizinkan hari ini berdasarkan waktu Jakarta; ini bukan jaminan bunga atau kurir langsung tersedia.',
+      'Jika cek ongkir atau checkout nonaktif: buka Pengaturan situs, bagian Kesiapan checkout. Jika Checkout aktif tidak dicentang, pemberitahuan sementara belum tersedia memang ditampilkan dan server memblokir checkout serta cek ongkir. Ini tidak berarti layanan Instant berubah menjadi Regular.',
+      'Saat toko benar-benar siap menerima pembayaran: pengelola yang berwenang dapat mencentang Checkout aktif lalu klik Simpan kesiapan checkout. Refresh halaman keranjang. Untuk menutup kembali, hilangkan centang dan simpan. Pastikan konfigurasi pembayaran, pengiriman, dan cabang sudah diverifikasi sebelum mengaktifkan.',
+      'Foto Anniversary, Birthday, dan Get Well Soon: di Pengaturan, cari Foto kartu Occasions di beranda. Klik Ganti foto pada nama kartu yang benar, pilih JPG/PNG/WebP maksimal 12 MB, tunggu upload selesai, lalu klik Simpan media. Refresh beranda dan buka tab Occasions. Hero halaman Occasion adalah pengaturan terpisah.',
+      'Foto Plush Doll, Balloon, Cake, atau add-on lain: buka Produk, cari nama produk, lalu edit foto. Foto pertama menjadi gambar utama. Simpan perubahan dan periksa beranda serta detail produk setelah cache katalog diperbarui (maksimal sekitar 60 detik). Jika belum ada foto asli, tampil placeholder; foto bunga lain tidak dipakai sebagai pengganti.',
+    ],
+    notes: [
+      'Checkout OFF berlaku untuk delivery maupun pickup. Mengubahnya menjadi ON membuka checkout yang dapat membuat invoice pembayaran nyata; lakukan hanya setelah disetujui pengelola toko.',
+      'Toggle checkout tidak membatalkan invoice Xendit lama atau booking Biteship yang sudah dibuat. Pengiriman Instant yang tidak tersedia tidak otomatis diganti ke Same Day atau Regular.',
+      'Alat florist yang diminta disembunyikan (clipper holder, glass flower dome, gunting/scissors/secateurs) tidak ditampilkan di katalog pelanggan. Data CMS tidak dihapus. Add-on hadiah seperti Plush Doll, Balloon, Cake, dan Chocolate tetap ditampilkan.',
+    ],
+  },
+  {
     id: 'kesiapan-checkout', group: 'pengaturan', title: 'Aktifkan / nonaktifkan checkout', route: '/admin/settings',
     intro: 'Toggle kesiapan checkout menghentikan transaksi baru, bukan membatalkan order lama.',
     notes: ['Default checkout nonaktif bila setting belum ada atau database tidak tersedia. Pengelola harus mengaktifkan secara eksplisit. Saat nonaktif, tombol checkout produk/keranjang dan tautan bayar di halaman order disembunyikan/dinonaktifkan.', 'Toggle tidak menonaktifkan invoice Xendit lama yang URL-nya sudah dibagikan. Periksa dan kedaluwarsakan invoice pending melalui dashboard Xendit bila ingin menutup pembayaran lama juga.'],
@@ -200,7 +216,7 @@ export const guideSections: GuideSection[] = [
   ...orderFlowGuide,
   {
     id: 'instant-delivery', group: 'order', title: 'Pengiriman Instant dan pickup', route: '/cart', href: '/cart',
-    intro: 'Pengiriman online hanya menerima GoSend Instant atau Grab Instant yang tersedia dari Biteship. Pickup tetap tersedia tanpa ongkir.',
+    intro: 'Pengiriman online hanya menerima GoSend Instant atau Grab Instant yang tersedia dari Biteship. Regular, Same Day, dan kurir lain ditolak. Pickup tetap tersedia tanpa ongkir.',
     steps: [
       'Pelanggan mengisi Full Delivery Address terlebih dahulu, lalu memilih Choose delivery pin, menggeser peta ke lokasi penerima, dan menekan Use this pin. Angka latitude, longitude yang valid langsung memindahkan peta tanpa wajib menekan Enter; Find tetap tersedia. Mengubah alamat membatalkan pin lama agar dikonfirmasi kembali.',
       'Jika berada di alamat penerima, pelanggan dapat menekan Use my location / Gunakan lokasi saya lalu mengizinkan akses lokasi pada browser. Lokasi tidak diminta otomatis. Periksa pin dan tekan Use this pin untuk mengonfirmasi; alamat lengkap tetap diisi. Jika izin ditolak atau lokasi tidak ditemukan, pilih pin manual. Tombol ini tidak mengecek ongkir Biteship dan tidak melacak lokasi terus-menerus.',
@@ -213,7 +229,7 @@ export const guideSections: GuideSection[] = [
       'Jika tidak ada kurir atau API bermasalah, pilih Pickup atau hubungi ANIA. Jangan menggunakan angka estimasi sebagai ongkir pasti.',
       'Setelah pembayaran Xendit terkonfirmasi, siapkan rangkaian. Buka detail order dan ikuti SOP Pesan Kurir Instant. Kurir hanya dipesan setelah admin meninjau tarif dan menyetujui booking.',
     ],
-    result: 'Order delivery memakai layanan Instant dan tarif server yang tervalidasi. Order pickup memakai ongkir nol.',
+    result: 'Order delivery memakai layanan Instant dan tarif server yang tervalidasi. Order pickup memakai ongkir nol. Kalender mengizinkan hari ini berdasarkan waktu Jakarta, bukan otomatis mulai besok. Pilihan tanggal tidak menjamin kurir tersedia; admin tetap memastikan rangkaian siap sebelum booking.',
     notes: [
       'Pembayaran tidak otomatis memanggil kurir. Tombol booking di CMS memanggil Order API setelah konfirmasi admin; paid bukan bukti kurir sudah dipesan.',
       'Asal ongkir Instant memakai cabang Tangerang: Bloomingfields CR6, The HOOD, Jl. Symphonia, Boulevard W No.001, Cijantra, Pagedangan, Kabupaten Tangerang, Banten 15336. Pin mengikuti plus code PJG5+2M: -6.2749375, 106.6091875. Pengadegan tidak lagi menjadi default asal ongkir. Pengelola teknis dapat menggantinya melalui BITESHIP_ORIGIN_LATITUDE dan BITESHIP_ORIGIN_LONGITUDE. Jika masih ada koordinat lama di Environment Variables cPanel, perbarui keduanya, simpan dan restart aplikasi.',

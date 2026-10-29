@@ -3,7 +3,7 @@
  * Ganti path/nilai di sini; komponen tidak perlu disentuh.
  */
 
-import { premiumWrapped, type CatalogItem } from './catalog';
+import { premiumWrapped, addons as catalogAddons, type CatalogItem } from './catalog';
 
 export interface Product {
   image: string;
@@ -59,11 +59,17 @@ export const tiles = [
   { image: '/assets/bouquet-hello-sunshine.jpg', label: 'Just For Me' },
 ];
 
-export const addons = [
-  { slug: 'addon-plush-doll', image: '/assets/bouquet-rouge-elegance.jpg', title: 'Plush Doll', price: 'Rp 50,000' },
-  { slug: 'addon-balloon', image: '/assets/bouquet-rose-allure.jpg', title: 'Balloon', price: 'Rp 100,000' },
-  { slug: 'addon-cake', image: '/assets/bouquet-vibrant-longevity.jpg', title: 'Cake', price: 'Rp 300,000' },
-];
+export const addons = toHomeAddons(catalogAddons);
+
+export function toHomeAddons(items: CatalogItem[], limit = 3) {
+  const preferred = ['addon-plush-doll', 'addon-balloon', 'addon-cake'];
+  const picked = preferred.map(slug => items.find(item => item.slug === slug))
+    .filter((item): item is CatalogItem => Boolean(item));
+  return [...picked, ...items.filter(item => !picked.includes(item))].slice(0, limit).map(item => ({
+    slug: item.slug, image: item.image, title: item.name,
+    price: typeof item.price === 'number' ? `Rp ${item.price.toLocaleString('en-US')}` : item.priceNote || 'By request',
+  }));
+}
 
 export const whyAnia = [
   {

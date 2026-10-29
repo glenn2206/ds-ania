@@ -145,6 +145,7 @@ export const translations: Record<string, string> = {
   'The full delivery address is required.': 'Alamat lengkap penerima wajib.',
   'The cart is empty.': 'Keranjang kosong.',
   'Instant Delivery': 'Pengiriman Instant',
+  'Delivery via Grab/Gojek Instant only. Courier availability and delivery cost are confirmed at checkout.': 'Pengiriman hanya melalui Grab/Gojek Instant. Ketersediaan kurir dan ongkir dikonfirmasi saat checkout.',
   'Instant Courier:': 'Kurir Instant:',
   'Choose delivery pin': 'Pilih pin pengiriman',
   'Use my location': 'Gunakan lokasi saya',

@@ -103,6 +103,21 @@ test('Biteship provider failure never becomes an empty search or fabricated quot
   } finally { globalThis.fetch = original; }
 });
 
+test('no Instant option never falls back to regular, same-day or another courier', async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => Response.json({ success: true, pricing: [
+    { courier_code: 'grab', courier_service_code: 'same_day', price: 15000 },
+    { courier_code: 'gojek', courier_service_code: 'regular', price: 14000 },
+    { courier_code: 'jne', courier_service_code: 'instant', price: 10000 },
+  ] });
+  try {
+    const result = await biteship.getRates({ destination: { latitude: -6.28, longitude: 106.61 },
+      items: [{ name: 'Test bouquet', value: 10000, weight: 1500, quantity: 1 }], fresh: true });
+    assert.deepEqual(result.options, []);
+    assert.equal(result.estimated, false);
+  } finally { globalThis.fetch = original; }
+});
+
 test('default Instant pickup uses the confirmed Tangerang branch', async () => {
   const original = globalThis.fetch;
   const savedLat = process.env.BITESHIP_ORIGIN_LATITUDE;
