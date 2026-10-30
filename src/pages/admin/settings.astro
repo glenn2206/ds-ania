@@ -155,6 +155,9 @@ const checkoutEnabled = await getCheckoutEnabled();
     try {
       const response = await fetch('/api/admin/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ checkout: { enabled: (document.getElementById('checkout-enabled') as HTMLInputElement).checked } }) });
       message.textContent = response.ok ? 'Kesiapan checkout tersimpan.' : 'Gagal menyimpan.';
+      if (response.ok) {
+        try { localStorage.setItem('ania:checkout-status', String(Date.now())); } catch {}
+      }
     } catch { message.textContent = 'Koneksi gagal. Coba lagi.'; }
     finally { button.disabled = false; }
   });

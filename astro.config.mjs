@@ -3,6 +3,7 @@ import node from '@astrojs/node';
 import react from '@astrojs/react';
 
 const configuredSite = process.env.PUBLIC_SITE_URL?.trim() || 'http://localhost:4321';
+const devTunnelHost = process.env.ANIA_DEV_TUNNEL_HOST?.trim();
 let site = 'http://localhost:4321';
 
 try {
@@ -26,6 +27,8 @@ export default defineConfig({
   adapter: node({ mode: 'standalone' }),
   integrations: [react()],
   vite: {
+    // Opt in to one exact tunnel host during local testing, never a wildcard.
+    server: { allowedHosts: devTunnelHost && /^[a-z0-9.-]+$/i.test(devTunnelHost) ? [devTunnelHost] : [] },
     // paket native / CJS — jangan di-bundle ke server output
     ssr: { external: ['sharp', 'pg', 'pg-native', 'mysql2', 'bcryptjs'] },
   },
