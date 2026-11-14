@@ -1,16 +1,11 @@
 /**
  * Konten halaman /occasions ("For Occasions").
- * Baris produk diturunkan dari katalog asli (src/data/catalog.ts) berdasarkan
- * kolom `occasion`, dipetakan ke bentuk <ProductCard> lewat toProduct().
+ * Baris produk diturunkan dari katalog LIVE (getCatalog, src/lib/products.ts)
+ * berdasarkan kolom `occasion` di CMS, dipetakan ke <ProductCard> lewat toProduct().
  */
-import { allProducts, type CatalogItem } from './catalog';
+import type { CatalogItem } from './catalog';
 import { toProduct } from './shop';
 import type { Product } from './home';
-import { addonExtras } from './care';
-
-/** produk per baris occasion (kelipatan 3 supaya paging rapi) */
-export const PER_PAGE = 3;
-const ROW_SIZE = 9;
 
 export const intro = {
   eyebrow: 'What’s the Occasion?',
@@ -20,74 +15,40 @@ export const intro = {
   secondary: { label: 'Let’s Talk Flowers', href: '/contact' },
 };
 
-const bySlug = new Map(allProducts.map((c) => [c.slug, c]));
-
-/**
- * Susun satu baris occasion:
- *  - `lead` = slug kurasi (tampil duluan),
- *  - lalu produk lain yang cocok `re` (kolom occasion katalog),
- *  - terakhir sisa katalog sebagai cadangan — dipotong ke ROW_SIZE (9 = 3 halaman).
- * Kartu pertama tiap halaman ditandai Sale (harga coret = harga / 0.75) — sesuai PromoBar "25% Off".
- */
-function buildRow(lead: string[], re: RegExp): Product[] {
-  const seen = new Set<string>();
-  const out: CatalogItem[] = [];
-  const add = (c?: CatalogItem) => {
-    if (c && !seen.has(c.slug)) {
-      seen.add(c.slug);
-      out.push(c);
-    }
-  };
-
-  lead.forEach((s) => add(bySlug.get(s)));
-  allProducts.filter((p) => re.test(p.occasion ?? '')).forEach(add);
-  allProducts.forEach(add); // cadangan agar selalu cukup 9
-
-  return out.slice(0, ROW_SIZE).map((c, i) => {
-    const p: Product = { ...toProduct(c), slug: c.slug, href: `/product/${c.slug}` };
-    if (i % PER_PAGE === 0 && typeof c.price === 'number') {
-      p.state = 'sale';
-      p.compareAt = Math.round(c.price / 0.75 / 10000) * 10000;
-    }
-    return p;
-  });
-}
-
 export interface OccasionRow {
   eyebrow: string;
   title: string;
   products: Product[];
 }
 
-export const occasionRows: OccasionRow[] = [
-  {
-    eyebrow: 'Birthday Flower',
-    title: 'Happy Birthday!',
-    products: buildRow(['a-handful-flower-box', 'blush-amethyst-orchestra', 'love-symphony'], /birthday/i),
-  },
-  {
-    eyebrow: 'Anniversary',
-    title: 'I Love You',
-    products: buildRow(['rose-allure', 'blushing-blooms', 'romantic-glow'], /i love you|anniversary/i),
-  },
-  {
-    eyebrow: 'Graduation',
-    title: 'Happy Graduation!',
-    products: buildRow(['roselle-verdant', 'hello-sunshine', 'catch-your-eyes'], /graduation/i),
-  },
-  {
-    eyebrow: 'Sympathy',
-    title: 'Deepest Condolences',
-    products: buildRow(['sympathy-flower-board', 'ivory-haven', 'seraphic-peace'], /condolence|sympathy/i),
-  },
-  {
-    eyebrow: 'Just For Me',
-    title: 'Proud of My Self',
-    products: buildRow(['petal-crown', 'blush-meadow', 'sunflower-bliss'], /just because|speedy recovery|achievement|new beginnings/i),
-  },
+/**
+ * Definisi baris occasion. Judul tetap di kode; PRODUK diambil dari CMS —
+ * produk masuk baris bila kolom "Occasion" di admin cocok dengan `match`.
+ * Urutan mengikuti sort order produk di CMS.
+ */
+const OCCASION_DEFS: { eyebrow: string; title: string; match: RegExp }[] = [
+  { eyebrow: 'Birthday Flower', title: 'Happy Birthday!', match: /birthday/i },
+  { eyebrow: 'Anniversary', title: 'I Love You', match: /i love you|anniversary/i },
+  { eyebrow: 'Graduation', title: 'Happy Graduation!', match: /graduation/i },
+  { eyebrow: 'Sympathy', title: 'Deepest Condolences', match: /condolence|sympathy/i },
+  { eyebrow: 'Just For Me', title: 'Proud of My Self', match: /just because|speedy recovery|achievement|new beginnings/i },
 ];
 
-export const addOnExtras = addonExtras;
+/**
+ * Susun baris occasion dari katalog live (getCatalog().allProducts).
+ * Harga coret / label Sale hanya dari diskon yang diset di CMS (toProduct).
+ * Baris tanpa produk yang cocok disembunyikan.
+ */
+export function buildOccasionRows(products: CatalogItem[]): OccasionRow[] {
+  return OCCASION_DEFS.map(({ eyebrow, title, match }) => ({
+    eyebrow,
+    title,
+    products: products
+      .filter((c) => match.test(c.occasion ?? ''))
+      .map((c) => ({ ...toProduct(c), slug: c.slug, href: `/product/${c.slug}` })),
+  })).filter((row) => row.products.length > 0);
+}
+
 
 export interface SendToCard {
   icon: string;

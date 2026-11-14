@@ -26,3 +26,6 @@ docs/legacy-cms/.worker.lock
 ania-app.tgz
 ania-app.zip
 uploads.tgz
+
+# graphify code map (local)
+graphify-out/

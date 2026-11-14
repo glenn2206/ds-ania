@@ -3,12 +3,15 @@
  * TEMPLATE · OccasionShowcase — "What Do You Want to Say?" + daftar OccasionRow.
  */
 import OccasionRow from './OccasionRow.astro';
-import { occasionRows } from '../../data/occasions';
+import { buildOccasionRows } from '../../data/occasions';
+import { getCatalog } from '../../lib/products';
 
 interface Props {
   title?: string;
 }
 const { title = 'What Do You Want to Say?' } = Astro.props;
+const { allProducts } = await getCatalog();
+const occasionRows = buildOccasionRows(allProducts);
 ---
 
 <section class="oshow">
@@ -28,7 +31,7 @@ const { title = 'What Do You Want to Say?' } = Astro.props;
     margin: 0 0 24px;
     color: #1E2934;                     /* Figma: judul section ini #1E2934, bukan --ink */
     position: sticky;
-    top: var(--nav-h, 148px);
+    top: calc(var(--nav-h, 148px) - 1px);
     z-index: 10;
     background: var(--bg);
     padding: 14px 0;

@@ -6,8 +6,10 @@
  */
 import ProductCard from './ProductCard.astro';
 import Icon from '../atoms/Icon.astro';
-import { allProducts } from '../../data/catalog';
 import { toProduct } from '../../data/shop';
+import { getCatalog } from '../../lib/products';
+
+const { allProducts } = await getCatalog();
 
 const searchText = (c: (typeof allProducts)[number]) =>
   [c.name, c.pill, c.flowers, c.occasion ?? '', c.category, c.description]

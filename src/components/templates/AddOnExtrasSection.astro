@@ -6,7 +6,8 @@
  */
 import OccasionCard from '../organisms/OccasionCard.astro';
 import Button from '../atoms/Button.astro';
-import { addOnExtras } from '../../data/occasions';
+import { toHomeAddons } from '../../data/home';
+import { getCatalog } from '../../lib/products';
 
 interface Props {
   title?: string;
@@ -14,6 +15,7 @@ interface Props {
   href?: string;
 }
 const { title = 'Add On Cute Extras to Your Bouquet!', cta = 'View All Add-on', href = '/shop?filter=addon' } = Astro.props;
+const addOnExtras = toHomeAddons((await getCatalog()).addons);
 ---
 
 <section class="addonx">
