@@ -18,7 +18,8 @@ if [[ -f /home/myaniaco/public_html/.htaccess ]]; then
   node "$REPO_DIR/scripts/cpanel-backup-database.mjs" "$(date +%F)" "$DEPLOY_SHA"
 fi
 npm ci --include=dev
-NODE_ENV=production npm run build
+# npm bin links (node_modules/.bin) are not always created on cPanel, so call Astro directly.
+NODE_ENV=production node ./node_modules/astro/astro.js build
 
 # Finish the additive migration before switching the running application.
 # set -e leaves the old app intact if database permissions/migration fail.
