@@ -18,7 +18,12 @@ if [[ -f /home/myaniaco/public_html/.htaccess ]]; then
   node "$REPO_DIR/scripts/cpanel-backup-database.mjs" "$(date +%F)" "$DEPLOY_SHA"
 fi
 npm ci --include=dev
-# npm bin links (node_modules/.bin) are not always created on cPanel, so call Astro directly.
+# CloudLinux nodevenv installs packages into $NODE_ENV_DIR/lib/node_modules, not ./node_modules.
+# Link it so the build (and Vite module resolution) can find them; call Astro directly.
+if [[ ! -e "$REPO_DIR/node_modules/astro" && -d "$NODE_ENV_DIR/lib/node_modules/astro" ]]; then
+  rm -rf "$REPO_DIR/node_modules"
+  ln -s "$NODE_ENV_DIR/lib/node_modules" "$REPO_DIR/node_modules"
+fi
 NODE_ENV=production node ./node_modules/astro/astro.js build
 
 # Finish the additive migration before switching the running application.
