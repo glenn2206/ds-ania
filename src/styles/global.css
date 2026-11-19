@@ -344,7 +344,7 @@
   .pcard__media .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
   .pcard__media > .cmp-badge{position:absolute;left:20px;top:20px}
   .pcard__dim{position:absolute;inset:0;background:rgba(253,246,241,.75)}
-  .pcard__media > .cmp-btn-secondary{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap}
+  .pcard__media > .cmp-btn-secondary{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);white-space:nowrap}
   .pcard .cmp-swatch .dot{background-size:cover;background-position:center}
   .pcard__body{align-self:stretch;display:flex;flex-direction:column;align-items:center;gap:12px}
   .pcard__tp{align-self:stretch;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
@@ -790,7 +790,7 @@
 }
 
 /* grid produk — 4 kolom (collapsed) / 3 kolom (expanded).
-   TINGGI media dipatok tetap → jumlah baris sama (9 item = 3 baris di 4 & 3 kolom)
+   TINGGI media dipatok tetap; 12 item/halaman → baris penuh di 4, 3, 2 & 1 kolom
    → buka/tutup sidebar tidak menggeser konten naik-turun. */
 .shop__grid {
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));

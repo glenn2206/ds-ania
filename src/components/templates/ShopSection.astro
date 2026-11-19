@@ -20,7 +20,7 @@ interface Props {
   /** filter awal generik dari query (?cat / ?occasion / ?flower) — menimpa activeCategory */
   activeFilter?: { group: string; value: string };
 }
-const { title, groups, items, perPage = 9, activeCategory = '', activeFilter } = Astro.props;
+const { title, groups, items, perPage = 12, activeCategory = '', activeFilter } = Astro.props;
 
 const searchText = (c: CatalogItem) =>
   [c.name, c.pill, c.flowers, c.occasion ?? '', c.description]
@@ -114,7 +114,7 @@ const searchText = (c: CatalogItem) =>
     ]));
     const sortSel = root.querySelector<HTMLSelectElement>('[data-sort]')!;
     const filterCount = root.querySelector<HTMLElement>('[data-filter-count]');
-    const perPage = parseInt(root.dataset.perPage || '9', 10);
+    const perPage = parseInt(root.dataset.perPage || '12', 10);
 
     let filter: { group: string; value: string } = {
       group: 'category',
