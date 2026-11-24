@@ -7,7 +7,7 @@ import '../styles/admin.css';
 
 interface Props {
   title?: string;
-  active?: 'products' | 'orders' | 'settings' | 'guide';
+  active?: 'products' | 'categories' | 'orders' | 'settings' | 'guide';
   user?: string;
   bare?: boolean; // true = tanpa top bar (halaman login)
 }
@@ -28,6 +28,7 @@ const { title = 'Admin — ANIA', active, user, bare = false } = Astro.props;
         <span class="admin-top__brand">ANIA · CMS</span>
         <nav class="admin-top__nav">
           <a href="/admin" class={active === 'products' ? 'is-active' : ''}>Produk</a>
+          <a href="/admin/categories" class={active === 'categories' ? 'is-active' : ''}>Kategori</a>
           <a href="/admin/orders" class={active === 'orders' ? 'is-active' : ''}>Order</a>
           <a href="/admin/settings" class={active === 'settings' ? 'is-active' : ''}>Pengaturan</a>
           <a href="/admin/panduan" class={active === 'guide' ? 'is-active' : ''}>Panduan</a>
@@ -41,5 +42,9 @@ const { title = 'Admin — ANIA', active, user, bare = false } = Astro.props;
       </header>
     )}
     {bare ? <slot /> : <main class="admin-shell"><slot /></main>}
+    <script>
+      // foto tidak ikut "terangkat" saat diseret (upload file dari komputer tidak terpengaruh)
+      document.addEventListener('dragstart', (e) => { if (e.target instanceof HTMLImageElement) e.preventDefault(); });
+    </script>
   </body>
 </html>

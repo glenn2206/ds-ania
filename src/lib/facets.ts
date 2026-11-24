@@ -5,6 +5,7 @@
  */
 import type { CatalogItem } from '../data/catalog';
 import type { FilterGroupData } from '../data/shop';
+import { ADDON_SLUG, DEFAULT_CATEGORIES, type CategoryItem } from '../data/categories';
 
 export interface Facet {
   /** label yang ditampilkan */
@@ -12,16 +13,9 @@ export interface Facet {
   /** nilai filter — untuk category = slug; untuk occasion/flower = substring pencocokan ke data-search */
   value: string;
   count: number;
+  /** foto kartu dari CMS (kategori) */
+  image?: string;
 }
-
-// accessory SENGAJA tidak di sini — jadi grup "Add On" sendiri (se-level Flowers)
-const CAT_LABEL: Record<string, string> = {
-  'premium-wrapped': 'Premium Wrapped Bloom',
-  'bloom-box': 'Bloom Box & Basket',
-  standing: 'Standing Flower & Board',
-  vase: 'Vase Arrangement',
-  preserved: 'Preserved Flower',
-};
 
 /** token kolom `flowers` (lowercase, tanpa "(...)" & angka) → nama bunga kanonik */
 const FLOWER_CANON: Record<string, string> = {
@@ -82,7 +76,10 @@ export interface Facets {
   addons: Facet[];
 }
 
-export function buildFacets(items: CatalogItem[]): Facets {
+export function buildFacets(items: CatalogItem[], categories: CategoryItem[] = DEFAULT_CATEGORIES): Facets {
+  // accessory SENGAJA tidak di sini — jadi grup "Add On" sendiri (se-level Flowers)
+  const menu = categories.filter((c) => c.visible && c.slug !== ADDON_SLUG);
+  const bySlug = new Map(menu.map((c) => [c.slug, c]));
   const cat = new Map<string, Facet>();
   const flw = new Map<string, Facet>();
   const occ = new Map<string, Facet>();
@@ -99,9 +96,9 @@ export function buildFacets(items: CatalogItem[]): Facets {
     }
 
     // category
-    const cl = CAT_LABEL[c.category];
+    const cl = bySlug.get(c.category);
     if (cl) {
-      const f = cat.get(c.category) ?? { label: cl, value: c.category, count: 0 };
+      const f = cat.get(c.category) ?? { label: cl.label, value: c.category, count: 0, image: cl.image };
       f.count++;
       cat.set(c.category, f);
     }
@@ -130,7 +127,8 @@ export function buildFacets(items: CatalogItem[]): Facets {
   }
 
   return {
-    categories: rank([...cat.values()]),
+    // urutan kategori mengikuti CMS
+    categories: menu.flatMap((c) => cat.get(c.slug) ?? []),
     occasions: rank([...occ.values()]),
     flowers: rank([...flw.values()]),
     addons: rank([...add.values()]),
@@ -138,8 +136,8 @@ export function buildFacets(items: CatalogItem[]): Facets {
 }
 
 /** FilterGroupData[] untuk ShopSidebar — hanya grup yang ADA isinya */
-export function shopFilterGroups(items: CatalogItem[]): FilterGroupData[] {
-  const f = buildFacets(items);
+export function shopFilterGroups(items: CatalogItem[], categories?: CategoryItem[]): FilterGroupData[] {
+  const f = buildFacets(items, categories);
   const groups: FilterGroupData[] = [{ title: 'Explore', group: 'all' }];
   if (f.categories.length)
     groups.push({ title: 'By Category', group: 'category', collapsible: true, items: f.categories });

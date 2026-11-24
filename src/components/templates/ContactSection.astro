@@ -4,7 +4,10 @@
  * Judul .type-h2 + intro + form (Name/WA, Email, Occasions/Category, Message) + tombol.
  * Berfungsi client-side: submit → susun pesan → buka WhatsApp (situs tetap statik).
  */
-import { contactOccasions, contactCategories, office } from '../../data/contact';
+import { contactOccasions, office } from '../../data/contact';
+import { getCategories } from '../../lib/categories';
+
+const contactCategories = (await getCategories()).filter((c) => c.visible).map((c) => c.label);
 
 interface Props {
   title?: string;

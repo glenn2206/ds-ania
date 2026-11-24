@@ -14,15 +14,6 @@ export const contactOccasions = [
   'Custom Request',
 ];
 
-export const contactCategories = [
-  'Premium Wrapped Bloom',
-  'Bloom Box & Basket',
-  'Standing Flower & Flower Board',
-  'Vase Arrangement',
-  'Preserved Flower',
-  'Accessories',
-];
-
 export const office = {
   label: 'ANIA Office',
   address: ['Jl. Pengadegan Timur III No.32, RT.5/RW.2', 'Jakarta, Indonesia'],

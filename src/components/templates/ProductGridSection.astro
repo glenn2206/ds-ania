@@ -30,7 +30,7 @@ const {
   </div>
   <div class="pgrid__row">
     {/* Figma landing "Flowers They'll Never Forget": kartu tanpa pill kategori — foto → judul → harga */}
-    {products.map((p) => <ProductCard {...p} pill={undefined} />)}
+    {products.map((p) => <ProductCard {...p} pill={undefined} frame="square" />)}
   </div>
   <div class="pgrid__foot"><Button href={href}>{cta}</Button></div>
 </section>

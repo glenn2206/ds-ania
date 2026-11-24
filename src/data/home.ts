@@ -4,10 +4,12 @@
  */
 
 import { premiumWrapped, addons as catalogAddons, type CatalogItem } from './catalog';
+import type { PhotoFits } from './photo-fit';
 
 export interface Product {
   image: string;
   imageAlt?: string;
+  imageFit?: PhotoFits;
   title: string;
   pill?: string;
   price: number | string;
@@ -26,6 +28,7 @@ const cardOf = (c: CatalogItem): Product => ({
   href: `/product/${c.slug}`,
   image: c.image,
   imageAlt: c.imageAlt,
+  imageFit: c.imageFit,
   title: c.name,
   pill: c.pill,
   price: c.price ?? 'By request',
@@ -66,7 +69,7 @@ export function toHomeAddons(items: CatalogItem[], limit = 3) {
   const picked = preferred.map(slug => items.find(item => item.slug === slug))
     .filter((item): item is CatalogItem => Boolean(item));
   return [...picked, ...items.filter(item => !picked.includes(item))].slice(0, limit).map(item => ({
-    slug: item.slug, image: item.image, title: item.name,
+    slug: item.slug, image: item.image, imageFit: item.imageFit, title: item.name,
     price: typeof item.price === 'number' ? `Rp ${item.price.toLocaleString('en-US')}` : item.priceNote || 'By request',
   }));
 }

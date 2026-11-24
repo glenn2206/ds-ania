@@ -341,7 +341,7 @@
   .pcase figcaption{font:700 10px/1 var(--font-sans);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-align:center;order:-1}
   .pcard{width:320px;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
   .pcard__media{position:relative;align-self:stretch;height:406px;background:var(--field);border-radius:var(--radius);overflow:hidden;box-shadow:inset 0 0 0 1px var(--hair)}
-  .pcard__media .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .pcard__media .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transform-origin:var(--ph-x,50%) var(--ph-y,50%)}
   .pcard__media > .cmp-badge{position:absolute;left:20px;top:20px}
   .pcard__dim{position:absolute;inset:0;background:rgba(253,246,241,.75)}
   .pcard__media > .cmp-btn-secondary{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);white-space:nowrap}
@@ -1052,6 +1052,9 @@
 .pdetail__top > .buybox { grid-area: buy; }
 .pdetail__top > .pdetail__desc { grid-area: desc; }
 
+/* hashtag produk dari CMS — paling atas di Description */
+.pdetail__desc .pdetail__tags { color: var(--olive-ink); font-weight: 600; overflow-wrap: anywhere; }
+
 /* --- gallery --- */
 .gallery__stage {
   position: relative; width: min(100%, 430px); aspect-ratio: 4 / 5;
@@ -1060,6 +1063,7 @@
 .gallery__img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
   opacity: 0; transition: opacity .5s ease;
+  transform-origin: var(--ph-x, 50%) var(--ph-y, 50%);
 }
 .gallery__img.is-active { opacity: 1; }
 @media (hover: hover) and (pointer: fine) {

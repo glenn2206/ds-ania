@@ -7,6 +7,7 @@
  */
 import type { APIRoute } from 'astro';
 import { getCatalog } from '../../lib/products';
+import { photoStyle } from '../../data/photo-fit';
 
 export const prerender = false;
 
@@ -36,6 +37,8 @@ export const POST: APIRoute = async ({ request }) => {
         name: p.name,
         pill: p.pill,
         image: p.image,
+        photoStyle: photoStyle(p.imageFit, 'square') ?? null,
+        hashtags: p.hashtags ?? [],
         unitPrice,
         qty,
         lineTotal: unitPrice * qty,

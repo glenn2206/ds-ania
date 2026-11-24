@@ -25,13 +25,13 @@ const related = [...others.slice(start), ...others.slice(0, start)].slice(0, 24)
     <section class="related">
       <h2 class="type-h2 related__title">You May Also Like</h2>
       <div class="related__row" data-product-carousel>
-        {related.map((product) => <ProductCard {...toProduct(product)} slug={product.slug} href={`/product/${product.slug}`} />)}
+        {related.map((product) => <ProductCard {...toProduct(product)} frame="square" slug={product.slug} href={`/product/${product.slug}`} />)}
       </div>
     </section>
     <section class="addonx">
       <h2 class="type-h2 addonx__title">Add On Cute Extras to Your Bouquet!</h2>
       <div class="addonx__row" data-product-carousel>
-        {addonExtras.map((addon) => <OccasionCard image={addon.image} title={addon.title} price={addon.price} action="plus" slug={addon.slug} />)}
+        {addonExtras.map((addon) => <OccasionCard image={addon.image} imageFit={addon.imageFit} title={addon.title} price={addon.price} action="plus" slug={addon.slug} />)}
       </div>
     </section>
     <CareInstructions />

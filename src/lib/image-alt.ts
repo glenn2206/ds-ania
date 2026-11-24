@@ -1,5 +1,6 @@
 import { q, type Querier } from './db';
 import { writeSetting } from './settings';
+import { getProductPhotoFits } from './product-meta';
 
 export interface ImageAltInput { id: number; alt: string }
 export const imageAltKey = (productId: number) => `image_alts_${productId}`;
@@ -40,5 +41,6 @@ export async function saveImageAlts(t: Querier, productId: number, inputs: Image
 export async function listProductImages(productId: number) {
   const images = await q('SELECT id, filename, position FROM product_images WHERE product_id = ? ORDER BY position, id', [productId]);
   const alts = await getProductImageAlts(productId);
-  return images.map((image) => ({ ...image, alt_text: alts[image.id] || '' }));
+  const fits = await getProductPhotoFits(productId);
+  return images.map((image) => ({ ...image, alt_text: alts[image.id] || '', fit: fits[image.id] }));
 }

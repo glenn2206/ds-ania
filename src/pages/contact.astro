@@ -1,9 +1,9 @@
 ---
 /**
  * PAGE · /contact — "How Can We Help You?" form + "We'd Love to See You".
- * Konten statik → prerender.
+ * Konten statik, kerangka situs live.
  */
-export const prerender = true;
+export const prerender = false; // footer & pencarian memakai kategori/produk live dari CMS
 import Site from '../layouts/Site.astro';
 import ContactSection from '../components/templates/ContactSection.astro';
 import VisitSection from '../components/templates/VisitSection.astro';

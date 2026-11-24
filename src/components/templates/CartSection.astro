@@ -50,6 +50,7 @@ const WA_NUMBER = '6281211091885';
     <span class="cart__thumb"></span>
     <span class="cart__meta">
       <span class="cart__name"></span>
+      <span class="cart__tags" data-i18n-ignore hidden></span>
       <span class="cart__variant"></span>
     </span>
     <span class="cmp-stepper cart__stepper">
@@ -105,7 +106,7 @@ const WA_NUMBER = '6281211091885';
     let mode = 'delivery';
     const contactInputs = Array.from(root.querySelectorAll<HTMLInputElement>('[data-form] input'));
     const contactStorageKey = 'ania:checkout-contact';
-    type PricedItem = { slug: string; name: string; image: string; pill: string; unitPrice: number; priceNote?: string };
+    type PricedItem = { slug: string; name: string; image: string; pill: string; unitPrice: number; priceNote?: string; photoStyle?: string | null; hashtags?: string[] };
     let priced = new Map<string, PricedItem>();
     let pricingRequest = 0;
     let pricingReady = false;
@@ -164,7 +165,18 @@ const WA_NUMBER = '6281211091885';
         const p = currentProduct(l.slug);
         const unavailable = pricingReady && !priced.has(l.slug);
         const node = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
-        if (p?.image) (node.querySelector('.cart__thumb') as HTMLElement).style.backgroundImage = `url(${p.image})`;
+        const live = priced.get(l.slug);
+        const thumb = node.querySelector('.cart__thumb') as HTMLElement;
+        if (p?.image && live?.photoStyle) {
+          const img = document.createElement('img');
+          img.src = p.image;
+          img.alt = '';
+          img.style.cssText = `display:block;width:100%;height:100%;transform-origin:var(--ph-x) var(--ph-y);${live.photoStyle}`;
+          thumb.append(img);
+        } else if (p?.image) thumb.style.backgroundImage = `url(${p.image})`;
+        const tags = node.querySelector('.cart__tags') as HTMLElement;
+        tags.textContent = (live?.hashtags ?? []).join(' ');
+        tags.hidden = !tags.textContent;
         node.querySelector('.cart__name')!.textContent = p?.name || l.slug;
         node.querySelector('.cart__variant')!.textContent = unavailable ? 'Product unavailable. Remove and add again from Shop.' : p?.pill || '';
         (node.querySelector('.cart__stepper') as HTMLElement).hidden = unavailable;
@@ -450,11 +462,12 @@ const WA_NUMBER = '6281211091885';
     background: #fff; color: var(--dim); cursor: pointer; font-size: 15px; line-height: 1;
   }
   .cart__thumb {
-    width: 59px; height: 59px; border-radius: 2px;
+    width: 59px; height: 59px; border-radius: 2px; overflow: hidden;
     background: var(--img-placeholder-warm) center/cover no-repeat;   /* placeholder thumbnail — token sama kayak .cmp-swatch .dot di global.css */
   }
   .cart__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .cart__name { font: 600 14px/1.3 var(--font-sans); color: #6D6D6D; }
+  .cart__tags { font: 600 12px/1.4 var(--font-sans); color: var(--olive-ink); overflow-wrap: anywhere; }
   .cart__variant { font: 400 14px/1.3 var(--font-sans); color: #6D6D6D; }
   .cart__stepper b { width: 33px; height: 33px; font-size: 14px; box-shadow: inset 0 0 0 1px #BBCCBF; }
   .cart__price {

@@ -1,8 +1,8 @@
 ---
 /**
- * PAGE · /terms — "Terms & Condition". Konten statik → prerender.
+ * PAGE · /terms — "Terms & Condition". Konten statik, kerangka situs live.
  */
-export const prerender = true;
+export const prerender = false; // footer & pencarian memakai kategori/produk live dari CMS
 import Site from '../layouts/Site.astro';
 import TermsSection from '../components/templates/TermsSection.astro';
 ---

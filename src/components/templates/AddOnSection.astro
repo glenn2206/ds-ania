@@ -35,6 +35,6 @@ const {
     <Button href={href}>{cta}</Button>
   </div>
   <div class="addon__cards">
-    {cards.map((c) => <OccasionCard image={c.image} title={c.title} price={c.price} action="plus" slug={c.slug} />)}
+    {cards.map((c) => <OccasionCard image={c.image} imageFit={c.imageFit} title={c.title} price={c.price} action="plus" slug={c.slug} />)}
   </div>
 </section>

@@ -11,6 +11,10 @@
 import { q, isConfigured } from './db';
 import { getDiscounts, applyDiscount } from './discounts';
 import { getAllImageAlts } from './image-alt';
+import { getCategories, getCategoryOverrides } from './categories';
+import { getAllHashtags, getAllPhotoFits } from './product-meta';
+import { isBuiltin } from '../data/categories';
+import type { PhotoFits } from '../data/photo-fit';
 import { isCustomerVisibleProduct } from '../data/customer-visibility';
 import {
   buildCatalog,
@@ -94,19 +98,31 @@ async function fetchCatalog(): Promise<Catalog> {
     );
     const byProduct = new Map<number, string[]>();
     const byProductAlts = new Map<number, string[]>();
+    const byProductFits = new Map<number, (PhotoFits | undefined)[]>();
     const imageAlts = await getAllImageAlts().catch(() => new Map<number, Record<string, string>>());
+    // metadata tambahan opsional: kegagalannya tidak boleh menjatuhkan katalog live
+    const photoFits = await getAllPhotoFits().catch(() => new Map<number, Record<string, PhotoFits>>());
+    const hashtags = await getAllHashtags().catch(() => new Map<number, string[]>());
+    const overrides = await getCategoryOverrides().catch(() => new Map<number, string>());
+    const known = new Set((await getCategories()).map((c) => c.slug));
+    const categoryOf = (p: DbProduct) => {
+      const extra = overrides.get(Number(p.id));
+      return extra && known.has(extra) ? extra : p.category;
+    };
     for (const im of imgRows) {
       const pid = Number(im.product_id);
       if (!byProduct.has(pid)) byProduct.set(pid, []);
       byProduct.get(pid)!.push(im.filename);
       if (!byProductAlts.has(pid)) byProductAlts.set(pid, []);
       byProductAlts.get(pid)!.push(imageAlts.get(pid)?.[im.id] || '');
+      if (!byProductFits.has(pid)) byProductFits.set(pid, []);
+      byProductFits.get(pid)!.push(photoFits.get(pid)?.[im.id]);
     }
 
     const idBySlug = new Map(rows.map((p) => [p.slug, Number(p.id)]));
     // Missing settings permissions must not discard the live product catalog.
     const discounts = await getDiscounts().catch(() => new Map<number, number>());
-    const rawList = rows.map((p, i) => ({ ...rowToRaw(p, byProduct.get(Number(p.id)) || [], i), imageAlts: byProductAlts.get(Number(p.id)) || [] }));
+    const rawList = rows.map((p, i) => ({ ...rowToRaw(p, byProduct.get(Number(p.id)) || [], i), category: categoryOf(p), imageAlts: byProductAlts.get(Number(p.id)) || [], imageFits: byProductFits.get(Number(p.id)), hashtags: hashtags.get(Number(p.id)) }));
     // gunakan transform yang sama, tapi foto CMS disajikan dari /uploads/
     const all = rawList
       .slice()
@@ -128,7 +144,7 @@ async function fetchCatalog(): Promise<Catalog> {
       standing,
       vase,
       addons: pick('accessory'),
-      allProducts: [...premiumWrapped, ...bloomBox, ...standing, ...vase],
+      allProducts: [...premiumWrapped, ...bloomBox, ...standing, ...vase, ...all.filter((x) => !isBuiltin(x.category))],
     };
   } catch (err) {
     console.error('[products] DB query gagal, pakai snapshot:', (err as Error).message);

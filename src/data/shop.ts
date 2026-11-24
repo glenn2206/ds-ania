@@ -10,6 +10,7 @@ export function toProduct(c: CatalogItem): Product {
   return {
     image: c.image,
     imageAlt: c.imageAlt,
+    imageFit: c.imageFit,
     title: c.name,
     pill: c.pill,
     price: c.price ?? 'By request',

@@ -3,12 +3,14 @@ export const prerender = false;
 import Admin from '../../../layouts/Admin.astro';
 import ProductEditor from '../../../components/admin/ProductEditor.tsx';
 import { getSession } from '../../../lib/session';
+import { getCategories } from '../../../lib/categories';
 
 const session = getSession(Astro.cookies);
 if (!session) return Astro.redirect('/admin/login');
+const categories = await getCategories(true);
 ---
 
 <Admin title="Produk baru — ANIA CMS" active="products" user={session.uname}>
   <h1 class="admin-h">Produk baru</h1>
-  <ProductEditor client:load mode="new" product={null} images={[]} />
+  <ProductEditor client:load mode="new" product={null} images={[]} categories={categories} />
 </Admin>

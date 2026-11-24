@@ -9,6 +9,7 @@ import ProductCard from '../organisms/ProductCard.astro';
 import { toProduct } from '../../data/shop';
 import type { FilterGroupData } from '../../data/shop';
 import type { CatalogItem } from '../../data/catalog';
+import { DEFAULT_CATEGORIES, type CategoryItem } from '../../data/categories';
 
 interface Props {
   title: string;
@@ -19,8 +20,11 @@ interface Props {
   activeCategory?: string;
   /** filter awal generik dari query (?cat / ?occasion / ?flower) — menimpa activeCategory */
   activeFilter?: { group: string; value: string };
+  categories?: CategoryItem[];
 }
-const { title, groups, items, perPage = 12, activeCategory = '', activeFilter } = Astro.props;
+const { title, groups, items, perPage = 12, activeCategory = '', activeFilter, categories = DEFAULT_CATEGORIES } = Astro.props;
+const hiddenCats = new Set(categories.filter((c) => !c.visible).map((c) => c.slug));
+const catLabels = Object.fromEntries(categories.map((c) => [c.slug, c.label]));
 
 const searchText = (c: CatalogItem) =>
   [c.name, c.pill, c.flowers, c.occasion ?? '', c.description]
@@ -33,6 +37,7 @@ const searchText = (c: CatalogItem) =>
   data-shop
   data-per-page={perPage}
   data-active-category={activeCategory}
+  data-cat-labels={JSON.stringify(catLabels)}
   data-active-filter={activeFilter ? JSON.stringify(activeFilter) : ''}
 >
   <button type="button" class="shop__title-toggle" data-side-toggle aria-label="Open filters" aria-expanded="false">
@@ -74,6 +79,7 @@ const searchText = (c: CatalogItem) =>
               class="shop__cell"
               data-cell
               data-cat={c.category}
+              data-explore={hiddenCats.has(c.category) ? 'false' : undefined}
               data-name={c.name}
               data-price={c.price ?? ''}
               data-sale={c.discountPercent ? 'true' : 'false'}
@@ -94,16 +100,8 @@ const searchText = (c: CatalogItem) =>
 
 <script>
   // ---- Shop engine: filter (sidebar) + sort + pagination, semua di browser ----
-  const CAT_LABEL: Record<string, string> = {
-    'bloom-box': 'Bloom Box & Basket',
-    'premium-wrapped': 'Premium Wrapped Bloom',
-    standing: 'Standing Flower & Flower Board',
-    vase: 'Vase',
-    accessory: 'Add On Extras',
-    preserved: 'Preserved Flower',
-  };
-
   document.querySelectorAll<HTMLElement>('[data-shop]').forEach((root) => {
+    const CAT_LABEL: Record<string, string> = JSON.parse(root.dataset.catLabels || '{}');
     const grid = root.querySelector<HTMLElement>('[data-grid]')!;
     const cells = Array.from(root.querySelectorAll<HTMLElement>('[data-cell]'));
     const pagerBox = root.querySelector<HTMLElement>('[data-pagenav]')!;
@@ -167,7 +165,8 @@ const searchText = (c: CatalogItem) =>
       const { group, value } = filter;
       if (group === 'sale') return el.dataset.sale === 'true';
       if (group === 'addon' && !value) return el.dataset.cat === 'accessory';
-      if (!value || group === 'all') return true;
+      // kategori yang disembunyikan di CMS tidak ikut grid Explore; filter lain & link langsung tetap bisa
+      if (!value || group === 'all') return el.dataset.explore !== 'false';
       if (group === 'category') return el.dataset.cat === value;
       if (group === 'addon')
         return el.dataset.cat === 'accessory' && (el.dataset.name || '').toLowerCase() === value;

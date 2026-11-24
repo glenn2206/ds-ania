@@ -17,13 +17,14 @@ const { item, images } = Astro.props;
 <section class="pdetail">
   <div class="pdetail__top">
     <div class="pdetail__gallery">
-      <Gallery images={images} alt={item.name} imageAlts={item.imageAlts} />
+      <Gallery images={images} alt={item.name} imageAlts={item.imageAlts} imageFits={item.imageFits} />
     </div>
 
     <BuyBox item={item} />
 
     <div class="pdetail__desc">
       <h2 class="pdetail__desctitle">Description</h2>
+      {item.hashtags && <p class="pdetail__tags" data-i18n-ignore>{item.hashtags.join(' ')}</p>}
       <p>{item.description}</p>
       {
         item.flowers && item.flowers !== '—' && (

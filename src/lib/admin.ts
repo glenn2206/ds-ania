@@ -4,6 +4,8 @@
 import type { APIContext, APIRoute } from 'astro';
 import { getSession, type Session } from './session';
 import { readDiscount } from './discounts';
+import { BUILTIN_SLUGS } from '../data/categories';
+import { readHashtags } from '../data/hashtags';
 
 export function jsonResponse(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -26,9 +28,6 @@ export function withAdmin(fn: (ctx: APIContext, session: Session) => Promise<Res
   };
 }
 
-export const CATEGORIES = ['premium-wrapped', 'bloom-box', 'standing', 'vase', 'accessory'] as const;
-export type Category = (typeof CATEGORIES)[number];
-
 export function slugify(s: string): string {
   return String(s || '')
     .toLowerCase()
@@ -43,7 +42,7 @@ export function slugify(s: string): string {
 export interface ProductInput {
   name: string;
   slug: string;
-  category: Category;
+  category: string;
   pill: string;
   flowers: string | null;
   size: string | null;
@@ -56,6 +55,7 @@ export interface ProductInput {
   featured: string | null;
   status: 'draft' | 'published';
   discount_percent: number;
+  hashtags: string[];
 }
 
 const toIntOrNull = (v: unknown): number | null => {
@@ -65,15 +65,17 @@ const toIntOrNull = (v: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-/** Terima objek (JSON) atau FormData → ProductInput ternormalisasi. */
-export function readProduct(src: Record<string, any> | FormData): ProductInput {
+/**
+ * Terima objek (JSON) atau FormData → ProductInput ternormalisasi.
+ * `allowed` = slug kategori yang sah (dari CMS; default kategori bawaan).
+ */
+export function readProduct(src: Record<string, any> | FormData, allowed: readonly string[] = BUILTIN_SLUGS): ProductInput {
   const get = (k: string): string => {
     const v = src instanceof FormData ? src.get(k) : src[k];
     return v == null ? '' : String(v).trim();
   };
-  const category = CATEGORIES.includes(get('category') as Category)
-    ? (get('category') as Category)
-    : 'premium-wrapped';
+  const category = get('category') || 'premium-wrapped';
+  if (!allowed.includes(category)) throw new Error('Kategori tidak dikenal. Muat ulang halaman lalu pilih lagi.');
   const price = toIntOrNull(get('price'));
   const stock = toIntOrNull(get('stock'));
   const blankNull = (k: string) => {
@@ -96,5 +98,6 @@ export function readProduct(src: Record<string, any> | FormData): ProductInput {
     featured: blankNull('featured'),
     status: get('status') === 'draft' ? 'draft' : 'published',
     discount_percent: readDiscount(get('discount_percent')),
+    hashtags: readHashtags(get('hashtags')),
   };
 }

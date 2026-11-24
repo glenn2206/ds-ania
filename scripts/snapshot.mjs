@@ -29,6 +29,8 @@ for (const row of altRows) {
   try { imageAlts.set(Number(row.skey.slice('image_alts_'.length)), JSON.parse(row.svalue)); }
   catch { /* Keep snapshots usable when legacy metadata is invalid. */ }
 }
+const extraRows = await q("SELECT skey, svalue FROM site_settings WHERE skey LIKE 'product_category_%'").catch(() => []);
+const extraCategory = new Map(extraRows.map((r) => [Number(r.skey.slice('product_category_'.length)), r.svalue]));
 const byProd = new Map();
 const altsByProd = new Map();
 for (const im of imgs) {
@@ -42,7 +44,7 @@ for (const im of imgs) {
 const rows = products.map((p, i) => ({
   slug: p.slug,
   name: p.name,
-  category: p.category,
+  category: extraCategory.get(Number(p.id)) || p.category,
   pill: p.pill || '',
   flowers: p.flowers || '',
   size: p.size || null,

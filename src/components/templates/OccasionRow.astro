@@ -25,7 +25,7 @@ const loop = [...products, ...products];
     {
       loop.map((p, i) => (
         <div class="orow__cell" aria-hidden={i >= products.length ? 'true' : undefined}>
-          <ProductCard {...p} />
+          <ProductCard {...p} frame="square" />
         </div>
       ))
     }

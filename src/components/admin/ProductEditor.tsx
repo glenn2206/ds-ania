@@ -1,4 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
+import PhotoAdjuster from './PhotoAdjuster';
+import type { CategoryItem } from '../../data/categories';
+import { PHOTO_FRAMES, photoStyleObject, type PhotoFits } from '../../data/photo-fit';
 
 /* ------------------------------------------------------------------ types */
 export interface ProductRow {
@@ -18,31 +21,26 @@ export interface ProductRow {
   featured: string | null;
   status: string;
   discount_percent?: number;
+  hashtags?: string;
 }
 export interface ImageRow {
   id: number;
   filename: string;
   position: number;
   alt_text?: string;
+  fit?: PhotoFits;
 }
 interface Props {
   mode: 'new' | 'edit';
   product: ProductRow | null;
   images: ImageRow[];
+  categories: CategoryItem[];
 }
-
-const CATEGORIES = [
-  ['premium-wrapped', 'Premium Wrapped Bloom'],
-  ['bloom-box', 'Bloom Box & Basket'],
-  ['standing', 'Standing Flower & Board'],
-  ['vase', 'Vase'],
-  ['accessory', 'Accessories / Add-on'],
-];
 
 const str = (v: unknown) => (v == null ? '' : String(v));
 
 /* ------------------------------------------------------------------ view */
-export default function ProductEditor({ mode, product, images: initialImages }: Props) {
+export default function ProductEditor({ mode, product, images: initialImages, categories }: Props) {
   const [form, setForm] = useState({
     name: str(product?.name),
     slug: str(product?.slug),
@@ -58,10 +56,12 @@ export default function ProductEditor({ mode, product, images: initialImages }: 
     featured: str(product?.featured),
     drive: str(product?.drive),
     description: str(product?.description),
+    hashtags: str(product?.hashtags),
     status: str(product?.status) || 'published',
   });
   const [images, setImages] = useState<ImageRow[]>(initialImages || []);
   const [imageAlts, setImageAlts] = useState<Record<number, string>>({});
+  const [adjusting, setAdjusting] = useState<ImageRow | null>(null);
   const [flash, setFlash] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -162,7 +162,7 @@ export default function ProductEditor({ mode, product, images: initialImages }: 
   /* ---- render ---- */
   return (
     <form onSubmit={save}>
-      {flash && <div className={`flash flash--${flash.kind === 'ok' ? 'ok' : 'err'}`}>{flash.msg}</div>}
+      {flash && <div className={`flash flash--sticky flash--${flash.kind === 'ok' ? 'ok' : 'err'}`} role="status">{flash.msg}</div>}
 
       <div className="card">
         <h2>Detail produk</h2>
@@ -179,10 +179,11 @@ export default function ProductEditor({ mode, product, images: initialImages }: 
           <div className="field">
             <label>Kategori</label>
             <select value={form.category} onChange={set('category')}>
-              {CATEGORIES.map(([v, l]) => (
-                <option key={v} value={v}>{l}</option>
+              {categories.map((c) => (
+                <option key={c.slug} value={c.slug}>{c.label}{c.visible ? '' : ' (disembunyikan)'}</option>
               ))}
             </select>
+            <span className="hint">Tambah atau ubah di menu <a href="/admin/categories">Kategori</a>.</span>
           </div>
           <div className="field">
             <label>Harga (Rp)</label>
@@ -233,6 +234,11 @@ export default function ProductEditor({ mode, product, images: initialImages }: 
             <input value={form.drive} onChange={set('drive')} />
           </div>
           <div className="field field--full">
+            <label htmlFor="product-hashtags">Hashtag</label>
+            <input id="product-hashtags" value={form.hashtags} onChange={set('hashtags')} placeholder="#floristjakarta #tokobunga" />
+            <span className="hint">Pisahkan dengan spasi. Tampil di atas deskripsi produk dan di keranjang.</span>
+          </div>
+          <div className="field field--full">
             <label>Deskripsi</label>
             <textarea value={form.description} onChange={set('description')} />
           </div>
@@ -246,11 +252,25 @@ export default function ProductEditor({ mode, product, images: initialImages }: 
             <div className="imgs imgs--descriptions" style={{ marginBottom: 14 }}>
               {images.map((im, i) => (
                 <div className="imgs__cell" key={im.id}>
-                  <img src={`/uploads/${im.filename}`} alt={(imageAlts[im.id] ?? im.alt_text)?.trim() || form.name} loading="lazy" />
+                  <div className="imgs__frame">
+                    <img src={`/uploads/${im.filename}`} draggable={false} alt={(imageAlts[im.id] ?? im.alt_text)?.trim() || form.name} loading="lazy" />
+                  </div>
                   <div className="imgs__bar">
                     <button type="button" className="btn btn--sm" disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
                     <button type="button" className="btn btn--sm" disabled={i === images.length - 1} onClick={() => move(i, 1)}>↓</button>
                     <button type="button" className="btn btn--sm btn--danger" onClick={() => del(im.id)}>✕</button>
+                  </div>
+                  {/* hasil di situs per tampilan; foto selain yang pertama hanya ada di Detail produk */}
+                  <div className="imgs__previews">
+                    {PHOTO_FRAMES.filter((f) => i === 0 || f.key === 'detail').map((f) => (
+                      <figure key={f.key}>
+                        <div style={{ aspectRatio: f.ratio }}><img src={`/uploads/${im.filename}`} draggable={false} style={photoStyleObject(im.fit?.[f.key])} alt="" loading="lazy" /></div>
+                        <figcaption>{f.label}</figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                  <div className="imgs__bar">
+                    <button type="button" className="btn btn--sm" onClick={() => setAdjusting(im)}>Atur foto</button>
                   </div>
                   <div className="imgs__alt field">
                     <label htmlFor={`image-alt-${im.id}`}>Deskripsi foto / Alt text</label>
@@ -272,6 +292,27 @@ export default function ProductEditor({ mode, product, images: initialImages }: 
           <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => upload(e.target.files)} />
           <p className="hint" style={{ marginTop: 8 }}>Foto pertama = gambar utama. Urutkan dengan ↑ ↓. Deskripsi foto disimpan lewat Simpan perubahan; kosong = gunakan nama produk.</p>
         </div>
+      )}
+
+      {adjusting && (
+        <PhotoAdjuster
+          src={`/uploads/${adjusting.filename}`}
+          main={images[0]?.id === adjusting.id}
+          value={adjusting.fit}
+          onClose={() => setAdjusting(null)}
+          onSave={async (fit) => {
+            const res = await fetch(`/api/admin/products/${product!.id}/images/${adjusting.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ fit }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Gagal menyimpan foto');
+            setImages(data.images);
+            setAdjusting(null);
+            setFlash({ kind: 'ok', msg: 'Foto tersimpan. Situs ikut dalam ±60 detik.' });
+          }}
+        />
       )}
 
       <div className="admin-row">

@@ -8,10 +8,14 @@ import Badge from '../atoms/Badge.astro';
 import Button from '../atoms/Button.astro';
 import Swatch from '../atoms/Swatch.astro';
 import CardTitleBlock from '../molecules/CardTitleBlock.astro';
+import { photoStyle, type PhotoFits, type PhotoFrame } from '../../data/photo-fit';
 
 interface Props {
   image: string;
   imageAlt?: string;
+  imageFit?: PhotoFits;
+  /** layout tempat kartu tampil → menentukan pengaturan foto yang dipakai */
+  frame?: PhotoFrame;
   title: string;
   pill?: string;
   price: number | string;
@@ -27,6 +31,8 @@ const {
   image,
   title,
   imageAlt,
+  imageFit,
+  frame = 'shop',
   pill,
   price,
   compareAt,
@@ -42,7 +48,7 @@ const {
 <div class="pcard" class:list={[slug && 'pcard--buyable', href && 'pcard--link']}>
   {href && <a class="pcard__link" href={href} aria-label={title} data-i18n-ignore />}
   <div class="pcard__media">
-    <img class="ph" src={image} alt={imageAlt || title} loading="lazy" decoding="async" />
+    <img class="ph" src={image} style={photoStyle(imageFit, frame)} alt={imageAlt || title} loading="lazy" decoding="async" />
     {state === 'sale' && <Badge>Sale</Badge>}
     {state === 'soldout' && <span class="pcard__dim" />}
     {state === 'hover' && !slug && <Button variant="secondary-onwhite">Add to Cart</Button>}

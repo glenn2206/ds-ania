@@ -29,3 +29,15 @@ const { title, description, bodyClass } = Astro.props;
   import { initLanguage } from '../lib/i18n';
   initLanguage();
 </script>
+
+<script>
+  // foto & kartu produk tidak ikut "terangkat" (drag and drop bawaan browser) saat ditarik
+  document.addEventListener('dragstart', (e) => {
+    if (!(e.target instanceof Element) || !e.target.matches('img, .pcard__link, .choose__tile, .thumb--link')) return;
+    e.preventDefault();
+    // tanpa drag bawaan, melepas mouse di kartu yang sama dihitung klik → telan supaya produk tidak terbuka
+    const swallow = (ev: Event) => { ev.preventDefault(); ev.stopPropagation(); };
+    document.addEventListener('click', swallow, { capture: true, once: true });
+    document.addEventListener('pointerdown', () => document.removeEventListener('click', swallow, true), { capture: true, once: true });
+  });
+</script>

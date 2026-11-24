@@ -6,6 +6,8 @@ import { getSession } from '../../../lib/session';
 import { one } from '../../../lib/db';
 import { getDiscounts } from '../../../lib/discounts';
 import { listProductImages } from '../../../lib/image-alt';
+import { getCategories, getCategoryOverrides } from '../../../lib/categories';
+import { getAllHashtags } from '../../../lib/product-meta';
 
 const session = getSession(Astro.cookies);
 if (!session) return Astro.redirect('/admin/login');
@@ -14,6 +16,10 @@ const id = Number(Astro.params.id);
 const product = (Number.isFinite(id) ? await one('SELECT * FROM products WHERE id = ?', [id]) : null) as ProductRow | null;
 if (!product) return new Response('Produk tidak ada', { status: 404 });
 product.discount_percent = (await getDiscounts()).get(id) || 0;
+product.hashtags = ((await getAllHashtags()).get(id) ?? []).join(' ');
+const categories = await getCategories(true);
+const extra = (await getCategoryOverrides()).get(id);
+if (extra && categories.some((c) => c.slug === extra)) product.category = extra;
 
 const images = (await listProductImages(id)) as unknown as ImageRow[];
 ---
@@ -23,5 +29,5 @@ const images = (await listProductImages(id)) as unknown as ImageRow[];
     <h1 class="admin-h" style="margin:0">{product.name}</h1>
     <a class="btn btn--sm" href={`/product/${product.slug}`} target="_blank" rel="noopener">Lihat di situs ↗</a>
   </div>
-  <ProductEditor client:load mode="edit" product={product} images={images} />
+  <ProductEditor client:load mode="edit" product={product} images={images} categories={categories} />
 </Admin>

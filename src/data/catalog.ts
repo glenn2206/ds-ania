@@ -14,13 +14,15 @@
  */
 import raw from './products.generated.json';
 import { isCustomerVisibleProduct } from './customer-visibility';
+import type { PhotoFits } from './photo-fit';
 
 export interface CatalogItem {
   /** id baris DB — hanya ada pada data live (getCatalog), undefined pada snapshot */
   id?: number;
   slug: string;
   name: string;
-  category: 'premium-wrapped' | 'bloom-box' | 'standing' | 'vase' | 'accessory';
+  /** slug kategori — bawaan atau tambahan dari CMS (src/data/categories.ts) */
+  category: string;
   pill: string;
   flowers: string;
   size?: string;
@@ -34,6 +36,11 @@ export interface CatalogItem {
   image: string;
   imageAlt?: string;
   imageAlts?: string[];
+  /** pengaturan tampilan foto utama & per foto galeri (urut sama dg `gallery`) */
+  imageFit?: PhotoFits;
+  imageFits?: (PhotoFits | undefined)[];
+  /** hashtag dari CMS, mis. ["#Birthday"] */
+  hashtags?: string[];
   image2?: string;
   featured?: string;
   /** nama file foto (mentah, tanpa prefix) */
@@ -62,6 +69,8 @@ export interface RawProduct {
   sortOrder: number;
   images: string[];
   imageAlts?: string[];
+  imageFits?: (PhotoFits | undefined)[];
+  hashtags?: string[];
   stock?: number | null;
 }
 
@@ -117,6 +126,11 @@ export function toItem(r: RawProduct, i: number, imgPrefix = '/assets/products/'
   if (r.occasion) item.occasion = r.occasion;
   if (r.drive) item.drive = r.drive;
   if (r.featured) item.featured = r.featured;
+  if (r.hashtags?.length) item.hashtags = r.hashtags;
+  if (imgs.length && r.imageFits?.some(Boolean)) {
+    item.imageFits = r.imageFits;
+    item.imageFit = r.imageFits[0];
+  }
   if (image2) item.image2 = image2;
   if (stock !== undefined) {
     item.stock = stock;
@@ -136,13 +150,15 @@ export function buildCatalog(rows: RawProduct[]) {
   const standing = all.filter((c) => c.category === 'standing');
   const vase = all.filter((c) => c.category === 'vase');
   const addons = all.filter((c) => c.category === 'accessory');
+  const builtin = new Set(['premium-wrapped', 'bloom-box', 'standing', 'vase', 'accessory']);
+  const others = all.filter((c) => !builtin.has(c.category)); // kategori tambahan dari CMS
   return {
     premiumWrapped,
     bloomBox,
     standing,
     vase,
     addons,
-    allProducts: [...premiumWrapped, ...bloomBox, ...standing, ...vase],
+    allProducts: [...premiumWrapped, ...bloomBox, ...standing, ...vase, ...others],
   };
 }
 

@@ -11,6 +11,7 @@ import { chooseTabs, chooseTilesFrom, chooseHeadingLead } from '../../data/choos
 import { getCatalog } from '../../lib/products';
 import { buildFacets } from '../../lib/facets';
 import { getMedia } from '../../lib/settings';
+import { getCategories } from '../../lib/categories';
 
 interface Props {
   activeTab?: (typeof chooseTabs)[number];
@@ -19,7 +20,7 @@ const { activeTab = 'Occasions' } = Astro.props;
 
 const cat = await getCatalog();
 const media = await getMedia();
-const chooseTiles = chooseTilesFrom(buildFacets([...cat.allProducts, ...cat.addons]), media.occasionImages);
+const chooseTiles = chooseTilesFrom(buildFacets([...cat.allProducts, ...cat.addons], await getCategories()), media.occasionImages);
 // Figma: 3 tile per tab
 const base = chooseTabs.flatMap((tab) => chooseTiles[tab].map((t) => ({ ...t, tab })));
 ---

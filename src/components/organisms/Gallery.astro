@@ -4,13 +4,15 @@
  * <Gallery images={['/assets/products/x-1.jpg', ...]} alt="A Handful Flower Box" />
  */
 import Progress from '../atoms/Progress.astro';
+import { photoStyle, type PhotoFits } from '../../data/photo-fit';
 
 interface Props {
   images: string[];
   alt?: string;
   imageAlts?: string[];
+  imageFits?: (PhotoFits | undefined)[];
 }
-const { images, alt = '', imageAlts = [] } = Astro.props;
+const { images, alt = '', imageAlts = [], imageFits = [] } = Astro.props;
 const slides = images.length ? images : ['/assets/hero-bouquet-on-table.jpg'];
 ---
 
@@ -21,6 +23,7 @@ const slides = images.length ? images : ['/assets/hero-bouquet-on-table.jpg'];
         <img
           class:list={['gallery__img', i === 0 && 'is-active']}
           src={src}
+          style={photoStyle(imageFits[i], 'detail')}
           alt={imageAlts[i] || alt}
           aria-hidden={i !== 0 ? 'true' : undefined}
           loading={i === 0 ? "eager" : "lazy"} decoding="async"

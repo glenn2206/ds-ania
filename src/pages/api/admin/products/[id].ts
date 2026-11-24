@@ -4,6 +4,8 @@ import { saveDiscount } from '../../../../lib/discounts';
 import { withAdmin, jsonResponse, readProduct, slugify } from '../../../../lib/admin';
 import { invalidateCatalog } from '../../../../lib/products';
 import { removeUpload, renameForOrder } from '../../../../lib/images';
+import { categoryColumn, categoryKey, getCategories, saveProductCategory } from '../../../../lib/categories';
+import { hashtagKey, photoFitKey, saveHashtags } from '../../../../lib/product-meta';
 import { imageAltKey, readImageAltInputs, saveImageAlts, type ImageAltInput } from '../../../../lib/image-alt';
 
 export const prerender = false;
@@ -15,7 +17,8 @@ export const PUT = withAdmin(async ({ params, request }) => {
 
   const body = await request.json().catch(() => ({}));
   let b;
-  try { b = readProduct(body); }
+  const allowed = (await getCategories(true)).map((c) => c.slug);
+  try { b = readProduct(body, allowed); }
   catch (error) { return jsonResponse({ error: (error as Error).message }, 400); }
   if (!b.name) return jsonResponse({ error: 'Nama wajib.' }, 400);
   let imageAlts: ImageAltInput[] | undefined;
@@ -36,10 +39,12 @@ export const PUT = withAdmin(async ({ params, request }) => {
       `UPDATE products SET slug=?,name=?,category=?,pill=?,flowers=?,size=?,price=?,price_note=?,stock=?,
          description=?,occasion=?,drive=?,featured=?,status=?,updated_at=CURRENT_TIMESTAMP
        WHERE id=?`,
-      [slug, b.name, b.category, b.pill, b.flowers, b.size, b.price, b.price_note, b.stock,
+      [slug, b.name, categoryColumn(b.category), b.pill, b.flowers, b.size, b.price, b.price_note, b.stock,
        b.description, b.occasion, b.drive, b.featured, b.status, id],
     );
     if ('discount_percent' in body) await saveDiscount(t, id, b.discount_percent);
+    await saveProductCategory(t, id, b.category);
+    if ('hashtags' in body) await saveHashtags(t, id, b.hashtags);
     if (imageAlts) await saveImageAlts(t, id, imageAlts);
   });
 
@@ -62,7 +67,7 @@ export const DELETE = withAdmin(async ({ params }) => {
   const imgs = await q('SELECT filename FROM product_images WHERE product_id = ?', [id]);
   for (const im of imgs) await removeUpload(im.filename);
   await q('DELETE FROM products WHERE id = ?', [id]); // product_images cascade
-  await q('DELETE FROM site_settings WHERE skey = ?', [imageAltKey(id)]);
+  await q('DELETE FROM site_settings WHERE skey IN (?, ?, ?, ?)', [imageAltKey(id), categoryKey(id), hashtagKey(id), photoFitKey(id)]);
   invalidateCatalog();
   return jsonResponse({ ok: true });
 });
