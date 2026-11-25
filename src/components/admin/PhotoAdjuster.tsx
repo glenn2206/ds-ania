@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { DEFAULT_FIT, PHOTO_FRAMES, panPhoto, photoStyleObject, type PhotoFit, type PhotoFits, type PhotoFrame } from '../../data/photo-fit';
+import { DEFAULT_FIT, MIN_ROOM, PHOTO_FRAMES, panPhoto, photoRoom, photoStyleObject, type PhotoFit, type PhotoFits, type PhotoFrame } from '../../data/photo-fit';
 
 interface Props {
   src: string;
-  /** foto utama tampil di semua layout; foto lain hanya di galeri Detail produk */
-  main: boolean;
+  /** layout yang memakai foto ini */
+  frames: readonly PhotoFrame[];
+  /** keterangan bila hanya satu layout */
+  note?: string;
   value?: PhotoFits;
   /** simpan ke server; melempar Error bila gagal */
   onSave: (fits: PhotoFits) => Promise<void>;
@@ -14,10 +16,11 @@ interface Props {
 const round = (n: number) => Math.round(n * 100) / 100;
 
 /** Dialog atur foto: pilih layout, seret, zoom, simpan. Tidak mengubah file asli. */
-export default function PhotoAdjuster({ src, main, value, onSave, onClose }: Props) {
+export default function PhotoAdjuster({ src, frames: keys, note, value, onSave, onClose }: Props) {
   const [fits, setFits] = useState<PhotoFits>(value ?? {});
-  const frames = PHOTO_FRAMES.filter((f) => main || f.key === 'detail');
+  const frames = PHOTO_FRAMES.filter((f) => keys.includes(f.key));
   const [active, setActive] = useState<PhotoFrame>(frames[0].key);
+  const [natural, setNatural] = useState({ width: 0, height: 0 });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const dialog = useRef<HTMLDialogElement>(null);
@@ -27,12 +30,29 @@ export default function PhotoAdjuster({ src, main, value, onSave, onClose }: Pro
   const fit = fits[active] ?? DEFAULT_FIT;
   const patch = (p: Partial<PhotoFit>) => setFits((f) => ({ ...f, [active]: { ...(f[active] ?? DEFAULT_FIT), ...p } }));
 
-  useEffect(() => { dialog.current?.showModal(); }, []);
-
-  const moveBy = (from: PhotoFit, dx: number, dy: number) => {
+  useEffect(() => {
+    dialog.current?.showModal();
+    // foto dari cache bisa selesai dimuat sebelum onLoad terpasang
     const { naturalWidth, naturalHeight } = photo.current!;
-    patch(panPhoto(from, dx, dy, frame.current!.getBoundingClientRect(), { width: naturalWidth, height: naturalHeight }));
-  };
+    if (naturalWidth) setNatural({ width: naturalWidth, height: naturalHeight });
+  }, []);
+
+  const moveBy = (from: PhotoFit, dx: number, dy: number) =>
+    patch(panPhoto(from, dx, dy, frame.current!.getBoundingClientRect(), natural));
+
+  // arah yang bisa digeser; ukuran bingkai cukup dari rasionya
+  const ratio = PHOTO_FRAMES.find((f) => f.key === active)!.ratio;
+  const [rw, rh] = ratio.split('/').map(Number);
+  const room = photoRoom(fit, { width: (380 * rw) / rh, height: 380 }, natural);
+  const canX = Math.abs(room.x) >= MIN_ROOM;
+  const canY = Math.abs(room.y) >= MIN_ROOM;
+  const hint = canX && canY
+    ? 'Seret foto untuk menggeser'
+    : canY
+      ? 'Seret ke atas atau bawah. Naikkan Zoom kalau mau ke kiri/kanan.'
+      : canX
+        ? 'Seret ke kiri atau kanan. Naikkan Zoom kalau mau ke atas/bawah.'
+        : 'Foto sudah pas. Naikkan Zoom kalau mau digeser.';
 
   const onKey = (e: React.KeyboardEvent) => {
     const step = { ArrowLeft: [-8, 0], ArrowRight: [8, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] }[e.key];
@@ -59,20 +79,20 @@ export default function PhotoAdjuster({ src, main, value, onSave, onClose }: Pro
     >
       <h2>Atur foto</h2>
 
-      {main ? (
+      {frames.length > 1 ? (
         <div className="adjust__tabs" role="group" aria-label="Pilih tampilan">
           {frames.map((f) => (
             <button key={f.key} type="button" aria-pressed={f.key === active} onClick={() => setActive(f.key)}>{f.label}</button>
           ))}
         </div>
       ) : (
-        <p className="hint adjust__hint">Foto ini hanya tampil di Detail produk. Untuk Belanja dan Momen, atur foto pertama.</p>
+        note && <p className="hint adjust__hint">{note}</p>
       )}
 
       <div
         ref={frame}
         className="adjust__frame"
-        style={{ aspectRatio: PHOTO_FRAMES.find((f) => f.key === active)!.ratio }}
+        style={{ aspectRatio: ratio }}
         tabIndex={0}
         role="application"
         aria-label="Seret foto atau pakai tombol panah"
@@ -83,9 +103,9 @@ export default function PhotoAdjuster({ src, main, value, onSave, onClose }: Pro
         onPointerUp={() => { drag.current = null; }}
         onPointerCancel={() => { drag.current = null; }}
       >
-        <img ref={photo} src={src} alt="" draggable={false} style={photoStyleObject(fit)} />
+        <img ref={photo} src={src} alt="" draggable={false} onLoad={(e) => setNatural({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight })} style={photoStyleObject(fit)} />
       </div>
-      <p className="hint adjust__hint">Seret foto untuk menggeser</p>
+      <p className="hint adjust__hint" role="status">{hint}</p>
 
       <label className="adjust__zoom">
         Zoom
@@ -95,7 +115,7 @@ export default function PhotoAdjuster({ src, main, value, onSave, onClose }: Pro
       <div className="adjust__tools">
         <button type="button" className="btn btn--sm" aria-pressed={fit.fit === 'contain'} onClick={() => patch({ ...DEFAULT_FIT, fit: fit.fit === 'contain' ? 'cover' : 'contain' })}>Foto utuh</button>
         <button type="button" className="btn btn--sm" onClick={() => patch(DEFAULT_FIT)}>Reset</button>
-        {main && <button type="button" className="btn btn--sm" onClick={() => setFits({ shop: fit, square: fit, detail: fit })}>Samakan semua</button>}
+        {frames.length > 1 && <button type="button" className="btn btn--sm" onClick={() => setFits({ shop: fit, square: fit, detail: fit })}>Samakan semua</button>}
       </div>
 
       {error && <div className="flash flash--err" role="alert">{error}</div>}

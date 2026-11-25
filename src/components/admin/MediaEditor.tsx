@@ -1,12 +1,16 @@
 import { useRef, useState } from 'react';
 import type { MediaSettings } from '../../lib/settings';
 import type { ChooseTile } from '../../data/choose';
+import PhotoAdjuster from './PhotoAdjuster';
+import { photoStyleObject } from '../../data/photo-fit';
 
 export default function MediaEditor({ media, occasionTiles = [] }: { media: MediaSettings; occasionTiles?: ChooseTile[] }) {
   const [slides, setSlides] = useState(media.heroSlides);
   const [video, setVideo] = useState(media.aboutVideo);
   const [occasionCover, setOccasionCover] = useState(media.occasionCover);
   const [occasionImages, setOccasionImages] = useState(media.occasionImages);
+  const [occasionFits, setOccasionFits] = useState(media.occasionFits ?? {});
+  const [adjusting, setAdjusting] = useState<{ key: string; src: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState(false);
@@ -26,7 +30,10 @@ export default function MediaEditor({ media, occasionTiles = [] }: { media: Medi
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Upload gagal.');
       if (kind === 'hero') setSlides(current => [...current, ...result.urls]);
-      else if (kind === 'occasion' && occasionKey) setOccasionImages(current => ({ ...current, [occasionKey]: result.urls[0] }));
+      else if (kind === 'occasion' && occasionKey) {
+        setOccasionImages(current => ({ ...current, [occasionKey]: result.urls[0] }));
+        setOccasionFits(({ [occasionKey]: _old, ...rest }) => rest); // foto baru mulai dari posisi awal
+      }
       else if (kind === 'occasion') setOccasionCover(result.urls[0]);
       else setVideo(result.urls[0]);
       setMessage('Upload selesai. Klik Simpan media untuk menerapkan.');
@@ -34,12 +41,16 @@ export default function MediaEditor({ media, occasionTiles = [] }: { media: Medi
     finally { setBusy(false); if (photosInput.current) photosInput.current.value = ''; if (videoInput.current) videoInput.current.value = ''; if (coverInput.current) coverInput.current.value = ''; }
   }
 
+  async function putMedia(values: Partial<MediaSettings>) {
+    const response = await fetch('/api/admin/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ media: values }) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Gagal menyimpan.');
+  }
+
   async function save() {
     setBusy(true); setError(false); setMessage('Menyimpan...');
     try {
-      const response = await fetch('/api/admin/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ media: { heroSlides: slides, aboutVideo: video, occasionCover, occasionImages } }) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Gagal menyimpan.');
+      await putMedia({ heroSlides: slides, aboutVideo: video, occasionCover, occasionImages, occasionFits });
       setMessage('Media tersimpan.');
     } catch (err) { setError(true); setMessage((err as Error).message); }
     finally { setBusy(false); }
@@ -51,7 +62,7 @@ export default function MediaEditor({ media, occasionTiles = [] }: { media: Medi
 
   return <section className="card media-editor" aria-busy={busy}>
     <h2>Carousel beranda, foto Occasion &amp; video About</h2>
-    {message && <div role="status" className={`flash flash--${error ? 'err' : 'ok'}`}>{message}</div>}
+    {message && <div role="status" className={`flash flash--sticky flash--${error ? 'err' : 'ok'}`}>{message}</div>}
     <h3>Carousel beranda ({slides.length}/10)</h3>
     <div className="imgs">
       {slides.map((url, index) => <div className="imgs__cell" key={`${index}-${url}`}>
@@ -72,14 +83,18 @@ export default function MediaEditor({ media, occasionTiles = [] }: { media: Medi
       {occasionTiles.map(tile => {
         const key = new URLSearchParams(tile.href.split('?')[1]).get('occasion')!;
         return <div className="imgs__cell" key={key}>
-          <img src={occasionImages[key] || tile.image} alt={tile.label} />
-          <label className="btn">Ganti foto {tile.label}
+          <div className="imgs__frame"><img src={occasionImages[key] || tile.image} style={photoStyleObject(occasionFits[key])} alt={tile.label} /></div>
+          <p className="imgs__title">{tile.label}</p>
+          <div className="imgs__bar">
+          <label className="btn btn--sm">Ganti foto
             <input type="file" hidden accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={event => { upload(Array.from(event.target.files || []), 'occasion', key); event.target.value = ''; }} />
           </label>
+          <button type="button" className="btn btn--sm" disabled={busy} onClick={() => setAdjusting({ key, src: occasionImages[key] || tile.image })}>Atur foto</button>
+          </div>
         </div>;
       })}
     </div>
-    <p className="hint">JPG, PNG, WebP, maksimal 12 MB per foto. Setelah upload, klik Simpan media. Foto mengikuti kartu yang sama walaupun urutan katalog berubah.</p>
+    <p className="hint">JPG, PNG, WebP, maksimal 12 MB per foto. Setelah Ganti foto, klik Simpan media di bawah. Atur foto langsung tersimpan.</p>
     <h3>Hero halaman Occasion (terpisah)</h3>
     <div className="imgs"><div className="imgs__cell"><img src={occasionCover} alt="Cover Occasion" /></div></div>
     <input ref={coverInput} type="file" hidden accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={event => upload(Array.from(event.target.files || []), 'occasion')} />
@@ -94,5 +109,19 @@ export default function MediaEditor({ media, occasionTiles = [] }: { media: Medi
     </div>
     <p className="hint">MP4 atau WebM. Maksimal 100 MB.</p>
     <button type="button" className="btn btn--primary" disabled={busy} onClick={save}>Simpan media</button>
+    {adjusting && <PhotoAdjuster
+      src={adjusting.src}
+      frames={['square']}
+      value={{ square: occasionFits[adjusting.key] }}
+      onClose={() => setAdjusting(null)}
+      onSave={async fits => {
+        const { [adjusting.key]: _old, ...rest } = occasionFits;
+        const next = fits.square ? { ...rest, [adjusting.key]: fits.square } : rest;
+        await putMedia({ occasionImages, occasionFits: next });
+        setOccasionFits(next);
+        setAdjusting(null);
+        setError(false); setMessage('Foto tersimpan. Situs ikut dalam ±60 detik.');
+      }}
+    />}
   </section>;
 }

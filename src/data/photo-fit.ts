@@ -58,40 +58,22 @@ export const photoStyleObject = (f: PhotoFit = DEFAULT_FIT) => ({
 
 export interface PanBox { width: number; height: number }
 
-/**
- * Geser foto sejauh dx,dy piksel dari `from`; foto mengikuti kursor.
- * Bila foto sudah pas dengan bingkai (tidak ada sisa untuk digeser), zoom dinaikkan secukupnya.
- */
-export function panPhoto(from: PhotoFit, dx: number, dy: number, box: PanBox, natural: PanBox): PhotoFit {
-  if (!natural.width || !natural.height || !box.width || !box.height) return from;
-  const fitBox = from.fit === 'cover' ? Math.max : Math.min;
-  const base = fitBox(box.width / natural.width, box.height / natural.height);
-  const size = { x: natural.width * base, y: natural.height * base };
-  const rest = (axis: 'x' | 'y', zoom: number) => size[axis] * zoom - (axis === 'x' ? box.width : box.height);
-  const r2 = (n: number) => Math.round(n * 100) / 100;
-  const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
-
-  if (from.fit === 'contain') {
-    const shift = (at: number, delta: number, left: number) => (Math.abs(left) < 1 ? at : r2(clamp(at - (delta / left) * 100, 0, 100)));
-    return { ...from, x: shift(from.x, dx, rest('x', from.zoom)), y: shift(from.y, dy, rest('y', from.zoom)) };
-  }
-
-  // geser kecil ke samping saat menarik atas-bawah (atau sebaliknya) tidak memicu zoom
-  const roomX = rest('x', from.zoom) >= 1;
-  const roomY = rest('y', from.zoom) >= 1;
-  if (!roomX && Math.abs(dx) < Math.abs(dy)) dx = 0;
-  if (!roomY && Math.abs(dy) < Math.abs(dx)) dy = 0;
-
-  // jarak pusat foto dari pusat bingkai setelah digeser
-  const cx = (0.5 - from.x / 100) * Math.max(0, rest('x', from.zoom)) + dx;
-  const cy = (0.5 - from.y / 100) * Math.max(0, rest('y', from.zoom)) + dy;
-  const need = Math.max((2 * Math.abs(cx) + box.width) / size.x, (2 * Math.abs(cy) + box.height) / size.y);
-  const zoom = clamp(Math.ceil(need * 100) / 100, from.zoom, Math.max(from.zoom, AUTO_ZOOM_MAX));
-  const at = (c: number, left: number) => (left < 1 ? 50 : r2(clamp((0.5 - c / left) * 100, 0, 100)));
-  return { ...from, zoom, x: at(cx, rest('x', zoom)), y: at(cy, rest('y', zoom)) };
+/** bagian foto di luar bingkai per sumbu, px (negatif = ruang kosong, ±0 = pas, tidak bisa digeser) */
+export function photoRoom(f: PhotoFit, box: PanBox, natural: PanBox): { x: number; y: number } {
+  if (!natural.width || !natural.height || !box.width || !box.height) return { x: 0, y: 0 };
+  const base = (f.fit === 'cover' ? Math.max : Math.min)(box.width / natural.width, box.height / natural.height);
+  return { x: natural.width * base * f.zoom - box.width, y: natural.height * base * f.zoom - box.height };
 }
-/** batas zoom otomatis saat menyeret; di atas ini pakai slider */
-const AUTO_ZOOM_MAX = 1.6;
+/** kurang dari ini dianggap pas */
+export const MIN_ROOM = 2;
+
+/** Geser foto sejauh dx,dy piksel dari `from`: foto mengikuti kursor, zoom tidak pernah berubah. */
+export function panPhoto(from: PhotoFit, dx: number, dy: number, box: PanBox, natural: PanBox): PhotoFit {
+  const room = photoRoom(from, box, natural);
+  const shift = (at: number, delta: number, left: number) =>
+    Math.abs(left) < MIN_ROOM ? at : Math.round(Math.min(100, Math.max(0, at - (delta / left) * 100)) * 100) / 100;
+  return { ...from, x: shift(from.x, dx, room.x), y: shift(from.y, dy, room.y) };
+}
 
 /** inline style untuk <img>. `scale` terpisah dari transform → efek hover kartu tetap jalan. */
 export function photoStyle(fits: PhotoFits | undefined, frame: PhotoFrame): string | undefined {

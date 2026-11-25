@@ -20,7 +20,7 @@ if (!session) return Astro.redirect('/admin/login');
 const promo = await getPromo();
 const media = await getMedia();
 const catalog = await getCatalog();
-const occasionTiles = chooseTilesFrom(buildFacets([...catalog.allProducts, ...catalog.addons], await getCategories()), media.occasionImages).Occasions;
+const occasionTiles = chooseTilesFrom(buildFacets([...catalog.allProducts, ...catalog.addons], await getCategories()), media.occasionImages, media.occasionFits).Occasions;
 const checkoutEnabled = await getCheckoutEnabled();
 ---
 

@@ -297,7 +297,8 @@ export default function ProductEditor({ mode, product, images: initialImages, ca
       {adjusting && (
         <PhotoAdjuster
           src={`/uploads/${adjusting.filename}`}
-          main={images[0]?.id === adjusting.id}
+          frames={images[0]?.id === adjusting.id ? ['shop', 'square', 'detail'] : ['detail']}
+          note="Foto ini hanya tampil di Detail produk. Untuk Belanja dan Momen, atur foto pertama."
           value={adjusting.fit}
           onClose={() => setAdjusting(null)}
           onSave={async (fit) => {

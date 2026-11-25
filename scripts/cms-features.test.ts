@@ -8,6 +8,7 @@ import { categoryColumn } from '../src/lib/categories';
 import { buildFacets } from '../src/lib/facets';
 import { chooseTilesFrom } from '../src/data/choose';
 import { readProduct } from '../src/lib/admin';
+import { readMedia } from '../src/lib/settings';
 import { allProducts } from '../src/data/catalog';
 
 const extra = { slug: 'wedding', label: 'Wedding', visible: true };
@@ -77,25 +78,36 @@ test('photo fit rejects out-of-range values and renders only when changed', () =
   for (const bad of [null, [], 'x']) assert.throws(() => readPhotoFits(bad));
 });
 
-test('dragging always moves the photo by the dragged distance', () => {
+test('dragging follows the cursor and never changes zoom', () => {
   const natural = { width: 800, height: 1200 };
-  // posisi pusat foto (px) relatif pusat bingkai
-  const center = (f: any, box: any) => {
-    const base = Math.max(box.width / natural.width, box.height / natural.height) * f.zoom;
-    return [(0.5 - f.x / 100) * (natural.width * base - box.width), (0.5 - f.y / 100) * (natural.height * base - box.height)];
-  };
-  for (const box of [{ width: 300, height: 380 }, { width: 380, height: 380 }, { width: 304, height: 380 }])
-    for (const [dx, dy] of [[40, 0], [-40, 0], [0, 50], [0, -50], [30, 45]]) {
-      const out = panPhoto(DEFAULT_FIT, dx, dy, box, natural);
-      const [cx, cy] = center(out, box);
-      assert.ok(Math.abs(cx - (dx && Math.abs(dx) < Math.abs(dy) ? 0 : dx)) < 1 && Math.abs(cy - dy) < 1, JSON.stringify({ box, dx, dy, out, cx, cy }));
-      assert.deepEqual(readPhotoFit(out), out);
-    }
-  // ada sisa → zoom tidak berubah; zoom otomatis dibatasi; zoom manual dipertahankan
-  assert.equal(panPhoto(DEFAULT_FIT, 0, 20, { width: 380, height: 380 }, natural).zoom, 1);
-  assert.equal(panPhoto(DEFAULT_FIT, 900, 0, { width: 380, height: 380 }, natural).zoom, 1.6);
-  assert.equal(panPhoto({ ...DEFAULT_FIT, zoom: 2.5 }, 10, 10, { width: 380, height: 380 }, natural).zoom, 2.5);
-  assert.deepEqual(panPhoto(DEFAULT_FIT, 10, 10, { width: 380, height: 380 }, { width: 0, height: 0 }), DEFAULT_FIT);
+  const square = { width: 380, height: 380 };
+  // foto tegak di bingkai persegi: hanya atas-bawah yang punya ruang (190px)
+  assert.deepEqual(panPhoto(DEFAULT_FIT, 40, 19, square, natural), { ...DEFAULT_FIT, y: 40 });
+  assert.deepEqual(panPhoto(DEFAULT_FIT, 0, 9999, square, natural), { ...DEFAULT_FIT, y: 0 });
+  for (const zoom of [1, 1.3, 2.5])
+    for (const [dx, dy] of [[500, 500], [-30, 10], [0, -900]])
+      for (const box of [square, { width: 300, height: 380 }, { width: 253.4, height: 380 }]) {
+        const out = panPhoto({ ...DEFAULT_FIT, zoom }, dx, dy, box, natural);
+        assert.equal(out.zoom, zoom);
+        assert.deepEqual(readPhotoFit(out), out);
+      }
+  // setelah diperbesar manual, kiri-kanan ikut bisa digeser sejauh kursor
+  const zoomed = panPhoto({ ...DEFAULT_FIT, zoom: 2 }, 38, 0, square, natural);
+  assert.equal(zoomed.x, 40);
+  // rasio sama dengan bingkai: pas, tidak bisa digeser
+  assert.deepEqual(panPhoto(DEFAULT_FIT, 50, 50, { width: 200, height: 300 }, natural), DEFAULT_FIT);
+  assert.deepEqual(panPhoto(DEFAULT_FIT, 10, 10, square, { width: 0, height: 0 }), DEFAULT_FIT);
+});
+
+test('occasion card positions validate, reach the tile and stay off other cards', () => {
+  const base = { heroSlides: ['/assets/a.jpg'] };
+  const fit = { x: 10, y: 20, zoom: 1.5, fit: 'cover' as const };
+  assert.deepEqual(readMedia({ ...base, occasionFits: { birthday: fit, graduation: DEFAULT_FIT } }).occasionFits, { birthday: fit });
+  assert.equal('occasionFits' in readMedia(base), false);
+  for (const bad of [null, [], { birthday: { ...fit, zoom: 9 } }, { '': fit }]) assert.throws(() => readMedia({ ...base, occasionFits: bad }));
+  const tiles = chooseTilesFrom(buildFacets([{ ...allProducts[0], occasion: 'Happy Birthday, Happy Graduation' }]), {}, { birthday: fit }).Occasions;
+  assert.deepEqual(tiles.find((t) => t.label === 'Birthday')!.fit, fit);
+  assert.equal(tiles.find((t) => t.label === 'Graduation')!.fit, undefined);
 });
 
 test('saving one photo keeps the other photos and clears on reset', async () => {

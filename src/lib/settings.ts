@@ -7,6 +7,7 @@
  */
 import { q, tx, isConfigured, type Querier } from './db';
 import { heroSlides } from '../data/home';
+import { isDefaultFit, readPhotoFit, type PhotoFit } from '../data/photo-fit';
 
 export interface PromoSettings {
   enabled: boolean;
@@ -74,6 +75,8 @@ export interface MediaSettings {
   aboutVideo: string;
   occasionCover: string;
   occasionImages: Record<string, string>;
+  /** posisi foto kartu Occasion di beranda, per nilai occasion */
+  occasionFits?: Record<string, PhotoFit>;
 }
 
 export function safeMediaUrl(value: string): boolean {
@@ -100,13 +103,25 @@ export function readMedia(input: Record<string, unknown>): MediaSettings {
       Object.defineProperty(occasionImages, key, { value: value.trim(), enumerable: true });
     }
   }
+  const occasionFits: Record<string, PhotoFit> = {};
+  if (input.occasionFits !== undefined) {
+    if (!input.occasionFits || typeof input.occasionFits !== 'object' || Array.isArray(input.occasionFits))
+      throw new Error('Pengaturan foto Occasion tidak valid.');
+    const entries = Object.entries(input.occasionFits);
+    if (entries.length > 100) throw new Error('Maksimal 100 foto kartu Occasion.');
+    for (const [key, value] of entries) {
+      if (!key.trim() || key.length > 100) throw new Error('Pengaturan foto Occasion tidak valid.');
+      const fit = readPhotoFit(value);
+      if (!isDefaultFit(fit)) Object.defineProperty(occasionFits, key, { value: fit, enumerable: true });
+    }
+  }
   if (!safeMediaUrl(occasionCover) || !/\.(jpg|jpeg|png|webp)(?:[?#]|$)/i.test(occasionCover))
     throw new Error('Cover Occasion harus berupa foto JPG, PNG, atau WebP.');
   if (slides.some((url) => !safeMediaUrl(url)) || (aboutVideo && !safeMediaUrl(aboutVideo)))
     throw new Error('Gunakan path /assets/... atau URL HTTPS lengkap.');
   if (aboutVideo && !/\.(mp4|webm)(?:[?#]|$)/i.test(aboutVideo))
     throw new Error('Video harus link langsung file MP4 atau WebM.');
-  return { heroSlides: slides, aboutVideo, occasionCover, occasionImages };
+  return { heroSlides: slides, aboutVideo, occasionCover, occasionImages, ...(Object.keys(occasionFits).length ? { occasionFits } : {}) };
 }
 
 export async function writeSetting(t: Querier, key: string, value: string) {

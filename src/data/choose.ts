@@ -4,6 +4,7 @@
  * katalog lewat `chooseTilesFrom(facets)` di ChooseFlowerSection.astro.
  */
 import type { Facets } from '../lib/facets';
+import type { PhotoFit } from './photo-fit';
 
 export const chooseHeadingLead = 'Find the Perfect Flowers for Every Moment.';
 
@@ -21,6 +22,8 @@ export const chooseSub: Record<ChooseTab, string> = {
 
 export interface ChooseTile {
   image: string;
+  /** posisi foto dari CMS */
+  fit?: PhotoFit;
   label: string;
   olive?: boolean;
   /** klik tile → halaman shop dengan filter sudah aktif */
@@ -44,10 +47,11 @@ const img = (i: number) => `/assets/${POOL[i % POOL.length]}`;
 const PARAM: Record<ChooseTab, string> = { Occasions: 'occasion', Category: 'cat', Flower: 'flower' };
 
 /** rakit tile per tab dari facet katalog — hanya yang ADA produknya */
-export function chooseTilesFrom(facets: Facets, occasionImages: Record<string, string> = {}): Record<ChooseTab, ChooseTile[]> {
+export function chooseTilesFrom(facets: Facets, occasionImages: Record<string, string> = {}, occasionFits: Record<string, PhotoFit> = {}): Record<ChooseTab, ChooseTile[]> {
   const make = (tab: ChooseTab, facetList: { label: string; value: string; image?: string }[], offset: number): ChooseTile[] =>
     facetList.map((f, i) => ({
       image: (tab === 'Occasions' && Object.prototype.hasOwnProperty.call(occasionImages, f.value) ? occasionImages[f.value] : f.image) || img(i + offset),
+      ...(tab === 'Occasions' && Object.prototype.hasOwnProperty.call(occasionFits, f.value) ? { fit: occasionFits[f.value] } : {}),
       label: f.label,
       href: `/shop?${PARAM[tab]}=${encodeURIComponent(f.value)}`,
     }));
